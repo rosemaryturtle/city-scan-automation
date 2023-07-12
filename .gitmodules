@@ -1,0 +1,6 @@
+[submodule "multi-scan-materials"]
+	path = multi-scan-materials
+	url = https://github.com/bennotkin/multi-scan-materials.git
+[submodule "scan-assembly"]
+	path = scan-assembly
+	url = https://github.com/bennotkin/city-scan.git
