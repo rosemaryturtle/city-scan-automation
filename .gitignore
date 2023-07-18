@@ -168,3 +168,6 @@ relative_wealth_index/.DS_Store
 road_network_analysis/.DS_Store
 scan-assembly/.DS_Store
 multi-scan-materials/.DS_Store
+
+# Raster files
+*.tif
