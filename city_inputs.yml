@@ -3,3 +3,4 @@ AOI_path: "../../../Pacific/Funafuti/AOI/funafuti.shp"
 country_name: 'Tuvalu'
 country_iso3: 'TUV'
 fathom_path: ''
+impervious_source: ''

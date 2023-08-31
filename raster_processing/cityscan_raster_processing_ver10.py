@@ -17,15 +17,14 @@ from os.path import exists
 import csv
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 
+# SET UP ##############################################
+
 print('welcome to city scan 2')
-
-# print('note: Your input admin datasets should be using crs 4326')  # no longer needed because this script transforms the CRS automatically
-
 
 # load configuration file, this files stores the file locations for the global data files
 # the global config file usually only needs to be changed once, depending on the user's local machine setup
-with open("global_data_config_personal_windows.yml", "r") as ymlfile:
-    cfg = yaml.safe_load(ymlfile)
+# with open("global_data_config_personal_windows.yml", "r") as ymlfile:
+#     cfg = yaml.safe_load(ymlfile)
 
 # load city inputs files, to be updated for each city scan
 with open("../city_inputs.yml", 'r') as f:
@@ -33,14 +32,21 @@ with open("../city_inputs.yml", 'r') as f:
 
 city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
 
+# load global inputs, such as data sources that generally remain the same across scans
+with open("../global_inputs.yml", 'r') as f:
+    global_inputs = yaml.safe_load(f)
 
-# Read AOI shapefile ######################
+# load menu
+with open("../menu.yml", 'r') as f:
+    menu = yaml.safe_load(f)
+
+# Read AOI shapefile --------
 print('attempt to read AOI shapefile')
 # transform the input shp to correct prj (epsg 4326)
 aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 features = aoi_file.geometry
 
-# Define output folder ##############
+# Define output folder ---------
 output_folder = Path('output')
 
 try:
@@ -49,120 +55,129 @@ except FileExistsError:
     pass
 
 
-# Download and prepare WorldPop data ##################
-pop_folder = Path('01_population')
+# DOWNLOAD DATA ##########################################
+data_folder = Path('data')
 
 try:
-    os.mkdir(pop_folder)
+    os.mkdir(data_folder)
 except FileExistsError:
     pass
 
-# default population data source: WorldPop
+# Download and prepare WorldPop data ------------
+if menu['population']:
+    pop_folder = data_folder / 'pop'
 
-# use WorldPop API to query data URL
-wp_file_json = requests.get('https://hub.worldpop.org/rest/data/pop/cic2020_100m?iso3=' + city_inputs['country_iso3']).json()
-wp_file_list = wp_file_json['data'][0]['files']
+    try:
+        os.mkdir(pop_folder)
+    except FileExistsError:
+        pass
 
-# check if the country's population raster has already been downloaded
-# download if the file does not already exist
-if not exists(pop_folder / (city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif')):
-    if len(wp_file_list) > 1:
-        # if more than one raster file is listed (uncommon), download each file and then mosaic them
-        for f in wp_file_list:
-            wp_file = requests.get(f)
-            wp_file_name = f.split('/')[-1]
-            
+    # default population data source: WorldPop
+
+    # use WorldPop API to query data URL
+    wp_file_json = requests.get('https://hub.worldpop.org/rest/data/pop/cic2020_100m?iso3=' + city_inputs['country_iso3']).json()
+    wp_file_list = wp_file_json['data'][0]['files']
+
+    # check if the country's population raster has already been downloaded
+    # download if the file does not already exist
+    if not exists(pop_folder / (city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif')):
+        if len(wp_file_list) > 1:
+            # if more than one raster file is listed (uncommon), download each file and then mosaic them
+            for f in wp_file_list:
+                wp_file = requests.get(f)
+                wp_file_name = f.split('/')[-1]
+                
+                open(pop_folder / wp_file_name, 'wb').write(wp_file.content)
+
+            try:
+                raster_to_mosaic = []
+                mosaic_file = city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'
+
+                mosaic_list = os.listdir(pop_folder.iterdir())
+                for p in mosaic_list:
+                    if p.endswith('.tif'):
+                        raster = rasterio.open(pop_folder / p)
+                        raster_to_mosaic.append(raster)
+
+                mosaic, output = merge(raster_to_mosaic)
+                output_meta = raster.meta.copy()
+                output_meta.update(
+                    {"driver": "GTiff",
+                        "height": mosaic.shape[1],
+                        "width": mosaic.shape[2],
+                        "transform": output,
+                    }
+                )
+
+                with rasterio.open(pop_folder / mosaic_file, 'w', **output_meta) as m:
+                    m.write(mosaic)
+            except MemoryError:
+                print('MemoryError when merging population raster files.')
+                print('Try GIS instead for merging.')
+        elif len(wp_file_list) == 1:
+            wp_file = requests.get(wp_file_list[0])
+            wp_file_name = city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'
             open(pop_folder / wp_file_name, 'wb').write(wp_file.content)
+        else:
+            print('No WorldPop file available')
+            print('Use a different WorldPop dataset or another population data source')
 
+# Download and prepare WSF evolution data ----------------
+if menu['wsf']:
+    wsf_folder = data_folder / 'wsf'
+
+    try:
+        os.mkdir(wsf_folder)
+    except FileExistsError:
+        pass
+
+    aoi_bounds = aoi_file.bounds
+
+    for i in range(len(aoi_bounds)):
+        for x in range(math.floor(aoi_bounds.minx[i] - aoi_bounds.minx[i] % 2), math.ceil(aoi_bounds.maxx[i]), 2):
+            for y in range(math.floor(aoi_bounds.miny[i] - aoi_bounds.miny[i] % 2), math.ceil(aoi_bounds.maxy[i]), 2):
+                file_name = 'WSFevolution_v1_' + str(x) + '_' + str(y)
+                if not exists(wsf_folder / (file_name + '.tif')):
+                    file = requests.get('https://download.geoservice.dlr.de/WSF_EVO/files/' + file_name + '/' + file_name + '.tif')
+                    open(wsf_folder / (file_name + '.tif'), 'wb').write(file.content)
+
+    # count how many raster files have been downloaded
+    def tif_counter(list):
+        if list.endswith('.tif'):
+            return True
+        return False
+
+    if len(list(filter(tif_counter, os.listdir(wsf_folder)))) > 1:
         try:
             raster_to_mosaic = []
-            mosaic_file = city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'
+            mosaic_file = city_name_l + '_wsf_evolution.tif'
 
-            mosaic_list = os.listdir(pop_folder.iterdir())
-            for p in mosaic_list:
-                if p.endswith('.tif'):
-                    raster = rasterio.open(pop_folder / p)
-                    raster_to_mosaic.append(raster)
+            if not exists(wsf_folder / mosaic_file):
+                mosaic_list = os.listdir(wsf_folder)
+                for p in mosaic_list:
+                    if p.endswith('.tif'):
+                        raster = rasterio.open(wsf_folder / p)
+                        raster_to_mosaic.append(raster)
 
-            mosaic, output = merge(raster_to_mosaic)
-            output_meta = raster.meta.copy()
-            output_meta.update(
-                {"driver": "GTiff",
-                    "height": mosaic.shape[1],
-                    "width": mosaic.shape[2],
-                    "transform": output,
-                }
-            )
+                mosaic, output = merge(raster_to_mosaic)
+                output_meta = raster.meta.copy()
+                output_meta.update(
+                    {"driver": "GTiff",
+                        "height": mosaic.shape[1],
+                        "width": mosaic.shape[2],
+                        "transform": output,
+                    }
+                )
 
-            with rasterio.open(pop_folder / mosaic_file, 'w', **output_meta) as m:
-                m.write(mosaic)
+                with rasterio.open(wsf_folder / mosaic_file, 'w', **output_meta) as m:
+                    m.write(mosaic)
         except MemoryError:
-            print('MemoryError when merging population raster files.')
+            print('MemoryError when merging WSF evolution raster files.') 
             print('Try GIS instead for merging.')
-    elif len(wp_file_list) == 1:
-        wp_file = requests.get(wp_file_list[0])
-        wp_file_name = city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'
-        open(pop_folder / wp_file_name, 'wb').write(wp_file.content)
+    elif len(list(filter(tif_counter, os.listdir(wsf_folder)))) == 1:
+        os.rename(wsf_folder / (list(filter(tif_counter, os.listdir(wsf_folder)))[0]), wsf_folder / (city_name_l + '_wsf_evolution.tif'))
     else:
-        print('No WorldPop file available')
-        print('Use a different WorldPop dataset or another population data source')
-
-
-# Download and prepare WSF evolution data #######################
-wsf_folder = Path('02_urban_change')
-
-try:
-    os.mkdir(wsf_folder)
-except FileExistsError:
-    pass
-
-aoi_bounds = aoi_file.bounds
-
-for i in range(len(aoi_bounds)):
-    for x in range(math.floor(aoi_bounds.minx[i] - aoi_bounds.minx[i] % 2), math.ceil(aoi_bounds.maxx[i]), 2):
-        for y in range(math.floor(aoi_bounds.miny[i] - aoi_bounds.miny[i] % 2), math.ceil(aoi_bounds.maxy[i]), 2):
-            file_name = 'WSFevolution_v1_' + str(x) + '_' + str(y)
-            if not exists(wsf_folder / (file_name + '.tif')):
-                file = requests.get('https://download.geoservice.dlr.de/WSF_EVO/files/' + file_name + '/' + file_name + '.tif')
-                open(wsf_folder / (file_name + '.tif'), 'wb').write(file.content)
-
-# count how many raster files have been downloaded
-def tif_counter(list):
-    if list.endswith('.tif'):
-        return True
-    return False
-
-if len(list(filter(tif_counter, os.listdir(wsf_folder)))) > 1:
-    try:
-        raster_to_mosaic = []
-        mosaic_file = city_name_l + '_wsf_evolution.tif'
-
-        if not exists(wsf_folder / mosaic_file):
-            mosaic_list = os.listdir(wsf_folder)
-            for p in mosaic_list:
-                if p.endswith('.tif'):
-                    raster = rasterio.open(wsf_folder / p)
-                    raster_to_mosaic.append(raster)
-
-            mosaic, output = merge(raster_to_mosaic)
-            output_meta = raster.meta.copy()
-            output_meta.update(
-                {"driver": "GTiff",
-                    "height": mosaic.shape[1],
-                    "width": mosaic.shape[2],
-                    "transform": output,
-                }
-            )
-
-            with rasterio.open(wsf_folder / mosaic_file, 'w', **output_meta) as m:
-                m.write(mosaic)
-    except MemoryError:
-        print('MemoryError when merging WSF evolution raster files.') 
-        print('Try GIS instead for merging.')
-elif len(list(filter(tif_counter, os.listdir(wsf_folder)))) == 1:
-    os.rename(wsf_folder / (list(filter(tif_counter, os.listdir(wsf_folder)))[0]), wsf_folder / (city_name_l + '_wsf_evolution.tif'))
-else:
-    print('No WSF evolution file available')
+        print('No WSF evolution file available')
 
 """
 # elevation
@@ -191,15 +206,6 @@ if elevation_file == 'test':
     warnings.warn("Warning because there are multiple elevation files but no merged elevation file. Make sure to merge the elevation files and include the word 'merged' in the name of the file.")
 
 
-# solar
-solar_file = 'test'
-
-print('go into solar glob')
-for name in glob.glob('./06_solar/*/PVOUT.tif'):
-    print('inside solar glob')
-    print(name)
-    solar_file = name
-
 # imperviousness
 imperv_file = 'test'
 
@@ -210,7 +216,10 @@ for name in glob.glob('./13_imperviousness/*imperviousness*.tif'):
     imperv_file = name
 """
 
-# Raster clip functions #################
+
+# DEFINE FUNCTIONS #################################
+
+# Raster clip functions ----------------
 def clipdata(input_raster, data_type):
     with rasterio.open(input_raster) as src:
         # shapely presumes all operations on two or more features exist in the same Cartesian plane.
@@ -338,41 +347,45 @@ def clipdata_elev(admin_folder, input_raster, output_folder, prepend_file_text):
                     dest.write(out_image)
 """
 
-# Raster processing ################################
+
+# RASTER PROCESSING ################################
+
 print('starting processing')
 
-# 01 population
-clipdata(pop_folder / (city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'), 'population')
+# population
+if menu['population']:
+    clipdata(pop_folder / (city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'), 'population')
 
-# 02 urban change
-# clipdata_urban_change(admin_folder, ghsl_urban_change_file, output_folder, '02_urban_change')
-clipdata_wsf(wsf_folder / (city_name_l + '_wsf_evolution.tif'))
+# wsf
+if menu['wsf']:
+    clipdata_wsf(wsf_folder / (city_name_l + '_wsf_evolution.tif'))
+
+# solar
+if menu['solar']:
+    clipdata(global_inputs['solar_source'], 'solar')
+
+# air quality
+if menu['air_quality']:
+    clipdata(global_inputs['air_source'], 'air_quality')
+
+# landslide
+if menu['landslide']:
+    clipdata(global_inputs['landslide_source'], 'landslide')
+
+# imperviousness
+if menu['impervious']:
+    clipdata(city_inputs['impervious_source'], 'imperviousness')
+
 
 # 03 land cover
+# move to GEE?
 # if tifCounter > 0:
 #     clipdata(admin_folder, landcover_file, output_folder, '03_landcover')
 
 """
 # 04 elevation
+# waiting for FABDEM download
 if tifCounter > 0:
     clipdata_elev(admin_folder, elevation_file, output_folder, '04_elevation')
 
-# 06 solar
-clipdata(admin_folder, solar_file, output_folder, '06_solar')
-
-# 07 air quality
-clipdata(admin_folder, cfg["07_air_quality"] +
-         'sdei-global-annual-gwr-pm2-5-modis-misr-seawifs-aod-2016-geotiff/gwr_pm25_2016.tif', output_folder, '07_air_quality')
-
-# 11 landslides
-clipdata(admin_folder, cfg["11_landslides"] +
-         'suscV1_1.tif', output_folder, '11_landslides')
-
-# 13 imperviousness
-clipdata(admin_folder, imperv_file, output_folder, '13_imperviousness')
 """
-
-# NOT done by this script
-# 08 uhi: GEE
-# 09 flooding: toolbox
-# 12 earthquakes: screenshot

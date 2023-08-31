@@ -1,0 +1,17 @@
+population: True
+wsf: True
+landcover: True
+elevation: True
+solar: True
+air_quality: True
+flood: True
+landslide: False
+liquefaction: True
+impervious: False
+accessibility: True
+summer_lst: True
+nightlight: True
+green: True
+forest: True
+rwi: True
+road_network: True
