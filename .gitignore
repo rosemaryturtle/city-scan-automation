@@ -182,3 +182,4 @@ multi-scan-materials/.DS_Store
 # Other data files
 *.json
 *.pickle
+*.gpkg

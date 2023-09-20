@@ -8,7 +8,7 @@ elevation: True
 solar: True
 air: True
 flood: True
-landslide: False
+landslide: True
 liquefaction: True
 impervious: False
 liquefaction: True
