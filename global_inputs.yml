@@ -1,3 +1,42 @@
+# data sources
 solar_source: "D:/World Bank/CRP/data/Global Solar Atlas/World_PVOUT_GISdata_LTAy_AvgDailyTotals_GlobalSolarAtlas-v2_GEOTIFF/PVOUT.tif"
 air_source: "D:/World Bank/CRP/data/Global Annual PM2.5 Grids 1998-2019/sdei-global-annual-gwr-pm2-5-modis-misr-seawifs-aod-v4-gl-03-2019.tif"
 landslide_source: ''
+liquefaction_source: 'D:/World Bank/CRP/data/Liquefaction susceptibility/liquefaction_v1_deg.tif'
+flood_source: '' # provide a free alternative
+impervious_source: '' # provide a free alternative
+
+# non-data sources
+gostnets_path: 'C:/Users/Owner/Documents/Career/World Bank/CRP/repo/GOSTnets'
+
+# accessibility analysis parameters
+# (isochrone unit: meter)
+osm_query:
+  schools:
+    amenity:
+      - school
+      - kindergarten
+      - university
+      - college
+  health:
+    amenity:
+      - clinic
+      - hospital
+      - health
+  police:
+    amenity:
+      - police
+  fire:
+    amenity:
+      - fire_station
+isochrone:
+  schools:
+    - 800
+    - 1600
+    - 2400
+  health:
+    - 1000
+    - 2000
+    - 3000
+  fire:
+    - 2500

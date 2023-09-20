@@ -171,3 +171,14 @@ multi-scan-materials/.DS_Store
 
 # Raster files
 *.tif
+
+# Shapefiles
+*.cpg
+*.dbf
+*.prj
+*.shp
+*.shx
+
+# Other data files
+*.json
+*.pickle

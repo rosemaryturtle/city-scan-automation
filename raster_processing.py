@@ -27,17 +27,17 @@ print('welcome to city scan 2')
 #     cfg = yaml.safe_load(ymlfile)
 
 # load city inputs files, to be updated for each city scan
-with open("../city_inputs.yml", 'r') as f:
+with open("city_inputs.yml", 'r') as f:
     city_inputs = yaml.safe_load(f)
 
 city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
 
 # load global inputs, such as data sources that generally remain the same across scans
-with open("../global_inputs.yml", 'r') as f:
+with open("global_inputs.yml", 'r') as f:
     global_inputs = yaml.safe_load(f)
 
 # load menu
-with open("../menu.yml", 'r') as f:
+with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 # Read AOI shapefile --------
@@ -49,10 +49,8 @@ features = aoi_file.geometry
 # Define output folder ---------
 output_folder = Path('output')
 
-try:
+if not os.path.exists(output_folder):
     os.mkdir(output_folder)
-except FileExistsError:
-    pass
 
 
 # DOWNLOAD DATA ##########################################
@@ -360,27 +358,22 @@ if menu['population']:
 if menu['wsf']:
     clipdata_wsf(wsf_folder / (city_name_l + '_wsf_evolution.tif'))
 
-# solar
-if menu['solar']:
-    clipdata(global_inputs['solar_source'], 'solar')
+# other raster files
+# these are simple raster clipping from a global raster
+# to add another such type of raster clipping, just add to the list below
+simple_raster_clip = ['solar', 'air', 'landslide', 'impervious', 'liquefaction']
 
-# air quality
-if menu['air_quality']:
-    clipdata(global_inputs['air_source'], 'air_quality')
-
-# landslide
-if menu['landslide']:
-    clipdata(global_inputs['landslide_source'], 'landslide')
-
-# imperviousness
-if menu['impervious']:
-    clipdata(city_inputs['impervious_source'], 'imperviousness')
-
-
-# 03 land cover
-# move to GEE?
-# if tifCounter > 0:
-#     clipdata(admin_folder, landcover_file, output_folder, '03_landcover')
+# if the data source for a certain raster file is provided in both city_inputs and global_inputs,
+# city_inputs will override global_inputs.
+# in both yaml files, the key for the data source must be the raster name from the list above + '_source'
+for r in simple_raster_clip:
+    if menu[r]:
+        if (f'{r}_source' in city_inputs) and bool(city_inputs[f'{r}_source']):
+            clipdata(city_inputs[f'{r}_source'], r)
+        elif (f'{r}_source' in global_inputs) and bool(global_inputs[f'{r}_source']):
+            clipdata(global_inputs[f'{r}_source'], r)
+        else:
+            print('data source for ' + r + ' does not exist in city or global inputs yaml')
 
 """
 # 04 elevation

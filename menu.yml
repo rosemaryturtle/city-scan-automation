@@ -1,17 +1,31 @@
-population: True
-wsf: True
-landcover: True
+# for all sections below, if the first item is False, all other items in the section will be skipped
+
+# raster processing
+raster_processing: True
+population: False
+wsf: False
 elevation: True
 solar: True
-air_quality: True
+air: True
 flood: True
 landslide: False
 liquefaction: True
 impervious: False
-accessibility: True
+liquefaction: True
+
+# GEE
+gee: True
+landcover: True
 summer_lst: True
 nightlight: True
 green: True
 forest: True
+
+# accessibility
+accessibility: True
+
+# RWI
 rwi: True
+
+# road network
 road_network: True
