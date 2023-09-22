@@ -1,5 +1,19 @@
+# city basic info
 city_name: 'Funafuti'
-AOI_path: "../../../Pacific/Funafuti/AOI/funafuti.shp"
+AOI_path: "../../Pacific/Funafuti/AOI/funafuti.shp"
 country_name: 'Tuvalu'
 country_iso3: 'TUV'
-fathom_path: ''
+
+# data sources (will override global_inputs if duplicates exist)
+# put False as default value if no data exists for a city
+flood_source: False
+impervious_source: False
+
+# accessibility analysis parameters
+# can add to the OSM POIs in global_inputs; will override global_inputs if duplicates exist
+
+# land surface temperature parameters
+first_hot_month: 2
+last_hot_month: 4
+first_year: 2013
+last_year: 2022

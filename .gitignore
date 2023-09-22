@@ -173,6 +173,18 @@ multi-scan-materials/.DS_Store
 # Raster files
 *.tif
 
+# Shapefiles
+*.cpg
+*.dbf
+*.prj
+*.shp
+*.shx
+
+# Other data files
+*.json
+*.pickle
+*.gpkg
+
 # Temporarily hiding frontend while I develop it for the first time
 # In that process, I am assigning city-scan-html-sample its own repo
 frontend
