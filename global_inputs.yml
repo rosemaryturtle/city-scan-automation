@@ -11,6 +11,9 @@ elevation_source: 'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/N0
 # non-data sources
 gostnets_path: 'C:/Users/Owner/Documents/Career/World Bank/CRP/repo/GOSTnets'
 
+# data outputs
+cloud_bucket: 'gee-test-20231019'
+
 # accessibility analysis parameters
 # (isochrone unit: meter)
 osm_query:

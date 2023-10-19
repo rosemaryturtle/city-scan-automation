@@ -1,6 +1,6 @@
 # city basic info
 city_name: 'Funafuti'
-AOI_path: "../../Pacific/Funafuti/AOI/funafuti.shp"
+AOI_path: "C:/Users/Owner/Documents/Career/World Bank/CRP/Mombasa/shapefile/kilifi.shp"
 country_name: 'Tuvalu'
 country_iso3: 'TUV'
 
