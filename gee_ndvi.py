@@ -24,8 +24,6 @@ if menu['green']:
     # Initialize Earth Engine
     ee.Initialize()
 
-    landsat = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
-
     # Read AOI shapefile --------
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
@@ -87,7 +85,7 @@ if menu['green']:
     ndvi_recentannual = nir_recent.subtract(red_recent).divide(nir_recent.add(red_recent)).rename('NDVI')
 
     # Export results to Google Cloud Storage bucket ------------------
-    task1 = ee.batch.Export.image.toCloudStorage(**{
+    task0 = ee.batch.Export.image.toCloudStorage(**{
         'image': ndvi_Season,
         'description': f'{city_name_l}_NDVI_Season',
         'bucket': global_inputs['cloud_bucket'],
@@ -95,9 +93,9 @@ if menu['green']:
         'scale': 10,
         'maxPixels': 1e9
     })
-    task1.start()
+    task0.start()
 
-    task2 = ee.batch.Export.image.toCloudStorage(**{
+    task1 = ee.batch.Export.image.toCloudStorage(**{
         'image': ndvi_recentannual,
         'description': f'{city_name_l}_NDVI_Annual',
         'bucket': global_inputs['cloud_bucket'],
@@ -105,4 +103,4 @@ if menu['green']:
         'scale': 10,
         'maxPixels': 1e9
     })
-    task2.start()
+    task1.start()
