@@ -2,16 +2,16 @@
 
 # raster processing
 raster_processing: True
-population: True
-wsf: True
+population: False
+wsf: False
 elevation: True
-solar: True
-air: True
-flood: True
-landslide: True
-liquefaction: True
+solar: False
+air: False
+flood: False
+landslide: False
+liquefaction: False
 impervious: False
-liquefaction: True
+liquefaction: False
 
 # GEE
 gee: True

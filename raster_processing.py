@@ -22,6 +22,7 @@ if menu['raster_processing']:
     import json
     from os.path import exists
     import csv
+    import zipfile
     from rasterio.warp import calculate_default_transform, reproject, Resampling
 
     # SET UP ##############################################
@@ -37,7 +38,7 @@ if menu['raster_processing']:
         global_inputs = yaml.safe_load(f)
 
     # Read AOI shapefile --------
-    print('attempt to read AOI shapefile')
+    print('read AOI shapefile')
     # transform the input shp to correct prj (epsg 4326)
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
     features = aoi_file.geometry
@@ -69,12 +70,12 @@ if menu['raster_processing']:
         # default population data source: WorldPop
 
         # use WorldPop API to query data URL
-        wp_file_json = requests.get('https://hub.worldpop.org/rest/data/pop/cic2020_100m?iso3=' + city_inputs['country_iso3']).json()
+        wp_file_json = requests.get(f"https://hub.worldpop.org/rest/data/pop/cic2020_100m?iso3={city_inputs['country_iso3']}").json()
         wp_file_list = wp_file_json['data'][0]['files']
 
         # check if the country's population raster has already been downloaded
         # download if the file does not already exist
-        if not exists(pop_folder / (city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif')):
+        if not exists(pop_folder / f"{city_inputs['country_name'].replace(' ', '_').lower()}_pop.tif"):
             if len(wp_file_list) > 1:
                 # if more than one raster file is listed (uncommon), download each file and then mosaic them
                 for f in wp_file_list:
@@ -85,7 +86,7 @@ if menu['raster_processing']:
 
                 try:
                     raster_to_mosaic = []
-                    mosaic_file = city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'
+                    mosaic_file = f"{city_inputs['country_name'].replace(' ', '_').lower()}_pop.tif"
 
                     mosaic_list = os.listdir(pop_folder.iterdir())
                     for p in mosaic_list:
@@ -110,7 +111,7 @@ if menu['raster_processing']:
                     print('Try GIS instead for merging.')
             elif len(wp_file_list) == 1:
                 wp_file = requests.get(wp_file_list[0])
-                wp_file_name = city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'
+                wp_file_name = f"{city_inputs['country_name'].replace(' ', '_').lower()}_pop.tif"
                 open(pop_folder / wp_file_name, 'wb').write(wp_file.content)
             else:
                 print('No WorldPop file available')
@@ -130,10 +131,10 @@ if menu['raster_processing']:
         for i in range(len(aoi_bounds)):
             for x in range(math.floor(aoi_bounds.minx[i] - aoi_bounds.minx[i] % 2), math.ceil(aoi_bounds.maxx[i]), 2):
                 for y in range(math.floor(aoi_bounds.miny[i] - aoi_bounds.miny[i] % 2), math.ceil(aoi_bounds.maxy[i]), 2):
-                    file_name = 'WSFevolution_v1_' + str(x) + '_' + str(y)
-                    if not exists(wsf_folder / (file_name + '.tif')):
-                        file = requests.get('https://download.geoservice.dlr.de/WSF_EVO/files/' + file_name + '/' + file_name + '.tif')
-                        open(wsf_folder / (file_name + '.tif'), 'wb').write(file.content)
+                    file_name = f'WSFevolution_v1_{x}_{y}'
+                    if not exists(wsf_folder / f'{file_name}.tif'):
+                        file = requests.get(f'https://download.geoservice.dlr.de/WSF_EVO/files/{file_name}/{file_name}.tif')
+                        open(wsf_folder / f'{file_name}.tif', 'wb').write(file.content)
 
         # count how many raster files have been downloaded
         def tif_counter(list):
@@ -144,7 +145,7 @@ if menu['raster_processing']:
         if len(list(filter(tif_counter, os.listdir(wsf_folder)))) > 1:
             try:
                 raster_to_mosaic = []
-                mosaic_file = city_name_l + '_wsf_evolution.tif'
+                mosaic_file = f'{city_name_l}_wsf_evolution.tif'
 
                 if not exists(wsf_folder / mosaic_file):
                     mosaic_list = os.listdir(wsf_folder)
@@ -157,9 +158,9 @@ if menu['raster_processing']:
                     output_meta = raster.meta.copy()
                     output_meta.update(
                         {"driver": "GTiff",
-                            "height": mosaic.shape[1],
-                            "width": mosaic.shape[2],
-                            "transform": output,
+                         "height": mosaic.shape[1],
+                         "width": mosaic.shape[2],
+                         "transform": output,
                         }
                     )
 
@@ -169,51 +170,136 @@ if menu['raster_processing']:
                 print('MemoryError when merging WSF evolution raster files.') 
                 print('Try GIS instead for merging.')
         elif len(list(filter(tif_counter, os.listdir(wsf_folder)))) == 1:
-            os.rename(wsf_folder / (list(filter(tif_counter, os.listdir(wsf_folder)))[0]), wsf_folder / (city_name_l + '_wsf_evolution.tif'))
+            os.rename(wsf_folder / (list(filter(tif_counter, os.listdir(wsf_folder)))[0]), wsf_folder / f'{city_name_l}_wsf_evolution.tif')
         else:
             print('No WSF evolution file available')
 
     # Download and prepare FABDEM data ---------------------
-    # TODO
+    if menu['elevation']:
+        elev_folder = data_folder / 'elev'
+
+        try:
+            os.mkdir(elev_folder)
+        except FileExistsError:
+            pass
+
+        aoi_bounds = aoi_file.bounds
+
+        def tile_finder(direction, tile_size):
+            coord_list = []
+
+            if direction == 'lat':
+                hemi_options = ['N', 'S']
+                coord_min = aoi_bounds.miny
+                coord_max = aoi_bounds.maxy
+                zfill_digits = 2
+            elif direction == 'lon':
+                hemi_options = ['E', 'W']
+                coord_min = aoi_bounds.minx
+                coord_max = aoi_bounds.maxx
+                zfill_digits = 3
+            else:
+                print('Invalid direction. How did this happen?')
+
+            for i in range(len(aoi_bounds)):
+                if math.floor(coord_min[i]) >= 0:
+                    hemi = hemi_options[0]
+                    for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
+                                   math.ceil(coord_max[i] / tile_size) * tile_size, 
+                                   tile_size):
+                        coord_list.append(f'{hemi}{str(y).zfill(zfill_digits)}')
+                elif math.ceil(coord_max[i]) >= 0:
+                    for y in range(0, 
+                                   math.ceil(coord_max[i] / tile_size) * tile_size, 
+                                   tile_size):
+                        coord_list.append(f'{hemi_options[0]}{str(y).zfill(zfill_digits)}')
+                    for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
+                                   0, 
+                                   tile_size):
+                        coord_list.append(f'{hemi_options[1]}{str(-y).zfill(zfill_digits)}')
+                else:
+                    hemi = hemi_options[1]
+                    for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
+                                   math.ceil(coord_max[i] / tile_size) * tile_size, 
+                                   tile_size):
+                        coord_list.append(f'{hemi}{str(-y).zfill(zfill_digits)}')
+
+            return coord_list
+
+        lat_tiles_big = tile_finder('lat', 10)
+        lon_tiles_big = tile_finder('lon', 10)
+        lat_tiles_small = tile_finder('lat', 1)
+        lon_tiles_small = tile_finder('lon', 1)
+
+        def tile_end_matcher(tile_starter):
+            if tile_starter == 'S10':
+                return 'N00'
+            elif tile_starter == 'W010':
+                return 'E000'
+            elif tile_starter[0] == 'N' or tile_starter[0] == 'E':
+                return f'{tile_starter[0]}{str(int(tile_starter[1:]) + 10).zfill(len(tile_starter) - 1)}'
+            elif tile_starter[0] == 'S' or tile_starter[0] == 'W':
+                return f'{tile_starter[0]}{str(int(tile_starter[1:]) - 10).zfill(len(tile_starter) - 1)}'
+            else:
+                print('Invalid input. How did this happen?')
+
+        for lat in lat_tiles_big:
+            for lon in lon_tiles_big:
+                file_name = f'{lat}{lon}-{tile_end_matcher(lat)}{tile_end_matcher(lon)}_FABDEM_V1-2.zip'
+                if not exists(elev_folder / file_name):
+                    file = requests.get(f'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/{file_name}')
+                    open(elev_folder / file_name, 'wb').write(file.content)
+
+                # unzip downloads
+                for lat1 in lat_tiles_small:
+                    for lon1 in lon_tiles_small:
+                        file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
+                        if not exists(elev_folder / file_name1):
+                            try:
+                                with zipfile.ZipFile(elev_folder / file_name, 'r') as z:
+                                    z.extract(file_name1, elev_folder)
+                            except:
+                                pass
+
+        # count how many raster files have been unzipped
+        def tif_counter(list):
+            if list.endswith('.tif'):
+                return True
+            return False
+
+        if len(list(filter(tif_counter, os.listdir(elev_folder)))) > 1:
+            try:
+                raster_to_mosaic = []
+                mosaic_file = f'{city_name_l}_elevation.tif'
+
+                if not exists(elev_folder / mosaic_file):
+                    mosaic_list = os.listdir(elev_folder)
+                    for p in mosaic_list:
+                        if p.endswith('.tif'):
+                            raster = rasterio.open(elev_folder / p)
+                            raster_to_mosaic.append(raster)
+
+                    mosaic, output = merge(raster_to_mosaic)
+                    output_meta = raster.meta.copy()
+                    output_meta.update(
+                        {"driver": "GTiff",
+                         "height": mosaic.shape[1],
+                         "width": mosaic.shape[2],
+                         "transform": output,
+                        }
+                    )
+
+                    with rasterio.open(elev_folder / mosaic_file, 'w', **output_meta) as m:
+                        m.write(mosaic)
+            except MemoryError:
+                print('MemoryError when merging elevation raster files.') 
+                print('Try GIS instead for merging.')
+        elif len(list(filter(tif_counter, os.listdir(elev_folder)))) == 1:
+            os.rename(elev_folder / (list(filter(tif_counter, os.listdir(elev_folder)))[0]), elev_folder / f'{city_name_l}_elevation.tif')
+        else:
+            print('No elevation file available')
+
     
-    """
-    # elevation
-
-    elevation_file = 'test'
-
-    tifCounter = len(glob.glob1('./04_elevation/', "*.tif"))
-
-    print('tifCounter, elevation files:')
-    print(tifCounter)
-
-    if tifCounter == 1:
-        for name in glob.glob('./04_elevation/*.tif'):
-            print('inside elevation glob single')
-            print(name)
-            elevation_file = name
-    elif tifCounter == 0:
-        warnings.warn("there are no elevation files")
-    else:
-        for name in glob.glob('./04_elevation/*merged.tif'):
-            print('inside elevation glob multiple')
-            print(name)
-            elevation_file = name
-
-    if elevation_file == 'test':
-        warnings.warn("Warning because there are multiple elevation files but no merged elevation file. Make sure to merge the elevation files and include the word 'merged' in the name of the file.")
-
-
-    # imperviousness
-    imperv_file = 'test'
-
-    print('go into imperviousness glob')
-    for name in glob.glob('./13_imperviousness/*imperviousness*.tif'):
-        print('inside imperviousness glob')
-        print(name)
-        imperv_file = name
-    """
-
-
     # DEFINE FUNCTIONS #################################
 
     # Raster clip functions ----------------
@@ -225,11 +311,11 @@ if menu['raster_processing']:
             out_meta = src.meta.copy()
 
         out_meta.update({"driver": "GTiff",
-                            "height": out_image.shape[1],
-                            "width": out_image.shape[2],
-                            "transform": out_transform})
+                         "height": out_image.shape[1],
+                         "width": out_image.shape[2],
+                         "transform": out_transform})
 
-        with rasterio.open(output_folder / (city_name_l + '_' + data_type + '.tif'), "w", **out_meta) as dest:
+        with rasterio.open(output_folder / f'{city_name_l}_{data_type}.tif', "w", **out_meta) as dest:
             dest.write(out_image)
 
     # Different from clipdata because wsf needs to be bucketed by year
@@ -251,11 +337,11 @@ if menu['raster_processing']:
             out_meta = src.meta.copy()
 
             out_meta.update({"driver": "GTiff",
-                                "height": out_image.shape[1],
-                                "width": out_image.shape[2],
-                                "transform": out_transform})
+                             "height": out_image.shape[1],
+                             "width": out_image.shape[2],
+                             "transform": out_transform})
 
-            output_4326_raster_clipped = output_folder / (city_name_l + '_wsf_4326.tif')
+            output_4326_raster_clipped = output_folder / f'{city_name_l}_wsf_4326.tif'
 
             # save for stats
             with rasterio.open(output_4326_raster_clipped, "w", **out_meta) as dest:
@@ -273,7 +359,7 @@ if menu['raster_processing']:
                     'height': height
                 })
 
-                output_utm_raster_clipped = output_folder / (city_name_l + '_wsf_utm.tif')
+                output_utm_raster_clipped = output_folder / f'{city_name_l}_wsf_utm.tif'
                 with rasterio.open(output_utm_raster_clipped, 'w', **kwargs) as dst:
                     for i in range(1, src.count + 1):
                         reproject(
@@ -302,7 +388,7 @@ if menu['raster_processing']:
                             array == year) * pixelSizeX * pixelSizeY / 1000000 + year_dict[year-1]
 
                 # save CSV
-                with open(output_folder / (city_name_l + "_wsf_stats.csv"), 'w') as f:
+                with open(output_folder / f"{city_name_l}_wsf_stats.csv", 'w') as f:
                     f.write("year,cumulative sq km\n")
                     for key in year_dict.keys():
                         f.write("%s,%s\n" % (key, year_dict[key]))
@@ -314,48 +400,27 @@ if menu['raster_processing']:
             out_image[(out_image < 1996) & (out_image >= 1986)] = 2
             out_image[out_image == 1985] = 1
 
-            output_4326_raster_clipped_reclass = output_folder / (city_name_l + '_wsf_4326_reclass.tif')
+            output_4326_raster_clipped_reclass = output_folder / f'{city_name_l}_wsf_4326_reclass.tif'
 
             # save for stats
             with rasterio.open(output_4326_raster_clipped_reclass, "w", **out_meta) as dest:
                 dest.write(out_image)
 
-    """
-    # Same as clipdata(), but set the nodata value to -99999
-    def clipdata_elev(admin_folder, input_raster, output_folder, prepend_file_text):
-
-        for file in os.listdir(admin_folder):
-            if file.endswith(".shp"):
-                print(file)
-                with fiona.open(admin_folder + '/' + file, "r") as shapefile:
-                    features = [feature["geometry"] for feature in shapefile]
-
-                    with rasterio.open(input_raster) as src:
-                        out_image, out_transform = rasterio.mask.mask(src, features, crop = True, nodata = -99999)
-                        out_meta = src.meta.copy()
-
-                    out_meta.update({"driver": "GTiff",
-                                    "height": out_image.shape[1],
-                                    "width": out_image.shape[2],
-                                    "transform": out_transform,
-                                    'nodata': -99999})
-
-                    with rasterio.open(output_folder + '/' + prepend_file_text + "_%s.tif" % file[:-4], "w", **out_meta) as dest:
-                        dest.write(out_image)
-    """
-
 
     # RASTER PROCESSING ################################
-
     print('starting processing')
 
     # population
     if menu['population']:
-        clipdata(pop_folder / (city_inputs['country_name'].replace(' ', '_').lower() + '_pop.tif'), 'population')
+        clipdata(pop_folder / f"{city_inputs['country_name'].replace(' ', '_').lower()}_pop.tif", 'population')
 
     # wsf
     if menu['wsf']:
-        clipdata_wsf(wsf_folder / (city_name_l + '_wsf_evolution.tif'))
+        clipdata_wsf(wsf_folder / f'{city_name_l}_wsf_evolution.tif')
+    
+    # elevation
+    if menu['elevation']:
+        clipdata(elev_folder / f'{city_name_l}_elevation.tif', 'elevation')
 
     # other raster files
     # these are simple raster clipping from a global raster
@@ -372,12 +437,4 @@ if menu['raster_processing']:
             elif (f'{r}_source' in global_inputs) and bool(global_inputs[f'{r}_source']):
                 clipdata(global_inputs[f'{r}_source'], r)
             else:
-                print('data source for ' + r + ' does not exist in city or global inputs yaml')
-
-    """
-    # 04 elevation
-    # waiting for FABDEM download
-    if tifCounter > 0:
-        clipdata_elev(admin_folder, elevation_file, output_folder, '04_elevation')
-
-    """
+                print(f'data source for {r} does not exist in city or global inputs yaml')

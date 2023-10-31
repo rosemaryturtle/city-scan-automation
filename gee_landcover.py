@@ -43,7 +43,7 @@ if menu['landcover']:
     lc_aoi = lc.clip(AOI)
 
     # Export results to Google Cloud Storage bucket ------------------
-    task0 = ee.batch.Export.table.toCloudStorage(**{'image': lc_aoi,
+    task0 = ee.batch.Export.image.toCloudStorage(**{'image': lc_aoi,
                                                     'description': f'{city_name_l}_lc',
                                                     'region': AOI,
                                                     'scale': 10,
