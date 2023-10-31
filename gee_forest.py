@@ -48,18 +48,18 @@ if menu['forest']:
     fc18Andfcloss = deforestation0018.addBands(forestCover18)
 
     # Export results to Google Cloud Storage bucket ------------------
-    task0 = ee.batch.Export.image.toDrive(**{'image': forestCover18,
-                                         'description': f'{city_name_l}_ForestCover18',
-                                         'region': AOI,
-                                         'scale': 30,
-                                         'bucket': global_inputs['cloud_bucket'],
-                                         'maxPixels': 1e9})
+    task0 = ee.batch.Export.table.toCloudStorage(**{'image': forestCover18,
+                                                    'description': f'{city_name_l}_ForestCover18',
+                                                    'region': AOI,
+                                                    'scale': 30,
+                                                    'bucket': global_inputs['cloud_bucket'],
+                                                    'maxPixels': 1e9})
     task0.start()
 
-    task1 = ee.batch.Export.image.toDrive(**{'image': deforestation0018,
-                                         'description': f'{city_name_l}_Deforestation',
-                                         'region': AOI,
-                                         'scale': 30,
-                                         'bucket': global_inputs['cloud_bucket'],
-                                         'maxPixels': 1e9})
+    task1 = ee.batch.Export.image.toCloudStorage(**{'image': deforestation0018,
+                                                    'description': f'{city_name_l}_Deforestation',
+                                                    'region': AOI,
+                                                    'scale': 30,
+                                                    'bucket': global_inputs['cloud_bucket'],
+                                                    'maxPixels': 1e9})
     task1.start()
