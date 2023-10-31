@@ -59,7 +59,7 @@ if menu['nightlight']:
 
     sum_of_light = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.sum()).clip(AOI)
 
-    # Export results to Google Drive
+    # Export results to Google Cloud Storage bucket ------------------
     task0 = ee.batch.Export.image.toCloudStorage(**{
         'image': linear_fit.select('scale'),
         'description': f'{city_name_l}_linfit',
