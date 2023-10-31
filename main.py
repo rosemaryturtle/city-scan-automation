@@ -1,14 +1,12 @@
-with open("raster_processing.py") as f:
-    exec(f.read())
+script_list = ["accessibility.py",
+               "gee_forest.py",
+               "gee_lst.py",
+               "gee_ndvi.py",
+               "gee_nightlight.py",
+               "raster_processing.py",
+               "road_network.py",
+               "rwi.py"]
 
-with open("accessibility.py") as f:
-    exec(f.read())
-
-with open("gee_lst.py") as f:
-    exec(f.read())
-
-with open("road_network.py") as f:
-    exec(f.read())
-
-with open("rwi.py") as f:
-    exec(f.read())
+for s in script_list:
+    with open(s) as f:
+        exec(f.read())

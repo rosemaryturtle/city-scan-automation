@@ -2,8 +2,8 @@
 
 # raster processing
 raster_processing: True
-population: False
-wsf: False
+population: True
+wsf: True
 elevation: True
 solar: True
 air: True
