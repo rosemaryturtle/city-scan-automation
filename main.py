@@ -1,5 +1,6 @@
 script_list = ["accessibility.py",
                "gee_forest.py",
+               "gee_landcover.py",
                "gee_lst.py",
                "gee_ndvi.py",
                "gee_nightlight.py",
