@@ -307,7 +307,7 @@ if menu['raster_processing']:
         with rasterio.open(input_raster) as src:
             # shapely presumes all operations on two or more features exist in the same Cartesian plane.
             out_image, out_transform = rasterio.mask.mask(
-                src, features, crop=True)
+                src, features, all_touched = True, crop = True)
             out_meta = src.meta.copy()
 
         out_meta.update({"driver": "GTiff",
@@ -333,7 +333,7 @@ if menu['raster_processing']:
         with rasterio.open(input_raster) as src:
             # shapely presumes all operations on two or more features exist in the same Cartesian plane.
             out_image, out_transform = rasterio.mask.mask(
-                src, features, crop=True)
+                src, features, all_touched = True, crop = True)
             out_meta = src.meta.copy()
 
             out_meta.update({"driver": "GTiff",
