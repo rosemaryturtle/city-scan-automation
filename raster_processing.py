@@ -7,21 +7,15 @@ with open("menu.yml", 'r') as f:
 
 if menu['raster_processing']:
     import os
-    import sys
     import math
-    import warnings
     import geopandas as gpd
-    from osgeo import gdal
-    import glob
     import numpy as np
     import rasterio.mask
     import rasterio
     import requests
     from pathlib import Path
     from rasterio.merge import merge
-    import json
     from os.path import exists
-    import csv
     import zipfile
     from rasterio.warp import calculate_default_transform, reproject, Resampling
 
@@ -421,6 +415,15 @@ if menu['raster_processing']:
     # elevation
     if menu['elevation']:
         clipdata(elev_folder / f'{city_name_l}_elevation.tif', 'elevation')
+
+    # slope
+    # if menu['slope']:
+    #     import richdem as rd
+
+    #     dem = rd.LoadGDAL(os.path.abspath(output_folder / f'{city_name_l}_elevation.tif'))
+    #     slope = rd.TerrainAttribute(dem, attrib = 'slope_degrees')        
+        
+    #     rd.SaveGDAL(os.path.abspath(output_folder / f'{city_name_l}_slope.tif'), slope)
 
     # other raster files
     # these are simple raster clipping from a global raster

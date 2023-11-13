@@ -41,7 +41,7 @@ if menu['accessibility']:
     buff_dist = (aoi_orig.total_bounds[2] - aoi_orig.total_bounds[0]) * 0.05
     aoi_file = aoi_orig.buffer(buff_dist)
     features = aoi_file.geometry
-
+    
     # Define output folder ---------
     output_folder = Path('output')
 
@@ -52,23 +52,26 @@ if menu['accessibility']:
     # EXTRACT OSM POI ##############################
     queries = {}
     if ('osm_query' in city_inputs) and bool(city_inputs['osm_query']):
-        for tags in global_inputs['osm_query'].items():
-            if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
+        for tags in city_inputs['osm_query'].items():
+            if exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
                 # create the OsmObject
                 queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
-
+    
     if bool(global_inputs['osm_query']):
         for tags in global_inputs['osm_query'].items():
+            print(tags[0])
             if not tags[0] in queries:
-                if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
+                if exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
                     # create the OsmObject
                     queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
-
+    
     for query in queries.items():
+        print(query)
         result = query[1].GenerateOSMPOIs()
         
         # if query is not empty
         if result.empty == False:
+            # try:
             query[1].RemoveDupes(0.0005)
             
             if 'name' in query[1].df.columns:
@@ -79,6 +82,8 @@ if menu['accessibility']:
             # convert to GeoDataFrame
             query_results_gpd = gpd.GeoDataFrame(query_results, crs = "epsg:4326", geometry = 'geometry')
             query_results_gpd.to_file(output_folder / f'{city_name_l}_osm_{query[0]}.shp')
+            # except:
+            #     pass
 
 
     # PROCESS ROADS ##############################
@@ -158,7 +163,7 @@ if menu['accessibility']:
                 print(threshold)
                 iso_gdf = gn.make_iso_polys(G, snapped_destinations_dict[amenity_type], [threshold], edge_buff = 300, node_buff = 300, weight = 'length', measure_crs = G_utm)
                 dissolved = iso_gdf.dissolve(by = "thresh")
-                gdf_out = dissolved.explode()
+                gdf_out = dissolved.explode(index_parts = True)
                 gdf_out2 = gdf_out.reset_index()
                 # save file
                 gdf_out2.to_file(output_folder / f'{city_name_l}_accessibility_{amenity_type}_{threshold}m.shp')

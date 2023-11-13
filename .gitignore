@@ -184,3 +184,5 @@ multi-scan-materials/.DS_Store
 *.pickle
 *.gpkg
 *.zip
+*.csv
+*.png

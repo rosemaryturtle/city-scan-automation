@@ -129,7 +129,7 @@ if menu['road_network']:
         return
 
     def get_network_plots():
-        print('get_network_plots')
+        print('get network plots')
 
         fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5)
         
@@ -138,6 +138,8 @@ if menu['road_network']:
         return
     
     def plot_radar():
+        print('radar plot')
+
         try:
             if G.graph['crs'].is_projected:
                 raise Exception("Graph seems to be projected, bearings will not generated if x and y are not in decimal degrees")
