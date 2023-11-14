@@ -1,6 +1,6 @@
 # city basic info
-city_name: 'Bukhara'
-AOI_path: "C:/Users/Owner/Documents/Career/World Bank/CRP/Uzbekistan/shapefile/bukhara.shp"
+city_name: 'Shahrisabz'
+AOI_path: "C:/Users/Owner/Documents/Career/World Bank/CRP/Uzbekistan/shapefile/shahrisabz.shp"
 country_name: 'Uzbekistan'
 country_iso3: 'UZB'
 

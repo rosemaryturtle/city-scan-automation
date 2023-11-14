@@ -35,7 +35,7 @@ if menu['burned_area']:
 
     # SET PARAMETERS ################################
     # Set data folders --------------
-    gf_folder = Path(r"C:\Users\Owner\Documents\Career\World Bank\CRP\data\GlobFire")
+    gf_folder = Path(r"D:\World Bank\CRP\data\GlobFire\Full_GlobFireV2_Jan_2021")
     # data_folder = Path('data')
 
     # try:
@@ -57,6 +57,8 @@ if menu['burned_area']:
 
     for year in years:
         for month in months:
+            print(f'year: {year}, month: {month}')
+            
             # Filter GlobFire ----------------
             shp_name = f'MODIS_BA_GLOBAL_1_{month}_{year}.shp'
             gf_shp = gpd.read_file(gf_folder / shp_name)

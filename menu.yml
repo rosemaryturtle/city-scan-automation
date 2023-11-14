@@ -16,7 +16,6 @@ liquefaction: True
 slr: False
 
 # GEE
-gee: True
 landcover: True
 landcover_burn: True  # contingent on landcover being True
 summer_lst: True
@@ -32,10 +31,10 @@ accessibility: True
 rwi: True
 
 # historical burned area
-burned_area: True
+burned_area: False
 
 # road network
-road_network: True
+road_network: False
 
 # demographics
 demographics: False

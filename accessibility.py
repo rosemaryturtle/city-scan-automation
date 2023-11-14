@@ -65,23 +65,24 @@ if menu['accessibility']:
                     queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
     
     for query in queries.items():
-        result = query[1].GenerateOSMPOIs()
+        try:
+            result = query[1].GenerateOSMPOIs()
         
-        # if query is not empty
-        if result.empty == False:
-            # try:
-            query[1].RemoveDupes(0.0005)
-            
-            if 'name' in query[1].df.columns:
-                query_results = query[1].df[['amenity','geometry','name']]
-            else:
-                query_results = query[1].df[['amenity','geometry']]
+            # if query is not empty
+            if result.empty == False:
+                # try:
+                query[1].RemoveDupes(0.0005)
+                
+                if 'name' in query[1].df.columns:
+                    query_results = query[1].df[['amenity','geometry','name']]
+                else:
+                    query_results = query[1].df[['amenity','geometry']]
 
-            # convert to GeoDataFrame
-            query_results_gpd = gpd.GeoDataFrame(query_results, crs = "epsg:4326", geometry = 'geometry')
-            query_results_gpd.to_file(output_folder / f'{city_name_l}_osm_{query[0]}.shp')
-            # except:
-            #     pass
+                # convert to GeoDataFrame
+                query_results_gpd = gpd.GeoDataFrame(query_results, crs = "epsg:4326", geometry = 'geometry')
+                query_results_gpd.to_file(output_folder / f'{city_name_l}_osm_{query[0]}.shp')
+        except:
+            pass
 
 
     # PROCESS ROADS ##############################
