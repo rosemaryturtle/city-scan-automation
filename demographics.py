@@ -428,8 +428,6 @@ def run_demographics(file, city, country_acronym, output_folder):
                 male = np.sum(m_array[m_array > 0])
                 f.write('%s,%s,%s\n' % (age_groups[a], female, male))
 
-    
-
 def process_demographics(admin_folder, output_folder):
 
     try:

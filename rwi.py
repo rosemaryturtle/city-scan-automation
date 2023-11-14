@@ -95,6 +95,6 @@ if menu['rwi']:
         # export to shapefile
         gdf_aoi = gpd.clip(gdf, aoi_file)
 
-        gdf_aoi.to_file(output_folder / f"{city_inputs}_rwi.shp")
+        gdf_aoi.to_file(output_folder / f"{city_name_l}_rwi.shp")
     else:
         print(f'No RWI data for {city_inputs["country_iso3"]}')

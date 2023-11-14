@@ -7,6 +7,7 @@ with open("menu.yml", 'r') as f:
 
 if menu['burned_area']:
     import os
+    import pandas as pd
     import geopandas as gpd
     from pathlib import Path
 
@@ -24,7 +25,6 @@ if menu['burned_area']:
     # Read AOI shapefile --------
     # transform the input shp to correct prj (epsg 4326)
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
-    features = aoi_file.geometry
 
     # Define output folder ---------
     output_folder = Path('output')
@@ -34,22 +34,41 @@ if menu['burned_area']:
 
 
     # SET PARAMETERS ################################
-    # Set data folder --------------
-    data_folder = Path(r"C:\Users\Owner\Documents\Career\World Bank\CRP\data\GlobFire")
+    # Set data folders --------------
+    gf_folder = Path(r"C:\Users\Owner\Documents\Career\World Bank\CRP\data\GlobFire")
+    # data_folder = Path('data')
+
+    # try:
+    #     os.mkdir(data_folder / 'globfire')
+    # except FileExistsError:
+    #     pass
 
     # Buffer AOI ------------------
     aoi_buff = aoi_file.buffer(1)  # 1 degree is about 111 km at the equator
+    features = aoi_buff.geometry[0]
 
-    # Set time period ------------
+    # Set time period --------------
     years = range(2011, 2021)
     months = range(1, 13)
 
 
     # PROCESS DATA ##################################
+    df = pd.DataFrame(columns=['year', 'month', 'x', 'y'])
+
     for year in years:
         for month in months:
+            # Filter GlobFire ----------------
             shp_name = f'MODIS_BA_GLOBAL_1_{month}_{year}.shp'
-            gf_shp = gpd.read_file(data_folder / shp_name)
-            gf_aoi = gf_shp.intersects(aoi_buff)
-            
-            
+            gf_shp = gpd.read_file(gf_folder / shp_name)
+            gf_aoi = gf_shp[gf_shp.intersects(features)]
+            # gf_aoi.to_file(data_folder / 'globfire' / f'{city_name_l}_globfire_{year}{str(month).zfill(2)}.shp')
+
+            # Find centroids ----------------
+            gf_aoi = gf_aoi[gf_aoi['Type'] == 'FinalArea'].centroid
+            for i in gf_aoi:
+                df.loc[len(df.index)] = [year, month, i.x, i.y]
+    
+    # df.to_csv(data_folder / 'globfire' / f'{city_name_l}_globfire_centroids.csv')
+
+    # Save centroids to shapefile ----------------
+    gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y)).to_file(output_folder / f'{city_name_l}_globfire_centroids.shp', crs = 'EPSG:4326')

@@ -1,8 +1,8 @@
 # city basic info
-city_name: 'Juba'
-AOI_path: "C:/Users/Owner/Documents/Career/World Bank/CRP/South Sudan/shapefile/Juba AOI - city extent.shp"
-country_name: 'South Sudan'
-country_iso3: 'SSD'
+city_name: 'Bukhara'
+AOI_path: "C:/Users/Owner/Documents/Career/World Bank/CRP/Uzbekistan/shapefile/bukhara.shp"
+country_name: 'Uzbekistan'
+country_iso3: 'UZB'
 
 # data sources (will override global_inputs if duplicates exist)
 # put False as default value if no data exists for a city
@@ -13,8 +13,8 @@ impervious_source: False
 # can add to the OSM POIs in global_inputs; will override global_inputs if duplicates exist
 
 # land surface temperature parameters
-first_hot_month: 1
-last_hot_month: 3
+first_hot_month: 6
+last_hot_month: 8
 first_year: 2013
 last_year: 2022
 

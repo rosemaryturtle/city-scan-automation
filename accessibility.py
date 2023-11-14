@@ -53,20 +53,18 @@ if menu['accessibility']:
     queries = {}
     if ('osm_query' in city_inputs) and bool(city_inputs['osm_query']):
         for tags in city_inputs['osm_query'].items():
-            if exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
+            if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
                 # create the OsmObject
                 queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
     
     if bool(global_inputs['osm_query']):
         for tags in global_inputs['osm_query'].items():
-            print(tags[0])
             if not tags[0] in queries:
-                if exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
+                if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
                     # create the OsmObject
                     queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
     
     for query in queries.items():
-        print(query)
         result = query[1].GenerateOSMPOIs()
         
         # if query is not empty
