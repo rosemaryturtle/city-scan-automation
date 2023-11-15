@@ -17,7 +17,6 @@ slr: False
 
 # GEE
 landcover: True
-landcover_burn: True  # contingent on landcover being True
 summer_lst: True
 nightlight: True
 green: True
@@ -32,6 +31,9 @@ rwi: True
 
 # historical burned area
 burned_area: False
+
+# landcover burnability
+landcover_burn: True
 
 # road network
 road_network: False
