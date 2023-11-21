@@ -1,4 +1,5 @@
 # DETERMINE WHETHER TO RUN THIS SCRIPT ##############
+from platform import java_ver
 import yaml
 
 # load menu
@@ -7,6 +8,7 @@ with open("menu.yml", 'r') as f:
 
 if menu['raster_processing']:
     import os
+    import glob
     import math
     import geopandas as gpd
     import numpy as np
@@ -92,9 +94,9 @@ if menu['raster_processing']:
                     output_meta = raster.meta.copy()
                     output_meta.update(
                         {"driver": "GTiff",
-                            "height": mosaic.shape[1],
-                            "width": mosaic.shape[2],
-                            "transform": output,
+                         "height": mosaic.shape[1],
+                         "width": mosaic.shape[2],
+                         "transform": output,
                         }
                     )
 
@@ -241,6 +243,8 @@ if menu['raster_processing']:
             for lon in lon_tiles_big:
                 file_name = f'{lat}{lon}-{tile_end_matcher(lat)}{tile_end_matcher(lon)}_FABDEM_V1-2.zip'
                 if not exists(elev_folder / file_name):
+                    print('download elevation file')
+                    print(file_name)
                     file = requests.get(f'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/{file_name}')
                     open(elev_folder / file_name, 'wb').write(file.content)
 
@@ -292,8 +296,27 @@ if menu['raster_processing']:
             os.rename(elev_folder / (list(filter(tif_counter, os.listdir(elev_folder)))[0]), elev_folder / f'{city_name_l}_elevation.tif')
         else:
             print('No elevation file available')
-
     
+    # Download and prepare demographics data ------------------
+    if menu['demographics']:
+        demo_folder = data_folder / 'demographics'
+
+        try:
+            os.mkdir(demo_folder)
+        except FileExistsError:
+            pass
+        
+        demo_file_json = requests.get(f"https://www.worldpop.org/rest/data/age_structures/ascic_2020?iso3={city_inputs['country_iso3']}").json()
+        demo_file_list = demo_file_json['data'][0]['files']
+
+        for f in demo_file_list:
+            demo_file_name = f.split('/')[-1]
+
+            if not exists(demo_folder / demo_file_name):
+                demo_file = requests.get(f)
+                open(demo_folder / demo_file_name, 'wb').write(demo_file.content)
+        
+
     # DEFINE FUNCTIONS #################################
 
     # Raster clip functions ----------------
@@ -400,6 +423,20 @@ if menu['raster_processing']:
             with rasterio.open(output_4326_raster_clipped_reclass, "w", **out_meta) as dest:
                 dest.write(out_image)
 
+    def clipdata_demo(input_raster):
+        with rasterio.open(input_raster) as src:
+            # shapely presumes all operations on two or more features exist in the same Cartesian plane.
+            out_image, out_transform = rasterio.mask.mask(
+                src, features, all_touched = True, crop = True)
+            out_meta = src.meta.copy()
+
+        out_meta.update({"driver": "GTiff",
+                         "height": out_image.shape[1],
+                         "width": out_image.shape[2],
+                         "transform": out_transform})
+
+        return out_image, out_meta
+
 
     # RASTER PROCESSING ################################
     print('starting processing')
@@ -424,6 +461,68 @@ if menu['raster_processing']:
     #     slope = rd.TerrainAttribute(dem, attrib = 'slope_degrees')        
         
     #     rd.SaveGDAL(os.path.abspath(output_folder / f'{city_name_l}_slope.tif'), slope)
+
+    # demographics
+    if menu['demographics']:
+        sexes = ['f', 'm']
+
+        age_dict = {'children_under_5': [0, 1],
+                    'youth': [15, 20],
+                    'elderly_60_plus': range(60, 85, 5),
+                    'reproductive_age': range(15, 50, 5),
+                    'all_age_groups': [1] + list(range(0, 85, 5))}
+        
+        # aggregate total population and calculate sex ratio
+        raster_to_add = []
+        sex_dict = {s: [] for s in sexes}
+
+        with open(output_folder / f'{city_name_l}_demographics.csv', 'w') as f:
+            f.write('age_group,sex,population\n')
+
+            for i in age_dict['all_age_groups']:
+                for s in sexes:
+                    raster_array, raster_meta = clipdata_demo(demo_folder / f'{city_inputs["country_iso3"].lower()}_{s}_{i}_2020_constrained.tif')
+                    raster_array[raster_array == raster_meta['nodata']] = 0
+
+                    if i == 0:
+                        age_group_label = '0-1'
+                    elif i == 1:
+                        age_group_label = '1-4'
+                    elif i == 80:
+                        age_group_label = '80+'
+                    else:
+                        age_group_label = f'{i}-{i+4}'
+
+                    f.write('%s,%s,%s\n' % (age_group_label, s, sum(sum(sum(raster_array)))))
+                    
+                    raster_to_add.append(raster_array)
+                    sex_dict[s].append(raster_array)
+        demo_total = sum(raster_to_add)
+        raster_meta.update({'nodata': 0})
+        with rasterio.open(output_folder / f"{city_name_l}_demo_total.tif", 'w', **raster_meta) as m:
+            m.write(demo_total)
+        with rasterio.open(output_folder / f"{city_name_l}_sex_ratio.tif", 'w', **raster_meta) as m:
+            m.write(np.divide(sum(sex_dict['f']), sum(sex_dict['m'])))
+
+        # aggregate age groups
+        for group in age_dict:
+            if group != 'all_age_groups':
+                raster_to_add = []
+                
+                for i in age_dict[group]:
+                    for s in sexes:
+                        if not ((i == 'reproductive_age') and (s == 'm')):
+                            raster_array, raster_meta = clipdata_demo(demo_folder / f'{city_inputs["country_iso3"].lower()}_{s}_{i}_2020_constrained.tif')
+                            raster_array[raster_array == raster_meta['nodata']] = 0
+                            raster_to_add.append(raster_array)
+                
+                if i == 'reproductive_age':
+                    output_name = f"{city_name_l}_women_{group}.tif"
+                else:
+                    output_name = f"{city_name_l}_{group}.tif"
+                raster_meta.update({'nodata': 0})
+                with rasterio.open(output_folder / output_name, 'w', **raster_meta) as m:
+                    m.write(sum(raster_to_add) / demo_total)
 
     # other raster files
     # these are simple raster clipping from a global raster

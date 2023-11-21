@@ -6,6 +6,7 @@ liquefaction_source: 'D:/World Bank/CRP/data/Liquefaction susceptibility/liquefa
 flood_source: '' # provide a free alternative
 impervious_source: '' # provide a free alternative
 rwi_source: 'D:/World Bank/CRP/data/Relative Wealth Index'
+burned_area_source: 'C:/Users/Owner/Documents/Career/World Bank/CRP/data/GlobFire'
 
 # non-data sources
 gostnets_path: 'C:/Users/Owner/Documents/Career/World Bank/CRP/repo/GOSTnets'

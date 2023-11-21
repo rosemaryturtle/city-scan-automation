@@ -8,6 +8,7 @@ script_list = ["accessibility.py",
                "gee_ndmi.py",
                "gee_ndvi.py",
                "gee_nightlight.py",
+               "landcover_burnability.py",
                "raster_processing.py",
                "road_network.py",
                "rwi.py"]

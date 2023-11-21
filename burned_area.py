@@ -35,7 +35,7 @@ if menu['burned_area']:
 
     # SET PARAMETERS ################################
     # Set data folders --------------
-    gf_folder = Path(r"D:\World Bank\CRP\data\GlobFire\Full_GlobFireV2_Jan_2021")
+    gf_folder = Path(global_inputs['burned_area_source'])
     # data_folder = Path('data')
 
     # try:

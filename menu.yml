@@ -2,18 +2,19 @@
 
 # raster processing
 raster_processing: True
-population: True
-wsf: True
-elevation: True
-slope: True
-solar: True
-air: True
-flood: True
-landslide: True
-liquefaction: True
+population: False
+wsf: False
+elevation: False
+# slope: True
+solar: False
+air: False
+flood: False
+landslide: False
+liquefaction: False
 impervious: False
-liquefaction: True
+liquefaction: False
 slr: False
+demographics: True
 
 # GEE
 landcover: True
@@ -30,16 +31,13 @@ accessibility: True
 rwi: True
 
 # historical burned area
-burned_area: False
+burned_area: True
 
 # landcover burnability
 landcover_burn: True
 
 # road network
 road_network: False
-
-# demographics
-demographics: False
 
 # cover image
 cover_image: False
