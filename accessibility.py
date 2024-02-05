@@ -53,14 +53,14 @@ if menu['accessibility']:
     queries = {}
     if ('osm_query' in city_inputs) and bool(city_inputs['osm_query']):
         for tags in city_inputs['osm_query'].items():
-            if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
+            if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}' / f'{city_name_l}_osm_{tags[0]}.shp'):
                 # create the OsmObject
                 queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
     
     if bool(global_inputs['osm_query']):
         for tags in global_inputs['osm_query'].items():
             if not tags[0] in queries:
-                if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}.shp'):
+                if not exists(output_folder / f'{city_name_l}_osm_{tags[0]}' / f'{city_name_l}_osm_{tags[0]}.shp'):
                     # create the OsmObject
                     queries[tags[0]] = OsmObject(f'{tags[0]}', features[0], tags[1])
     
@@ -80,7 +80,10 @@ if menu['accessibility']:
 
                 # convert to GeoDataFrame
                 query_results_gpd = gpd.GeoDataFrame(query_results, crs = "epsg:4326", geometry = 'geometry')
-                query_results_gpd.to_file(output_folder / f'{city_name_l}_osm_{query[0]}.shp')
+                query_results_gpd_shp = f'{city_name_l}_osm_{query[0]}'
+                if not os.path.exists(output_folder / query_results_gpd_shp):
+                    os.mkdir(output_folder / query_results_gpd_shp)
+                query_results_gpd.to_file(output_folder / query_results_gpd_shp / f'{query_results_gpd_shp}.shp')
         except:
             pass
 
@@ -124,9 +127,12 @@ if menu['accessibility']:
 
     roads['highway'] = roads.apply(lambda x: replace_hwy(x['highway']), axis = 1)
 
-    if not exists(output_folder / f'{city_name_l}_osm_roads.shp'):
+    if not exists(output_folder / f'{city_name_l}_osm_roads' / f'{city_name_l}_osm_roads.shp'):
         roads = roads[['length','time','mode','geometry']]
-        roads.to_file(output_folder / f'{city_name_l}_osm_roads.shp')
+        roads_shp = f'{city_name_l}_osm_roads'
+        if not os.path.exists(output_folder / roads_shp):
+            os.mkdir(output_folder / roads_shp)
+        roads.to_file(output_folder / roads_shp / f'{roads_shp}.shp')
 
 
     # COMPILE ISOCHRONE DICTIONARY #################
@@ -142,7 +148,7 @@ if menu['accessibility']:
     # SNAP POI TO ROADS ############################
     snapped_destinations_dict = {}
     for results_gpd in global_inputs['isochrone']:
-        snapped_destinations = gn.pandana_snap(G, gpd.read_file(output_folder / f'{city_name_l}_osm_{results_gpd}.shp'))
+        snapped_destinations = gn.pandana_snap(G, gpd.read_file(output_folder / f'{city_name_l}_osm_{results_gpd}' / f'{city_name_l}_osm_{results_gpd}.shp'))
         snapped_destinations_dict[results_gpd] = list(snapped_destinations['NN'].unique())
 
 
@@ -165,7 +171,10 @@ if menu['accessibility']:
                 gdf_out = dissolved.explode(index_parts = True)
                 gdf_out2 = gdf_out.reset_index()
                 # save file
-                gdf_out2.to_file(output_folder / f'{city_name_l}_accessibility_{amenity_type}_{threshold}m.shp')
+                gdf_out2_shp = f'{city_name_l}_accessibility_{amenity_type}_{threshold}m'
+                if not os.path.exists(output_folder / gdf_out2_shp):
+                    os.mkdir(output_folder / gdf_out2_shp)
+                gdf_out2.to_file(output_folder / gdf_out2_shp / f'{gdf_out2_shp}.shp')
             
     for key in global_inputs['isochrone']:
         isochrone_processing(key)

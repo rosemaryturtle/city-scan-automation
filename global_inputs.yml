@@ -28,12 +28,15 @@ osm_query:
       - clinic
       - hospital
       - health
-  police:
+  idp:
     amenity:
-      - police
-  fire:
-    amenity:
-      - fire_station
+      - idp
+  # police:
+  #   amenity:
+  #     - police
+  # fire:
+  #   amenity:
+  #     - fire_station
 isochrone:
   schools:
     - 800
@@ -43,3 +46,7 @@ isochrone:
     - 1000
     - 2000
     - 3000
+  idp:
+    - 3000
+    - 5000
+    - 10000

@@ -12,29 +12,28 @@ flood: False
 landslide: False
 liquefaction: False
 impervious: False
-liquefaction: False
 slr: False
 demographics: True
 
 # GEE
-landcover: True
-summer_lst: True
-nightlight: True
-green: True
-forest: True
-ndmi: True
+landcover: False
+summer_lst: False
+nightlight: False
+green: False
+forest: False
+ndmi: False
 
 # accessibility
 accessibility: True
 
 # RWI
-rwi: True
+rwi: False
 
 # historical burned area
-burned_area: True
+burned_area: False
 
 # landcover burnability
-landcover_burn: True
+landcover_burn: False
 
 # road network
 road_network: False

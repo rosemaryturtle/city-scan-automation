@@ -35,6 +35,8 @@ if menu['summer_lst']:
         print('Need to convert polygons into a multipolygon')
         print('or do something else, like creating individual raster for each polygon and then merge')
         exit()
+    
+    jsonDict['features'][0]['geometry']['coordinates'][0] = [x[:-1] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
     AOI = ee.Geometry.Polygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 

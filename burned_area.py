@@ -73,4 +73,6 @@ if menu['burned_area']:
     # df.to_csv(data_folder / 'globfire' / f'{city_name_l}_globfire_centroids.csv')
 
     # Save centroids to shapefile ----------------
-    gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y)).to_file(output_folder / f'{city_name_l}_globfire_centroids.shp', crs = 'EPSG:4326')
+    if not os.path.exists(output_folder / f'{city_name_l}_globfire_centroids'):
+        os.mkdir(output_folder / f'{city_name_l}_globfire_centroids')
+    gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y)).to_file(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp', crs = 'EPSG:4326')

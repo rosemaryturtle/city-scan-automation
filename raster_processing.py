@@ -227,6 +227,8 @@ if menu['raster_processing']:
         lat_tiles_small = tile_finder('lat', 1)
         lon_tiles_small = tile_finder('lon', 1)
 
+        print(lat_tiles_small)
+        print(lon_tiles_small)
         def tile_end_matcher(tile_starter):
             if tile_starter == 'S10':
                 return 'N00'

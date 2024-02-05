@@ -34,6 +34,8 @@ if menu['ndmi']:
         print('Need to convert polygons into a multipolygon')
         print('or do something else, like creating individual raster for each polygon and then merge')
         exit()
+    
+    jsonDict['features'][0]['geometry']['coordinates'][0] = [x[:-1] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
     AOI = ee.Geometry.Polygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 
@@ -76,15 +78,8 @@ if menu['ndmi']:
     s2a_med_Season = s2a_Season.median().clip(AOI)
     s2a_med_RecentAnnual = S2a_RecentAnnual.median().clip(AOI)
 
-    nir = s2a_med_Season.select('B8')
-    swir = s2a_med_Season.select('B11')
-
-    ndmi_Season = nir.subtract(swir).divide(nir.add(swir)).rename('NDMI')
-
-
-    nir_recent = s2a_med_RecentAnnual.select('B8')
-    swir_recent = s2a_med_RecentAnnual.select('B11')
-    ndmi_recentannual = nir.subtract(swir_recent).divide(nir_recent.add(swir_recent)).rename('NDMI_Annual')
+    ndmi_Season = s2a_med_Season.normalizedDifference(['B8', 'B11']).rename('NDMI')
+    ndmi_recentannual = s2a_med_RecentAnnual.normalizedDifference(['B8', 'B11']).rename('NDMI_Annual')
 
     # Export results to Google Cloud Storage bucket ------------------
     task0 = ee.batch.Export.image.toCloudStorage(**{
