@@ -1,5 +1,5 @@
 # DETERMINE WHETHER TO RUN THIS SCRIPT ##############
-from platform import java_ver
+# from platform import java_ver
 import yaml
 
 # load menu

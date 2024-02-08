@@ -1,8 +1,8 @@
 # city basic info
-city_name: 'Makurdi'
-AOI_path: "C:/Users/Owner/Documents/Career/World Bank/CRP/Benue/shapefile/Makurdicity.shp"
-country_name: 'Nigeria'
-country_iso3: 'NGA'
+city_name: 'Goris'
+AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Armenia & Georgia/shapefile/goris.shp"
+country_name: 'Armenia'
+country_iso3: 'ARM'
 
 # data sources (will override global_inputs if duplicates exist)
 # put False as default value if no data exists for a city

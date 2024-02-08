@@ -7,6 +7,8 @@ flood_source: '' # provide a free alternative
 impervious_source: '' # provide a free alternative
 rwi_source: 'D:/World Bank/CRP/data/Relative Wealth Index'
 burned_area_source: 'C:/Users/Owner/Documents/Career/World Bank/CRP/data/GlobFire'
+fwi_source: 'D:/World Bank/CRP/data/NASA FWI'
+lc_burn_source: "D:/World Bank/CRP/data/Landcover burnability/ESACCI.tif"
 
 # non-data sources
 gostnets_path: 'C:/Users/Owner/Documents/Career/World Bank/CRP/repo/GOSTnets'
@@ -50,3 +52,7 @@ isochrone:
     - 3000
     - 5000
     - 10000
+
+# FWI date range
+fwi_first_year: 2016
+fwi_last_year: 2021

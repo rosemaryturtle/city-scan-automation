@@ -5,15 +5,15 @@ raster_processing: True
 population: False
 wsf: False
 elevation: False
-# slope: True
-solar: False
-air: False
+slope: False
+solar: True
+air: True
 flood: False
-landslide: False
-liquefaction: False
+landslide: True
+liquefaction: True
 impervious: False
 slr: False
-demographics: True
+demographics: False
 
 # GEE
 landcover: False
@@ -24,15 +24,16 @@ forest: False
 ndmi: False
 
 # accessibility
-accessibility: True
+accessibility: False
 
 # RWI
-rwi: False
+rwi: True
 
 # historical burned area
 burned_area: False
 
-# landcover burnability
+# wildfire
+fwi: True
 landcover_burn: False
 
 # road network
