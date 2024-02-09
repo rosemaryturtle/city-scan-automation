@@ -5,12 +5,12 @@ raster_processing: True
 population: False
 wsf: False
 elevation: False
-slope: False
-solar: True
-air: True
+slope: True
+solar: False
+air: False
 flood: False
-landslide: True
-liquefaction: True
+landslide: False
+liquefaction: False
 impervious: False
 slr: False
 demographics: False
