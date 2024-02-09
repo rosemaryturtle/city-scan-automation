@@ -1,4 +1,5 @@
 # DETERMINE WHETHER TO RUN THIS SCRIPT ##############
+from cProfile import label
 import yaml
 
 # load menu
@@ -8,6 +9,8 @@ with open("menu.yml", 'r') as f:
 if menu['landcover']:
     import ee
     import geopandas as gpd
+    import csv
+    from pathlib import Path
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
@@ -19,6 +22,9 @@ if menu['landcover']:
     # load global inputs
     with open("global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
+
+    # set output folder
+    output_folder = Path('output')
 
     # Initialize Earth Engine
     ee.Initialize()
@@ -42,6 +48,47 @@ if menu['landcover']:
 
     # PROCESSING #####################################
     lc_aoi = lc.clip(AOI)
+
+    # Calculate stats -----------------------
+    # Calculate the pixel counts for each land cover type
+    lc_hist = lc_aoi.reduceRegion(
+        reducer=ee.Reducer.frequencyHistogram(),
+        geometry=AOI,
+        scale=10,
+        maxPixels=1e9
+    )
+    lc_hist1 = lc_hist.getInfo()['Map']
+    
+    # Create a dictionary to store the counts
+    counts_dict = {}
+
+    # Create value dictionary
+    class_values = {
+        10: 'Tree cover',
+        20: 'Shrubland',
+        30: 'Grassland',
+        40: 'Cropland',
+        50: 'Built-up',
+        60: 'Bare / sparse vegetation',
+        70: 'Snow and ice',
+        80: 'Permanent water bodies',
+        90: 'Herbaceous wetland',
+        95: 'Mangroves',
+        100: 'Moss and lichen'
+    }
+
+    # Populate the dictionary with counts for each land cover type
+    for class_val in class_values:
+        class_name = class_values[class_val]
+        count = lc_hist1.get(str(class_val), 0)
+        counts_dict[class_name] = count
+
+    # Write the counts dictionary to a CSV file
+    with open(output_folder / f'{city_name_l}_lc.csv', 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=['Land Cover Type', 'Pixel Count'])
+        writer.writeheader()
+        for class_name, count in counts_dict.items():
+            writer.writerow({'Land Cover Type': class_name, 'Pixel Count': count})
 
     # Export results to Google Cloud Storage bucket ------------------
     task0 = ee.batch.Export.image.toCloudStorage(**{'image': lc_aoi,

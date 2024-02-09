@@ -16,7 +16,7 @@ slr: False
 demographics: False
 
 # GEE
-landcover: False
+landcover: True
 summer_lst: False
 nightlight: False
 green: False
