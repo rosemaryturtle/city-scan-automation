@@ -37,7 +37,7 @@ fwi: True
 landcover_burn: False
 
 # road network
-road_network: False
+road_network: True
 
 # cover image
 cover_image: False

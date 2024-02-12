@@ -92,13 +92,13 @@ if menu['road_network']:
                 df = pd.DataFrame()
                 df['edge_centr'] = edges.edge_centr.astype(float)
                 df['edge_centr_avg'] = np.nansum(df.edge_centr.values)/len(df.edge_centr)
-                df.to_csv(f"data/road_network/Extended_stats_{city_name_l}.csv")
+                df.to_csv(f"data/road_network/{city_name_l}_extended_stats.csv")
         except FileNotFoundError:
             print("Edges file doesn't exist. Running edge_centrality function.")
             G = get_graph(G)
             extended_stats = ox.extended_stats(G, bc = True)
             dat = pd.DataFrame.from_dict(extended_stats)
-            dat.to_csv(f'data/road_network/Extended_Stats_{city_name_l}.csv')
+            dat.to_csv(f'data/road_network/{city_name_l}_extended_stats.csv')
         except Exception as e:
             print('Exception Occurred', e)
 
@@ -133,17 +133,17 @@ if menu['road_network']:
         G = nx.MultiDiGraph(G)
         
         if centrality_type == "node":
-            ox.save_graph_shapefile(G, filepath = f'data/road_network/{city_name_l}_multidigraph')
+            ox.save_graph_shapefile(G, filepath = f'data/road_network')
         elif centrality_type == "edge":
-            ox.save_graph_shapefile(G, filepath = f'data/road_network/{city_name_l}_multidigraph')
+            ox.save_graph_shapefile(G, filepath = f'data/road_network')
         else:
-            ox.save_graph_shapefile(G, filepath = f'data/road_network/{city_name_l}_multidigraph')
+            ox.save_graph_shapefile(G, filepath = f'data/road_network')
         
         print('Getting basic stats')
         
         basic_stats = ox.basic_stats(G)
         dat = pd.DataFrame.from_dict(basic_stats)
-        dat.to_csv(f'data/road_network/Basic_Stats_{city_name_l}.csv')
+        dat.to_csv(f'data/road_network/{city_name_l}_basic_stats.csv')
         
         get_centrality_stats()
         
@@ -152,7 +152,7 @@ if menu['road_network']:
     def get_network_plots():
         G = get_graph()
         
-        fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5)
+        fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5, show = False)
         
         fig.savefig(f'data/road_network/{city_name_l}_network_plot.png', dpi = 300)
         
@@ -179,10 +179,7 @@ if menu['road_network']:
 
         polar_plot(ax, bearings)
         
-        plt.show()
-        
         fig.savefig(f'data/road_network/{city_name_l}_radar_plot.png', dpi = 300)
-        plt.close() 
         
         return
 
@@ -205,11 +202,15 @@ if menu['road_network']:
         _, division = np.histogram(bearings, bins=bins)
         frequency = count / count.sum()
         division = division[0:-1]
+        width = 2 * np.pi / n
         
         ax.set_theta_zero_location('N')
         ax.set_theta_direction('clockwise')
 
-        
+        x = division * np.pi / 180
+        ax.bar(x, height=frequency, width=width, align='center', bottom=0, zorder=2,
+               color='#003366', edgecolor='k', linewidth=0.5, alpha=0.7)
+
         ax.set_ylim(top=frequency.max())
         
         title_font = {'family':'DejaVu Sans', 'size':24, 'weight':'bold'}
@@ -238,47 +239,6 @@ if menu['road_network']:
         # generate the road bearing polar plots
         plot_radar()
             
-    def get_network_plus_building_footprints_plot(zoom = 1, network_type = 'drive', bldg_color = 'orange', dpi = 300,
-                default_width = 1, street_widths = None):
-        # https://github.com/gboeing/osmnx-examples/blob/master/notebooks/10-building-footprints.ipynb
-        # notes: The preview in Jupyter Notebook is only showing the roads, however the saved PNG file shows both the roads
-        # and the building footprints
-        
-        fp = f'data/road_network/{city_name_l}_network_plus_building_footprints.png'
-        
-        # Find centroid
-        poly = features.buffer(0)
-        centroid = poly.centroid
-        x = centroid[0].coords.xy[0][0]
-        y = centroid[0].coords.xy[1][0]
-        
-        # Find UTM
-        utm_zone = math.floor((x + 180) / 6) + 1
-        utm_crs = f"+proj=utm +zone={utm_zone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-        
-        # Find polygon length to set dist
-        poly = poly.to_crs(crs = utm_crs)
-        length = poly.length[0] / 2 / zoom
-
-        gdf = ox.geometries.geometries_from_point((y, x), {'building':True}, dist = length)
-        
-        # figsize is in inches and can be adjusted to increase the size of the figure
-        fig, ax = ox.plot_figure_ground(point=(y, x), figsize=(14, 14), dist=length, 
-                                        network_type=network_type, 
-                                        default_width=default_width,
-                                        street_widths=street_widths, 
-                                        save=False, show=True, close=True)
-        
-        fig, ax = ox.plot_footprints(gdf, ax=ax, filepath=fp, color=bldg_color, dpi=dpi, 
-                                    save=True, show=True, close=True)
-
 
     # RUN ############################################
     main(centrality_type = "edge")
-
-    get_network_plus_building_footprints_plot(zoom = 4,
-                                              network_type = 'drive', 
-                                              bldg_color = 'orange', 
-                                              dpi = 300,
-                                              default_width = 1, 
-                                              street_widths = {'secondary': 1, 'primary': 1})
