@@ -43,7 +43,7 @@ if menu['landcover']:
         exit()
 
     jsonDict['features'][0]['geometry']['coordinates'][0] = [x[:-1] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
-    AOI = ee.Geometry.Polygon(jsonDict['features'][0]['geometry']['coordinates'])
+    AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 
     # PROCESSING #####################################

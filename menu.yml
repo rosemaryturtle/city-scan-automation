@@ -19,7 +19,7 @@ demographics: False
 landcover: True
 summer_lst: False
 nightlight: False
-green: False
+green: True
 forest: False
 ndmi: False
 
