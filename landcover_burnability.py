@@ -13,7 +13,6 @@ if menu['landcover_burn']:
     from pathlib import Path
 
     # SET UP ##############################################
-
     # load city inputs files, to be updated for each city scan
     with open("city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
@@ -37,12 +36,8 @@ if menu['landcover_burn']:
         os.mkdir(output_folder)
 
 
-    # INPUT PARAMETERS ###################################
-    input_raster = r"D:\World Bank\CRP\data\Landcover burnability\ESACCI.tif"
-
-
     # PROCESSING ########################################
-    with rasterio.open(input_raster) as src:
+    with rasterio.open(global_inputs['lc_burn_source']) as src:
         # shapely presumes all operations on two or more features exist in the same Cartesian plane.
         out_image, out_transform = rasterio.mask.mask(
             src, features, all_touched = True, crop = True)

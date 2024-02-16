@@ -1,5 +1,5 @@
 # DETERMINE WHETHER TO RUN THIS SCRIPT ##############
-from platform import java_ver
+# from platform import java_ver
 import yaml
 
 # load menu
@@ -171,7 +171,7 @@ if menu['raster_processing']:
             print('No WSF evolution file available')
 
     # Download and prepare FABDEM data ---------------------
-    if menu['elevation']:
+    if menu['elevation'] or menu['slope']:
         elev_folder = data_folder / 'elev'
 
         try:
@@ -227,8 +227,6 @@ if menu['raster_processing']:
         lat_tiles_small = tile_finder('lat', 1)
         lon_tiles_small = tile_finder('lon', 1)
 
-        print(lat_tiles_small)
-        print(lon_tiles_small)
         def tile_end_matcher(tile_starter):
             if tile_starter == 'S10':
                 return 'N00'
@@ -452,17 +450,70 @@ if menu['raster_processing']:
         clipdata_wsf(wsf_folder / f'{city_name_l}_wsf_evolution.tif')
     
     # elevation
-    if menu['elevation']:
+    if menu['elevation'] or menu['slope']:
         clipdata(elev_folder / f'{city_name_l}_elevation.tif', 'elevation')
 
     # slope
-    # if menu['slope']:
-    #     import richdem as rd
+    if menu['slope']:
+        import richdem as rd
 
-    #     dem = rd.LoadGDAL(os.path.abspath(output_folder / f'{city_name_l}_elevation.tif'))
-    #     slope = rd.TerrainAttribute(dem, attrib = 'slope_degrees')        
-        
-    #     rd.SaveGDAL(os.path.abspath(output_folder / f'{city_name_l}_slope.tif'), slope)
+        # Reproject elevation raster to a projected coordinate system
+        with rasterio.open(output_folder / f'{city_name_l}_elevation.tif') as src:
+            dst_crs = 'EPSG:3857'  # Web Mercator projection
+            transform, width, height = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
+            out_meta = src.meta.copy()
+            out_meta.update({
+                'crs': dst_crs,
+                'transform': transform,
+                'width': width,
+                'height': height
+            })
+
+            with rasterio.open(output_folder / f'{city_name_l}_elevation_3857.tif', 'w', **out_meta) as dst:
+                for i in range(1, src.count + 1):
+                    reproject(
+                        source=rasterio.band(src, i),
+                        destination=rasterio.band(dst, i),
+                        src_transform=src.transform,
+                        src_crs=src.crs,
+                        dst_transform=transform,
+                        dst_crs=dst_crs,
+                        resampling=Resampling.nearest)
+
+        # Calculate slope
+        elev = rd.LoadGDAL(str(output_folder / f'{city_name_l}_elevation_3857.tif'))
+        slope = rd.TerrainAttribute(elev, attrib = 'slope_degrees')
+        rd.SaveGDAL(str(output_folder / f'{city_name_l}_slope_3857.tif'), slope)
+
+        # Reproject slope raster to WGS84
+        with rasterio.open(output_folder / f'{city_name_l}_slope_3857.tif') as src:
+            dst_crs = 'EPSG:4326'
+            transform, width, height = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
+            out_meta = src.meta.copy()
+            out_meta.update({
+                'crs': dst_crs,
+                'transform': transform,
+                'width': width,
+                'height': height
+            })
+
+            with rasterio.open(output_folder / f'{city_name_l}_slope.tif', 'w', **out_meta) as dst:
+                for i in range(1, src.count + 1):
+                    reproject(
+                        source=rasterio.band(src, i),
+                        destination=rasterio.band(dst, i),
+                        src_transform=src.transform,
+                        src_crs=src.crs,
+                        dst_transform=transform,
+                        dst_crs=dst_crs,
+                        resampling=Resampling.nearest)
+
+        # Remove intermediate outputs
+        os.remove(output_folder / f'{city_name_l}_elevation_3857.tif')
+        os.remove(output_folder / f'{city_name_l}_slope_3857.tif')
+
+        if not menu['elevation']:
+            os.remove(output_folder / f'{city_name_l}_elevation.tif')
 
     # demographics
     if menu['demographics']:

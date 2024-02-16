@@ -36,7 +36,7 @@ if menu['green']:
         exit()
     
     jsonDict['features'][0]['geometry']['coordinates'][0] = [x[:-1] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
-    AOI = ee.Geometry.Polygon(jsonDict['features'][0]['geometry']['coordinates'])
+    AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 
     # GEE PARAMETERS #####################################
@@ -78,13 +78,8 @@ if menu['green']:
     s2a_med_Season = s2a_Season.median().clip(AOI)
     s2a_med_RecentAnnual = S2a_RecentAnnual.median().clip(AOI)
 
-    nir_season = s2a_med_Season.select('B8')
-    red_season = s2a_med_Season.select('B4')
-    ndvi_Season = nir_season.subtract(red_season).divide(nir_season.add(red_season)).rename('NDVI')
-
-    nir_recent = s2a_med_RecentAnnual.select('B8')
-    red_recent = s2a_med_RecentAnnual.select('B4')
-    ndvi_recentannual = nir_recent.subtract(red_recent).divide(nir_recent.add(red_recent)).rename('NDVI')
+    ndvi_Season = s2a_med_Season.normalizedDifference(['B8', 'B4']).rename('NDVI')
+    ndvi_recentannual = s2a_med_RecentAnnual.normalizedDifference(['B8', 'B4']).rename('NDVI')
 
     # Export results to Google Cloud Storage bucket ------------------
     task0 = ee.batch.Export.image.toCloudStorage(**{

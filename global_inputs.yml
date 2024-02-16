@@ -8,10 +8,13 @@ flood_source: '' # provide a free alternative
 impervious_source: '' # provide a free alternative
 rwi_source: 'D:/World Bank/CRP/data/Relative Wealth Index'
 burned_area_source: 'C:/Users/Owner/Documents/Career/World Bank/CRP/data/GlobFire'
+
 oxford_global_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/Oxford Global Cities Data.csv'
 koeppen_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/Koeppen-Geiger-ASCII.csv'
 oxford_locations_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/oxford-locations.csv'
 un_data_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/undata-pop.csv'
+fwi_source: 'D:/World Bank/CRP/data/NASA FWI'
+lc_burn_source: "D:/World Bank/CRP/data/Landcover burnability/ESACCI.tif"
 # non-data sources
 gostnets_path: 'C:/Users/Owner/Documents/Career/World Bank/CRP/repo/GOSTnets'
 
@@ -54,3 +57,7 @@ isochrone:
     - 3000
     - 5000
     - 10000
+
+# FWI date range
+fwi_first_year: 2016
+fwi_last_year: 2021
