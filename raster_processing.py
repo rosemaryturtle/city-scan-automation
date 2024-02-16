@@ -1,5 +1,5 @@
 # DETERMINE WHETHER TO RUN THIS SCRIPT ##############
-# from platform import java_ver
+# TODO: Add a log txt file
 import yaml
 
 # load menu
@@ -8,8 +8,8 @@ with open("menu.yml", 'r') as f:
 
 if menu['raster_processing']:
     import os
-    import glob
     import math
+    import csv
     import geopandas as gpd
     import numpy as np
     import rasterio.mask
@@ -20,6 +20,7 @@ if menu['raster_processing']:
     from os.path import exists
     import zipfile
     from rasterio.warp import calculate_default_transform, reproject, Resampling
+    from shutil import copyfile
 
     # SET UP ##############################################
 
@@ -46,13 +47,54 @@ if menu['raster_processing']:
         os.mkdir(output_folder)
 
 
-    # DOWNLOAD DATA ##########################################
+    # DOWNLOAD AND PREPARE DATA ##########################################
     data_folder = Path('data')
 
     try:
         os.mkdir(data_folder)
     except FileExistsError:
         pass
+
+    def tile_finder(direction, tile_size = 1):
+        coord_list = []
+
+        if direction == 'lat':
+            hemi_options = ['N', 'S']
+            coord_min = aoi_bounds.miny
+            coord_max = aoi_bounds.maxy
+            zfill_digits = 2
+        elif direction == 'lon':
+            hemi_options = ['E', 'W']
+            coord_min = aoi_bounds.minx
+            coord_max = aoi_bounds.maxx
+            zfill_digits = 3
+        else:
+            print('Invalid direction. How did this happen?')
+
+        for i in range(len(aoi_bounds)):
+            if math.floor(coord_min[i]) >= 0:
+                hemi = hemi_options[0]
+                for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
+                                math.ceil(coord_max[i] / tile_size) * tile_size, 
+                                tile_size):
+                    coord_list.append(f'{hemi}{str(y).zfill(zfill_digits)}')
+            elif math.ceil(coord_max[i]) >= 0:
+                for y in range(0, 
+                                math.ceil(coord_max[i] / tile_size) * tile_size, 
+                                tile_size):
+                    coord_list.append(f'{hemi_options[0]}{str(y).zfill(zfill_digits)}')
+                for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
+                                0, 
+                                tile_size):
+                    coord_list.append(f'{hemi_options[1]}{str(-y).zfill(zfill_digits)}')
+            else:
+                hemi = hemi_options[1]
+                for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
+                                math.ceil(coord_max[i] / tile_size) * tile_size, 
+                                tile_size):
+                    coord_list.append(f'{hemi}{str(-y).zfill(zfill_digits)}')
+
+        return coord_list
 
     # Download and prepare WorldPop data ------------
     if menu['population']:
@@ -181,47 +223,6 @@ if menu['raster_processing']:
 
         aoi_bounds = aoi_file.bounds
 
-        def tile_finder(direction, tile_size):
-            coord_list = []
-
-            if direction == 'lat':
-                hemi_options = ['N', 'S']
-                coord_min = aoi_bounds.miny
-                coord_max = aoi_bounds.maxy
-                zfill_digits = 2
-            elif direction == 'lon':
-                hemi_options = ['E', 'W']
-                coord_min = aoi_bounds.minx
-                coord_max = aoi_bounds.maxx
-                zfill_digits = 3
-            else:
-                print('Invalid direction. How did this happen?')
-
-            for i in range(len(aoi_bounds)):
-                if math.floor(coord_min[i]) >= 0:
-                    hemi = hemi_options[0]
-                    for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
-                                   math.ceil(coord_max[i] / tile_size) * tile_size, 
-                                   tile_size):
-                        coord_list.append(f'{hemi}{str(y).zfill(zfill_digits)}')
-                elif math.ceil(coord_max[i]) >= 0:
-                    for y in range(0, 
-                                   math.ceil(coord_max[i] / tile_size) * tile_size, 
-                                   tile_size):
-                        coord_list.append(f'{hemi_options[0]}{str(y).zfill(zfill_digits)}')
-                    for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
-                                   0, 
-                                   tile_size):
-                        coord_list.append(f'{hemi_options[1]}{str(-y).zfill(zfill_digits)}')
-                else:
-                    hemi = hemi_options[1]
-                    for y in range(math.floor(coord_min[i] / tile_size) * tile_size, 
-                                   math.ceil(coord_max[i] / tile_size) * tile_size, 
-                                   tile_size):
-                        coord_list.append(f'{hemi}{str(-y).zfill(zfill_digits)}')
-
-            return coord_list
-
         lat_tiles_big = tile_finder('lat', 10)
         lon_tiles_big = tile_finder('lon', 10)
         lat_tiles_small = tile_finder('lat', 1)
@@ -315,7 +316,189 @@ if menu['raster_processing']:
             if not exists(demo_folder / demo_file_name):
                 demo_file = requests.get(f)
                 open(demo_folder / demo_file_name, 'wb').write(demo_file.content)
+    
+    # Prepare flood data (coastal, fluvial, pluvial) ---------------------
+    if menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:
+        # merged data folder (before clipping)
+        flood_folder = data_folder / 'flood'
+
+        try:
+            os.mkdir(flood_folder)
+        except FileExistsError:
+            pass
+
+        # 8 return periods
+        rps = [10, 100, 1000, 20, 200, 5, 50, 500]
+
+        # find relevant tiles
+        lat_tiles = tile_finder('lat')
+        lon_tiles = tile_finder('lon')
+
+        flood_threshold = global_inputs['flood']['threshold']
+        flood_years = global_inputs['flood']['year']
+        flood_ssps = global_inputs['flood']['ssp']
+        flood_ssp_labels = {1: '1_2.6', 2: '2_4.5', 3: '3_7.0', 5: '5_8.5'}
+        flood_prob_cutoff = global_inputs['flood']['prob_cutoff']
+        if not len(flood_prob_cutoff) == 2:
+            print('2 cutoffs required')
+            exit()  # TODO: think about breaking the for loop and creating an "unsuccessful" list to print in the end
         
+        # translate the annual probability cutoffs to bins of return periods
+        flood_rp_bins = {f'lt{flood_prob_cutoff[0]}': [], 
+                         f'{flood_prob_cutoff[0]}-{flood_prob_cutoff[1]}': [], 
+                         f'gt{flood_prob_cutoff[1]}': []}
+        for rp in rps:
+            annual_prob = 1/rp*100
+            if annual_prob < flood_prob_cutoff[0]:
+                flood_rp_bins[f'lt{flood_prob_cutoff[0]}'].append(rp)
+            elif annual_prob >= flood_prob_cutoff[0] and annual_prob <= flood_prob_cutoff[1]:
+                flood_rp_bins[f'{flood_prob_cutoff[0]}-{flood_prob_cutoff[1]}'].append(rp)
+            elif annual_prob > flood_prob_cutoff[1]:
+                flood_rp_bins[f'gt{flood_prob_cutoff[1]}'].append(rp)
+
+        def flood_processing(flood_type):
+            # raw data folder
+            flood_type_folder_dict = {'coastal': 'COASTAL_UNDEFENDED',
+                                      'fluvial': 'FLUVIAL_UNDEFENDED',
+                                      'pluvial': 'PLUVIAL_DEFENDED'}
+            raw_flood_folder = Path(f'D:/World Bank/CRP/data/Fathom 3.0/Sri Lanka/{flood_type_folder_dict[flood_type]}')
+            
+            # prepare flood raster files (everything before clipping)
+            for year in flood_years:
+                if year <= 2020:
+                    for rp in rps:
+                        # identify tiles and merge as needed
+                        raster_to_mosaic = []
+                        mosaic_file = f'{city_name_l}_{flood_type}_{year}_1in{rp}.tif'
+
+                        if not exists(flood_folder / mosaic_file):
+                            for lat in lat_tiles:
+                                for lon in lon_tiles:
+                                    raster_file_name = f'{year}/1in{rp}/1in{rp}-{flood_type_folder_dict[flood_type].replace('_', '-')}-{year}_{lat.lower()}{lon.lower()}.tif'
+                                    if exists(raw_flood_folder / raster_file_name):
+                                        raster_to_mosaic.append(raw_flood_folder / raster_file_name)
+                            if len(raster_to_mosaic) == 0:
+                                print(f'no raster to merge for {year} 1-in-{rp}')
+                            elif len(raster_to_mosaic) == 1:
+                                copyfile(raster_to_mosaic[0], flood_folder / mosaic_file)
+                            else:
+                                try:
+                                    mosaic, output = merge(raster_to_mosaic)
+                                    output_meta = raster.meta.copy()
+                                    output_meta.update(
+                                        {"driver": "GTiff",
+                                        "height": mosaic.shape[1],
+                                        "width": mosaic.shape[2],
+                                        "transform": output,
+                                        }
+                                    )
+
+                                    with rasterio.open(flood_folder / mosaic_file, 'w', **output_meta) as m:
+                                        m.write(mosaic)
+                                except MemoryError:
+                                    print(f'MemoryError when merging flood_{flood_type} raster files.') 
+                                    print(f'{year} 1-in-{rp}')
+                                    print('Try GIS instead for merging.')
+                                    exit()
+                        
+                        # apply threshold
+                        if exists(flood_folder / mosaic_file):
+                            with rasterio.open(flood_folder / mosaic_file) as src:
+                                out_image = src.read(1)
+                                out_image[out_image == src.meta['nodata']] = 0
+                                out_image[out_image < flood_threshold] = 0
+                                out_image[out_image >= flood_threshold] = 1
+
+                                out_meta = src.meta.copy()
+                                out_meta.update({'nodata': 0})
+
+                            with rasterio.open(flood_folder / (mosaic_file[:-4] + '_con.tif'), "w", **out_meta) as dest:
+                                dest.write(out_image)
+
+                    for bin in flood_rp_bins:
+                        raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[bin] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif'))]
+                        raster_arrays = []
+
+                        for r in raster_to_merge:
+                            with rasterio.open(flood_folder / r) as src:
+                                raster_arrays.append(src.read(1))
+                                out_meta = src.meta.copy()
+                            
+                        out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
+                        out_meta.update(dtype = rasterio.uint8)
+                        
+                        with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{bin}.tif', 'w', **out_meta) as dst:
+                            dst.write(out_image, 1)
+                elif year > 2020:
+                    for ssp in flood_ssps:
+                        for rp in rps:
+                            # identify tiles and merge as needed
+                            raster_to_mosaic = []
+                            mosaic_file = f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}.tif'
+
+                            if not exists(flood_folder / mosaic_file):
+                                for lat in lat_tiles:
+                                    for lon in lon_tiles:
+                                        raster_file_name = f'{year}/SSP{flood_ssp_labels[ssp]}/1in{rp}/1in{rp}-{flood_type_folder_dict[flood_type].replace('_', '-')}-{year}-SSP{flood_ssp_labels[ssp]}_{lat.lower()}{lon.lower()}.tif'
+                                        if exists(raw_flood_folder / raster_file_name):
+                                            raster_to_mosaic.append(raw_flood_folder / raster_file_name)
+                                if len(raster_to_mosaic) == 0:
+                                    print(f'no raster to merge for {year} ssp{ssp} 1-in-{rp}')
+                                elif len(raster_to_mosaic) == 1:
+                                    copyfile(raster_to_mosaic[0], flood_folder / mosaic_file)
+                                else:
+                                    try:
+                                        mosaic, output = merge(raster_to_mosaic)
+                                        output_meta = raster.meta.copy()
+                                        output_meta.update(
+                                            {"driver": "GTiff",
+                                            "height": mosaic.shape[1],
+                                            "width": mosaic.shape[2],
+                                            "transform": output,
+                                            }
+                                        )
+
+                                        with rasterio.open(flood_folder / mosaic_file, 'w', **output_meta) as m:
+                                            m.write(mosaic)
+                                    except MemoryError:
+                                        print(f'MemoryError when merging flood_{flood_type} raster files.') 
+                                        print(f'{year} ssp{ssp} 1-in-{rp}')
+                                        print('Try GIS instead for merging.')
+                                        exit()
+                            
+                            # apply threshold
+                            if exists(flood_folder / mosaic_file):
+                                with rasterio.open(flood_folder / mosaic_file) as src:
+                                    out_image = src.read(1)
+                                    out_image[out_image == src.meta['nodata']] = 0
+                                    out_image[out_image < flood_threshold] = 0
+                                    out_image[out_image >= flood_threshold] = 1
+
+                                    out_meta = src.meta.copy()
+                                    out_meta.update({'nodata': 0})
+
+                                with rasterio.open(flood_folder / (mosaic_file[:-4] + '_con.tif'), "w", **out_meta) as dest:
+                                    dest.write(out_image)
+
+                        for bin in flood_rp_bins:
+                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif' for rp in flood_rp_bins[bin] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
+                            raster_arrays = []
+
+                            for r in raster_to_merge:
+                                with rasterio.open(flood_folder / r) as src:
+                                    raster_arrays.append(src.read(1))
+                                    out_meta = src.meta.copy()
+                                
+                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
+                            out_meta.update(dtype = rasterio.uint8)
+                            
+                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{bin}.tif', 'w', **out_meta) as dst:
+                                dst.write(out_image, 1)
+
+        for ft in ['coastal', 'fluvial', 'pluvial']:
+            if menu[f'flood_{ft}']:
+                flood_processing(ft)
+
 
     # DEFINE FUNCTIONS #################################
 
@@ -453,6 +636,33 @@ if menu['raster_processing']:
     if menu['elevation'] or menu['slope']:
         clipdata(elev_folder / f'{city_name_l}_elevation.tif', 'elevation')
 
+        # Calculate elevation stats
+        with rasterio.open(elev_folder / f'{city_name_l}_elevation.tif') as src:
+            # Read raster data
+            raster_data = src.read(1)
+            
+            # Get min and max values of the raster
+            min_val = np.nanmin(raster_data)
+            max_val = np.nanmax(raster_data)
+            
+            # Calculate equal interval bin edges
+            num_bins = 5
+            bin_edges = np.linspace(min_val, max_val, num_bins + 1)
+            
+            # Round bin edges to the nearest 10
+            bin_edges = np.round(bin_edges, -1)
+            
+            # Calculate histogram
+            hist, _ = np.histogram(raster_data, bins=bin_edges)
+            
+            # Write bins and hist to a CSV file
+            with open(elev_folder / f'{city_name_l}_elevation.csv', 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['Bin', 'Count'])
+                for i, count in enumerate(hist):
+                    bin_range = f"{int(bin_edges[i])}-{int(bin_edges[i+1])}"
+                    writer.writerow([bin_range, count])
+
     # slope
     if menu['slope']:
         import richdem as rd
@@ -507,6 +717,25 @@ if menu['raster_processing']:
                         dst_transform=transform,
                         dst_crs=dst_crs,
                         resampling=Resampling.nearest)
+
+        # Calculate slope stats
+        with rasterio.open(output_folder / f'{city_name_l}_slope.tif') as src:
+            # Read raster data
+            raster_data = src.read(1)
+            
+            # Define the bins
+            bins = [0, 2, 5, 10, 20, 90]  # Define your desired bins
+            
+            # Calculate histogram
+            hist, _ = np.histogram(raster_data, bins=bins)
+            
+            # Write bins and hist to a CSV file
+            with open(output_folder / f'{city_name_l}_slope.csv', 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(['Bin', 'Count'])
+                for i, count in enumerate(hist):
+                    bin_range = f"{bins[i]}-{bins[i+1]}"
+                    writer.writerow([bin_range, count])
 
         # Remove intermediate outputs
         os.remove(output_folder / f'{city_name_l}_elevation_3857.tif')

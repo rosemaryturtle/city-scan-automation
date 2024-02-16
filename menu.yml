@@ -8,7 +8,9 @@ elevation: False
 slope: True
 solar: False
 air: False
-flood: False
+flood_coastal: False
+flood_fluvial: False
+flood_pluvial: False
 landslide: False
 liquefaction: False
 impervious: False
@@ -29,15 +31,10 @@ accessibility: False
 # RWI
 rwi: True
 
-# historical burned area
-burned_area: False
-
 # wildfire
+burned_area: False
 fwi: True
 landcover_burn: False
 
 # road network
 road_network: True
-
-# cover image
-cover_image: False

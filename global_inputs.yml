@@ -16,6 +16,19 @@ gostnets_path: 'C:/Users/Owner/Documents/Career/World Bank/CRP/repo/GOSTnets'
 # data outputs
 cloud_bucket: 'gee-test-20231019'
 
+# flood analysis parameters
+flood:
+  threshold: 15
+  year:
+    - 2020
+  ssp:
+    - 1
+    - 2
+    - 3
+  prob_cutoff:  # unit: %
+    - 1
+    - 10
+
 # accessibility analysis parameters
 # (isochrone unit: meter)
 osm_query:
