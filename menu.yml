@@ -3,8 +3,8 @@
 # raster processing
 raster_processing: True
 population: False
-wsf: False
-elevation: False
+wsf: True
+elevation: True
 # slope: True
 solar: False
 air: False
@@ -40,3 +40,31 @@ road_network: False
 
 # cover image
 cover_image: False
+
+# stats
+# flood_timeline and earthquake_timeline unclear
+all_stats: True
+climate_zone: True
+pop_growth: True
+pop_density: True
+pop_distribution: True
+gdp: True
+employment: True
+national_share: True
+GVA: True
+economic_inequality: True
+wsf_stats: True
+lc_stats: True
+pu_osm_stats: True
+fu_osm_stats: True
+comb_osm_stats: True
+pu_wsf_stats: True
+fu_wsf_stats: True
+comb_wsf_stats: True
+pv_stats: True
+elevation_stats: True
+slope_stats: True
+cyclone_stats: True
+
+# toolbox
+toolbox: True
