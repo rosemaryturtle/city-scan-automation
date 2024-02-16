@@ -43,9 +43,6 @@ landcover_burn: False
 # road network
 road_network: True
 
-# cover image
-cover_image: False
-
 # stats
 # flood_timeline and earthquake_timeline unclear
 all_stats: True
