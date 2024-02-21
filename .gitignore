@@ -186,4 +186,4 @@ multi-scan-materials/.DS_Store
 *.zip
 *.csv
 *.png
-data/road_network/*
+output/*_road_network/*

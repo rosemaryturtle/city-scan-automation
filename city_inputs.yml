@@ -1,9 +1,8 @@
 # city basic info
-
-city_name: 'Shahrisabz'
-AOI_path: "/Users/ipshitakarmakar/Dropbox (MIT)/WB/01-current-scans/2023-11- Uzbekistan-Shahrisabz/AOI/shahrisabz.shp"
-country_name: 'Uzbekistan'
-country_iso3: 'UZB'
+city_name: 'Goris'
+AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Armenia & Georgia/shapefile/goris.shp"
+country_name: 'Armenia'
+country_iso3: 'ARM'
 
 
 # data sources (will override global_inputs if duplicates exist)

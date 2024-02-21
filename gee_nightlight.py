@@ -6,6 +6,8 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['nightlight']:
+    print('run gee_nightlight')
+    
     import ee
     import geopandas as gpd
     import datetime as dt

@@ -7,6 +7,8 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['landcover']:
+    print('run gee_landcover')
+    
     import ee
     import geopandas as gpd
     import csv

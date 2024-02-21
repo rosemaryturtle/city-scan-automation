@@ -1,6 +1,6 @@
 script_list = ["accessibility.py",
                "burned_area.py",
-               "cover_image.py",
+               'fwi.py',
                "gee_forest.py",
                "gee_landcover.py",
                "gee_lst.py",

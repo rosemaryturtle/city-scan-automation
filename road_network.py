@@ -6,20 +6,20 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['road_network']:
+    print('run road_network')
+    
     import osmnx as ox
     import networkx as nx
-    import matplotlib.cm as cm
-    import matplotlib.colors as colors
     import pandas as pd
     import numpy as np
     from shapely.ops import unary_union
     import geopandas as gpd
     import os
     import matplotlib.pyplot as plt
-    import math
     import pickle
     from pathlib import Path
-    ox.config(log_console = True, use_cache = True)
+    from os.path import exists
+    # ox.config(log_console = True, use_cache = True)
 
 
     # SET UP #########################################
@@ -35,14 +35,14 @@ if menu['road_network']:
         global_inputs = yaml.safe_load(f)
 
     # Read AOI shapefile --------
-    # transform the input shp to correct prj (epsg 4326)
+    # transform the input gpkg to correct prj (epsg 4326)
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
     features = aoi_file.geometry
 
     # Define output folder ---------
     output_folder = Path('output')
 
-    if not os.path.exists(output_folder):
+    if not exists(output_folder):
         os.mkdir(output_folder)
     
 
@@ -57,7 +57,7 @@ if menu['road_network']:
 
     def get_graph():
         try:
-            os.mkdir('data/road_network')
+            os.mkdir(output_folder / f'{city_name_l}_road_network')
         except FileExistsError:
             pass
         
@@ -67,7 +67,7 @@ if menu['road_network']:
         poly = poly.buffer(0)
         
         try:
-            with open(f'data/road_network/{city_name_l}', 'rb') as f:
+            with open(output_folder / f'{city_name_l}_road_network/{city_name_l}', 'rb') as f:
                 G = pickle.load(f)
             
             val = 1
@@ -79,26 +79,26 @@ if menu['road_network']:
         print('Writing graph file')
         
         if val != 1:
-            with open(f'data/road_network/{city_name_l}', 'wb') as f:
+            with open(output_folder / f'{city_name_l}_road_network/{city_name_l}', 'wb') as f:
                 pickle.dump(G, f, pickle.HIGHEST_PROTOCOL)
         
         return G
 
     def get_centrality_stats():
         try:
-            edges = gpd.read_file("data/road_network/edges.shp")
+            edges = gpd.read_file(output_folder / f"{city_name_l}_road_network/{city_name_l}_nodes_and_edges.gpkg")
             
             if 'edge_centr' in edges.columns:
                 df = pd.DataFrame()
                 df['edge_centr'] = edges.edge_centr.astype(float)
                 df['edge_centr_avg'] = np.nansum(df.edge_centr.values)/len(df.edge_centr)
-                df.to_csv(f"data/road_network/{city_name_l}_extended_stats.csv")
+                df.to_csv(f"output/road_network/{city_name_l}_extended_stats.csv")
         except FileNotFoundError:
             print("Edges file doesn't exist. Running edge_centrality function.")
             G = get_graph(G)
             extended_stats = ox.extended_stats(G, bc = True)
             dat = pd.DataFrame.from_dict(extended_stats)
-            dat.to_csv(f'data/road_network/{city_name_l}_extended_stats.csv')
+            dat.to_csv(output_folder / f'{city_name_l}_road_network/{city_name_l}_extended_stats.csv')
         except Exception as e:
             print('Exception Occurred', e)
 
@@ -131,19 +131,16 @@ if menu['road_network']:
         print('Saving output gdf')
         
         G = nx.MultiDiGraph(G)
-        
-        if centrality_type == "node":
-            ox.save_graph_shapefile(G, filepath = f'data/road_network')
-        elif centrality_type == "edge":
-            ox.save_graph_shapefile(G, filepath = f'data/road_network')
-        else:
-            ox.save_graph_shapefile(G, filepath = f'data/road_network')
+        graph_gpkg = output_folder / f'{city_name_l}_road_network' / f'{city_name_l}_nodes_and_edges.gpkg'
+        ox.save_graph_geopackage(G, filepath = graph_gpkg)
+        gpd.read_file(graph_gpkg, layer = 'edges').to_file(output_folder / f'{city_name_l}_road_network' / f'{city_name_l}_edges.shp')
+        gpd.read_file(graph_gpkg, layer = 'nodes').to_file(output_folder / f'{city_name_l}_road_network' / f'{city_name_l}_nodes.shp')        
         
         print('Getting basic stats')
         
         basic_stats = ox.basic_stats(G)
         dat = pd.DataFrame.from_dict(basic_stats)
-        dat.to_csv(f'data/road_network/{city_name_l}_basic_stats.csv')
+        dat.to_csv(output_folder / f'{city_name_l}_road_network/{city_name_l}_basic_stats.csv')
         
         get_centrality_stats()
         
@@ -154,7 +151,7 @@ if menu['road_network']:
         
         fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5, show = False)
         
-        fig.savefig(f'data/road_network/{city_name_l}_network_plot.png', dpi = 300)
+        fig.savefig(output_folder / f'{city_name_l}_road_network/{city_name_l}_network_plot.png', dpi = 300)
         
         return 
 
@@ -172,14 +169,14 @@ if menu['road_network']:
         bearings = pd.Series([data.get('bearing', np.nan) for u, v, k, data in G.edges(keys=True, data=True)])
         
         # save bearings as csv
-        bearings.to_csv(f'data/road_network/{city_name_l}_bearings.csv')
+        bearings.to_csv(output_folder / f'{city_name_l}_road_network/{city_name_l}_bearings.csv')
         
         fig = plt.figure()  # an empty figure with no axes
         ax = fig.add_subplot(1, 1, 1, projection='polar')
 
         polar_plot(ax, bearings)
         
-        fig.savefig(f'data/road_network/{city_name_l}_radar_plot.png', dpi = 300)
+        fig.savefig(output_folder / f'{city_name_l}_road_network/{city_name_l}_radar_plot.png', dpi = 300)
         
         return
 

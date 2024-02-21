@@ -6,6 +6,8 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['summer_lst']:
+    print('run gee_lst')
+    
     import ee
     import geopandas as gpd
 

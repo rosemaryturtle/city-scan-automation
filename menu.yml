@@ -1,33 +1,30 @@
-# for all sections below, if the first item is False, all other items in the section will be skipped
-
 # raster processing
+# if the first item is False, all other items in this section will be skipped
 raster_processing: True
-population: False
-
+population: True
 wsf: True
 elevation: True
-wsf: False
-elevation: False
+wsf: True
+elevation: True
 slope: True
-
-solar: False
-air: False
-flood_coastal: False
-flood_fluvial: False
-flood_pluvial: False
-landslide: False
-liquefaction: False
+solar: True
+air: True
+flood_coastal: True
+flood_fluvial: True
+flood_pluvial: True
+landslide: True
+liquefaction: True
 impervious: False
-slr: False
-demographics: False
+slr: True
+demographics: True
 
 # GEE
 landcover: True
-summer_lst: False
-nightlight: False
+summer_lst: True
+nightlight: True
 green: True
-forest: False
-ndmi: False
+forest: True
+ndmi: True
 
 # accessibility
 accessibility: False
@@ -36,9 +33,9 @@ accessibility: False
 rwi: True
 
 # wildfire
-burned_area: False
+burned_area: True
 fwi: True
-landcover_burn: False
+landcover_burn: True
 
 # road network
 road_network: True

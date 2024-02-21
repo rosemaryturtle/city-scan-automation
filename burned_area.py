@@ -6,10 +6,13 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['burned_area']:
+    print('run burned_area')
+    
     import os
     import pandas as pd
     import geopandas as gpd
     from pathlib import Path
+    from os.path import exists
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
@@ -29,19 +32,13 @@ if menu['burned_area']:
     # Define output folder ---------
     output_folder = Path('output')
 
-    if not os.path.exists(output_folder):
+    if not exists(output_folder):
         os.mkdir(output_folder)
 
 
     # SET PARAMETERS ################################
     # Set data folders --------------
     gf_folder = Path(global_inputs['burned_area_source'])
-    # data_folder = Path('data')
-
-    # try:
-    #     os.mkdir(data_folder / 'globfire')
-    # except FileExistsError:
-    #     pass
 
     # Buffer AOI ------------------
     aoi_buff = aoi_file.buffer(1)  # 1 degree is about 111 km at the equator
@@ -53,26 +50,24 @@ if menu['burned_area']:
 
 
     # PROCESS DATA ##################################
-    df = pd.DataFrame(columns=['year', 'month', 'x', 'y'])
+    if not exists(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp'):
+        df = pd.DataFrame(columns=['year', 'month', 'x', 'y'])
 
-    for year in years:
-        for month in months:
-            print(f'year: {year}, month: {month}')
-            
-            # Filter GlobFire ----------------
-            shp_name = f'MODIS_BA_GLOBAL_1_{month}_{year}.shp'
-            gf_shp = gpd.read_file(gf_folder / shp_name)
-            gf_aoi = gf_shp[gf_shp.intersects(features)]
-            # gf_aoi.to_file(data_folder / 'globfire' / f'{city_name_l}_globfire_{year}{str(month).zfill(2)}.shp')
+        for year in years:
+            for month in months:
+                print(f'year: {year}, month: {month}')
+                
+                # Filter GlobFire ----------------
+                shp_name = f'MODIS_BA_GLOBAL_1_{month}_{year}.shp'
+                gf_shp = gpd.read_file(gf_folder / shp_name)
+                gf_aoi = gf_shp[gf_shp.intersects(features)]
 
-            # Find centroids ----------------
-            gf_aoi = gf_aoi[gf_aoi['Type'] == 'FinalArea'].centroid
-            for i in gf_aoi:
-                df.loc[len(df.index)] = [year, month, i.x, i.y]
-    
-    # df.to_csv(data_folder / 'globfire' / f'{city_name_l}_globfire_centroids.csv')
-
-    # Save centroids to shapefile ----------------
-    if not os.path.exists(output_folder / f'{city_name_l}_globfire_centroids'):
-        os.mkdir(output_folder / f'{city_name_l}_globfire_centroids')
-    gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y)).to_file(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp', crs = 'EPSG:4326')
+                # Find centroids ----------------
+                gf_aoi = gf_aoi[gf_aoi['Type'] == 'FinalArea'].centroid
+                for i in gf_aoi:
+                    df.loc[len(df.index)] = [year, month, i.x, i.y]
+        
+        # Save centroids to shapefile ----------------
+        if not os.path.exists(output_folder / f'{city_name_l}_globfire_centroids'):
+            os.mkdir(output_folder / f'{city_name_l}_globfire_centroids')
+        gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y)).to_file(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp', crs = 'EPSG:4326')

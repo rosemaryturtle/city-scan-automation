@@ -6,16 +6,16 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['accessibility']:
-    from genericpath import exists
-    import sys, os
+    print('run accessibility')
+    
+    from os.path import exists
+    import os, sys
     import geopandas as gpd
     import osmnx as ox
     import networkx as nx
-    from shapely.ops import split, unary_union
-    from shapely.geometry import box, Point
+    from shapely.geometry import box
     from pathlib import Path
     import pickle
-
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
@@ -31,7 +31,7 @@ if menu['accessibility']:
     # import GOSTnets -----------
     sys.path.append(global_inputs['gostnets_path'])
     import GOSTnets as gn
-    from GOSTnets.fetch_pois import *
+    from GOSTnets.fetch_pois import OsmObject
 
     # Read AOI shapefile --------
     # transform the input shp to correct prj (epsg 4326)
@@ -45,7 +45,7 @@ if menu['accessibility']:
     # Define output folder ---------
     output_folder = Path('output')
 
-    if not os.path.exists(output_folder):
+    if not exists(output_folder):
         os.mkdir(output_folder)
 
 
@@ -81,7 +81,7 @@ if menu['accessibility']:
                 # convert to GeoDataFrame
                 query_results_gpd = gpd.GeoDataFrame(query_results, crs = "epsg:4326", geometry = 'geometry')
                 query_results_gpd_shp = f'{city_name_l}_osm_{query[0]}'
-                if not os.path.exists(output_folder / query_results_gpd_shp):
+                if not exists(output_folder / query_results_gpd_shp):
                     os.mkdir(output_folder / query_results_gpd_shp)
                 query_results_gpd.to_file(output_folder / query_results_gpd_shp / f'{query_results_gpd_shp}.shp')
         except:
@@ -130,7 +130,7 @@ if menu['accessibility']:
     if not exists(output_folder / f'{city_name_l}_osm_roads' / f'{city_name_l}_osm_roads.shp'):
         roads = roads[['length','time','mode','geometry']]
         roads_shp = f'{city_name_l}_osm_roads'
-        if not os.path.exists(output_folder / roads_shp):
+        if not exists(output_folder / roads_shp):
             os.mkdir(output_folder / roads_shp)
         roads.to_file(output_folder / roads_shp / f'{roads_shp}.shp')
 
@@ -165,16 +165,17 @@ if menu['accessibility']:
             print(f"no destinations for {amenity_type} exist")
         else:
             for threshold in amenity_threshold_list:
-                print(threshold)
-                iso_gdf = gn.make_iso_polys(G, snapped_destinations_dict[amenity_type], [threshold], edge_buff = 300, node_buff = 300, weight = 'length', measure_crs = G_utm)
-                dissolved = iso_gdf.dissolve(by = "thresh")
-                gdf_out = dissolved.explode(index_parts = True)
-                gdf_out2 = gdf_out.reset_index()
-                # save file
                 gdf_out2_shp = f'{city_name_l}_accessibility_{amenity_type}_{threshold}m'
-                if not os.path.exists(output_folder / gdf_out2_shp):
-                    os.mkdir(output_folder / gdf_out2_shp)
-                gdf_out2.to_file(output_folder / gdf_out2_shp / f'{gdf_out2_shp}.shp')
+                if not exists(output_folder / gdf_out2_shp / f'{gdf_out2_shp}.shp'):
+                    print(threshold)
+                    iso_gdf = gn.make_iso_polys(G, snapped_destinations_dict[amenity_type], [threshold], edge_buff = 300, node_buff = 300, weight = 'length', measure_crs = G_utm)
+                    dissolved = iso_gdf.dissolve(by = "thresh")
+                    gdf_out = dissolved.explode(index_parts = True)
+                    gdf_out2 = gdf_out.reset_index()
+                    # save file
+                    if not exists(output_folder / gdf_out2_shp):
+                        os.mkdir(output_folder / gdf_out2_shp)
+                    gdf_out2.to_file(output_folder / gdf_out2_shp / f'{gdf_out2_shp}.shp')
             
     for key in global_inputs['isochrone']:
         isochrone_processing(key)

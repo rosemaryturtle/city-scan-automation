@@ -6,6 +6,8 @@ with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['fwi']:
+    print('run fwi')
+    
     import os
     import pandas as pd
     import geopandas as gpd
@@ -16,7 +18,7 @@ if menu['fwi']:
     import glob
     import numpy as np
     from rasterio.crs import CRS
-    from datetime import datetime
+    from os.path import exists
 
     # SET UP ##############################################
     
@@ -38,7 +40,7 @@ if menu['fwi']:
     # Define output folder ---------
     output_folder = Path('output')
 
-    if not os.path.exists(output_folder):
+    if not exists(output_folder):
         os.mkdir(output_folder)
 
 
@@ -48,40 +50,41 @@ if menu['fwi']:
 
 
     # PROCESSING ###################################
-    fwi_raster_dict = {}
+    if (not exists(output_folder / f'{city_name_l}_fwi.tif')) and (not exists(output_folder / f'{city_name_l}_fwi.csv')):
+        fwi_raster_dict = {}
 
-    # clip raster and store in dict --------------------
-    for year in range(global_inputs['fwi_first_year'], global_inputs['fwi_last_year'] + 1):
-        for r in glob.glob(f"{global_inputs['fwi_source']}/FWI.GEOS-5.Daily.Default.{year}*.tif"):
-            with rasterio.open(r, 'r+') as src:
-                src.crs = CRS.from_epsg(4326)
+        # clip raster and store in dict --------------------
+        for year in range(global_inputs['fwi_first_year'], global_inputs['fwi_last_year'] + 1):
+            for r in glob.glob(f"{global_inputs['fwi_source']}/FWI.GEOS-5.Daily.Default.{year}*.tif"):
+                with rasterio.open(r, 'r+') as src:
+                    src.crs = CRS.from_epsg(4326)
+                    
+                    out_image, out_transform = rasterio.mask.mask(
+                        src, features, all_touched = True, crop = True)
+                    out_meta = src.meta.copy()
                 
-                out_image, out_transform = rasterio.mask.mask(
-                    src, features, all_touched = True, crop = True)
-                out_meta = src.meta.copy()
-            
-            if np.nansum(out_image) != 0:
-                fwi_raster_dict[r.split('.')[-2][-9:]] = out_image
-            
-                out_meta.update({"driver": "GTiff",
-                                "height": out_image.shape[1],
-                                "width": out_image.shape[2],
-                                "transform": out_transform})
-    q99_raster = np.nanpercentile(list(fwi_raster_dict.values()), 98.6, axis = 0)
+                if np.nansum(out_image) != 0:
+                    fwi_raster_dict[r.split('.')[-2][-9:]] = out_image
+                
+                    out_meta.update({"driver": "GTiff",
+                                    "height": out_image.shape[1],
+                                    "width": out_image.shape[2],
+                                    "transform": out_transform})
+        q99_raster = np.nanpercentile(list(fwi_raster_dict.values()), 98.6, axis = 0)
 
-    with rasterio.open(output_folder / f'{city_name_l}_fwi.tif', 'w', **out_meta) as dest:
-        dest.write(q99_raster)
-    
-    # calculate 95th percentile FWI by week -------------------
-    fwi_val_dict = {}
+        with rasterio.open(output_folder / f'{city_name_l}_fwi.tif', 'w', **out_meta) as dest:
+            dest.write(q99_raster)
+        
+        # calculate 95th percentile FWI by week -------------------
+        fwi_val_dict = {}
 
-    for i in fwi_raster_dict:
-        fwi_val_dict[i] = fwi_raster_dict[i].flatten().tolist()
+        for i in fwi_raster_dict:
+            fwi_val_dict[i] = fwi_raster_dict[i].flatten().tolist()
 
-    df = pd.DataFrame(list(fwi_val_dict.items()), columns=['date_str', 'fwi'])
-    df['date'] = pd.to_datetime(df['date_str'], format='%Y%m%d')
-    df['week'] = df['date'].dt.isocalendar().week
-    df = df.explode('fwi', ignore_index=True)
-    week_95th = df.groupby('week').agg(pctile_95 = ('fwi', lambda x: np.nanpercentile(x, 95)))
+        df = pd.DataFrame(list(fwi_val_dict.items()), columns=['date_str', 'fwi'])
+        df['date'] = pd.to_datetime(df['date_str'], format='%Y%m%d')
+        df['week'] = df['date'].dt.isocalendar().week
+        df = df.explode('fwi', ignore_index=True)
+        week_95th = df.groupby('week').agg(pctile_95 = ('fwi', lambda x: np.nanpercentile(x, 95)))
 
-    week_95th.to_csv(output_folder / f'{city_name_l}_fwi.csv', index=True)
+        week_95th.to_csv(output_folder / f'{city_name_l}_fwi.csv', index=True)
