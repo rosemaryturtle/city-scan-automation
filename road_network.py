@@ -56,10 +56,8 @@ if menu['road_network']:
         return boundary_poly
 
     def get_graph():
-        try:
+        if not exists(output_folder / f'{city_name_l}_road_network'):
             os.mkdir(output_folder / f'{city_name_l}_road_network')
-        except FileExistsError:
-            pass
         
         print(f'Fetching graph data for {AOI_name}')
         

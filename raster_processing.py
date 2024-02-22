@@ -55,10 +55,8 @@ if menu['raster_processing']:
     # DOWNLOAD AND PREPARE DATA ##########################################
     data_folder = Path('data')
 
-    try:
+    if not exists(data_folder):
         os.mkdir(data_folder)
-    except FileExistsError:
-        pass
 
     def tile_finder(direction, tile_size = 1):
         coord_list = []
@@ -108,10 +106,8 @@ if menu['raster_processing']:
 
         pop_folder = data_folder / 'pop'
 
-        try:
+        if not exists(pop_folder):
             os.mkdir(pop_folder)
-        except FileExistsError:
-            pass
 
         # default population data source: WorldPop
 
@@ -173,10 +169,8 @@ if menu['raster_processing']:
 
         wsf_folder = data_folder / 'wsf'
 
-        try:
+        if not exists(wsf_folder):
             os.mkdir(wsf_folder)
-        except FileExistsError:
-            pass
 
         for i in range(len(aoi_bounds)):
             for x in range(math.floor(aoi_bounds.minx[i] - aoi_bounds.minx[i] % 2), math.ceil(aoi_bounds.maxx[i]), 2):
@@ -234,10 +228,8 @@ if menu['raster_processing']:
 
         elev_folder = data_folder / 'elev'
 
-        try:
+        if not exists(elev_folder):
             os.mkdir(elev_folder)
-        except FileExistsError:
-            pass
 
         aoi_bounds = aoi_file.bounds
 
@@ -326,10 +318,8 @@ if menu['raster_processing']:
 
         demo_folder = data_folder / 'demographics'
 
-        try:
+        if not exists(demo_folder):
             os.mkdir(demo_folder)
-        except FileExistsError:
-            pass
         
         demo_file_json = requests.get(f"https://www.worldpop.org/rest/data/age_structures/ascic_2020?iso3={city_inputs['country_iso3']}").json()
         demo_file_list = demo_file_json['data'][0]['files']
@@ -353,10 +343,8 @@ if menu['raster_processing']:
         # merged data folder (before clipping)
         flood_folder = data_folder / 'flood'
 
-        try:
+        if not exists(flood_folder):
             os.mkdir(flood_folder)
-        except FileExistsError:
-            pass
 
         # 8 return periods
         rps = [10, 100, 1000, 20, 200, 5, 50, 500]
