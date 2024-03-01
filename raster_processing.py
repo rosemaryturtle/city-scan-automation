@@ -348,7 +348,7 @@ if menu['raster_processing']:
 
         # 8 return periods
         rps = [10, 100, 1000, 20, 200, 5, 50, 500]
-
+        
         # find relevant tiles
         lat_tiles = tile_finder('lat')
         lon_tiles = tile_finder('lon')
@@ -436,8 +436,8 @@ if menu['raster_processing']:
 
                                 with rasterio.open(flood_folder / (mosaic_file[:-4] + '_con.tif'), "w", **out_meta) as dest:
                                     dest.write(out_image, 1)
-
-                        for bin in flood_rp_bins:
+                                
+                        for bin in flood_rp_bins:  # TODO: issues w/con; build in a flagging mechanism / while loop
                             raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[bin] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif'))]
                             raster_arrays = []
 

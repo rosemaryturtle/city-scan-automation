@@ -1,22 +1,21 @@
 # raster processing
 # if the first item is False, all other items in this section will be skipped
 raster_processing: True
-population: True
-wsf: True
-elevation: True
-wsf: True
-elevation: True
-slope: True
-solar: True
-air: True
+population: False
+wsf: False
+elevation: False
+wsf: False
+elevation: False
+slope: False
+solar: False
+air: False
 flood_coastal: True
 flood_fluvial: True
 flood_pluvial: True
-landslide: True
-liquefaction: True
+landslide: False
+liquefaction: False
 impervious: False
-slr: True
-demographics: True
+demographics: False
 
 # GEE
 landcover: True
@@ -27,7 +26,7 @@ forest: True
 ndmi: True
 
 # accessibility
-accessibility: False
+accessibility: True
 
 # RWI
 rwi: True

@@ -187,3 +187,4 @@ multi-scan-materials/.DS_Store
 *.csv
 *.png
 output/*_road_network/*
+data/flood/*
