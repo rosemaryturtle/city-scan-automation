@@ -5,11 +5,12 @@ import yaml
 with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
-if menu['summer_lst']:
-    print('run gee_lst')
+if menu['ndmi']:
+    print('run gee_ndmi')
     
     import ee
     import geopandas as gpd
+    import datetime as dt
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
@@ -24,8 +25,6 @@ if menu['summer_lst']:
 
     # Initialize Earth Engine
     ee.Initialize()
-
-    landsat = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 
     # Read AOI shapefile --------
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
@@ -42,7 +41,7 @@ if menu['summer_lst']:
     AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 
-    # GEE PARAMETERS ################################
+    # GEE PARAMETERS #####################################
     # Date filter -----------------
     if city_inputs["last_hot_month"] > city_inputs["first_hot_month"]:
         range_list = [ee.Filter.date(f'{year}-{city_inputs["first_hot_month"]}-01',
@@ -59,30 +58,48 @@ if menu['summer_lst']:
 
     rangefilter = ee.Filter.Or(range_list)
 
-    # Cloud mask function ----------------
-    def maskL457sr(image):
-        # Bit 0 - Fill
-        # Bit 1 - Dilated Cloud
-        # Bit 2 - Cirrus (high confidence)
-        # Bit 3 - Cloud
-        # Bit 4 - Cloud Shadow
-        qaMask = image.select('QA_PIXEL').bitwiseAnd(int('11111', 2)).eq(0)
-        saturationMask = image.select('QA_RADSAT').eq(0)
-        # Apply the scaling factors to the appropriate bands.
-        thermalBand = image.select('ST_B10').multiply(0.00341802).add(149.0)
-        # Replace the original bands with the scaled ones and apply the masks.
-        return image.addBands(thermalBand, None, True).updateMask(qaMask).updateMask(saturationMask)
+    NDMI_last_year = ee.DateRange(f'{str(dt.date.today().year-1)}-01-01', f'{str(dt.date.today().year)}-01-01')
+
+    # Functions --------------------
+    def maskS2clouds(image):
+        qa = image.select('QA60')
+
+        cloudBitMask = 1 << 10
+        cirrusBitMask = 1 << 11
+
+        mask = qa.bitwiseAnd(cloudBitMask).eq(0).And(qa.bitwiseAnd(cirrusBitMask).eq(0))
+
+        return image.updateMask(mask).divide(10000)
 
 
-    # GEE PROCESSING ###############################
-    collectionSummer = landsat.filter(rangefilter).filterBounds(AOI).map(maskL457sr).select('ST_B10').mean().add(-273.15).clip(AOI)
-    task = ee.batch.Export.image.toCloudStorage(**{
-        'image': collectionSummer,
-        'description': f"{city_name_l}_summer",
+    # PROCESSING #########################################
+    s2a_Season = ee.ImageCollection('COPERNICUS/S2').filterBounds(AOI).filter(rangefilter).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
+
+    S2a_RecentAnnual = ee.ImageCollection('COPERNICUS/S2').filterBounds(AOI).filterDate(NDMI_last_year).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
+
+    s2a_med_Season = s2a_Season.median().clip(AOI)
+    s2a_med_RecentAnnual = S2a_RecentAnnual.median().clip(AOI)
+
+    ndmi_Season = s2a_med_Season.normalizedDifference(['B8', 'B11']).rename('NDMI')
+    ndmi_recentannual = s2a_med_RecentAnnual.normalizedDifference(['B8', 'B11']).rename('NDMI_Annual')
+
+    # Export results to Google Cloud Storage bucket ------------------
+    task0 = ee.batch.Export.image.toCloudStorage(**{
+        'image': ndmi_Season,
+        'description': f'{city_name_l}_NDMI_Season',
         'bucket': global_inputs['cloud_bucket'],
-        # 'folder': city_inputs['country_name'],
         'region': AOI,
-        'scale': 30,
+        'scale': 10,
         'maxPixels': 1e9
     })
-    task.start()
+    task0.start()
+
+    task1 = ee.batch.Export.image.toCloudStorage(**{
+        'image': ndmi_recentannual,
+        'description': f'{city_name_l}_NDMI_Annual',
+        'bucket': global_inputs['cloud_bucket'],
+        'region': AOI,
+        'scale': 10,
+        'maxPixels': 1e9
+    })
+    task1.start()

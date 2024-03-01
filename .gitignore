@@ -184,3 +184,10 @@ multi-scan-materials/.DS_Store
 *.json
 *.pickle
 *.gpkg
+<<<<<<< HEAD
+=======
+*.zip
+*.csv
+*.png
+output/*_road_network/*
+>>>>>>> origin/main
