@@ -4,3 +4,7 @@
 [submodule "scan-assembly"]
 	path = scan-assembly
 	url = https://github.com/bennotkin/city-scan.git
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/bennotkin/city-scan-frontend.git
+	branch = main
