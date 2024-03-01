@@ -184,14 +184,8 @@ multi-scan-materials/.DS_Store
 *.json
 *.pickle
 *.gpkg
-<<<<<<< HEAD
-=======
 *.zip
 *.csv
 *.png
 output/*_road_network/*
-<<<<<<< HEAD
 data/flood/*
-=======
->>>>>>> origin/main
->>>>>>> 01d536d4562ddc94d3bf76b600c10c66951285b6
