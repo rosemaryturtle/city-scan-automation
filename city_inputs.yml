@@ -2,6 +2,7 @@
 
 city_name: 'Shahrisabz'
 AOI_path: "/Users/ipshitakarmakar/Dropbox (MIT)/WB/01-current-scans/2023-11- Uzbekistan-Shahrisabz/AOI/shahrisabz.shp"
+lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/01-current-scans/2023-11- Uzbekistan-Shahrisabz/AOI/gadm41_UZB_2.shp'
 country_name: 'Uzbekistan'
 country_iso3: 'UZB'
 
