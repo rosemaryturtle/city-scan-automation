@@ -17,12 +17,12 @@ The back-end workflow automates the processing and clipping of global environmen
 
 The front-end workflow takes the back-end outputs and assembles them into a Quarto document, complete with a text narrative, statistical visualizations, and interactive maps.
 
-# Workflow Improvement
+## Workflow Improvement
 
 One of the primary motivations for the City Scan Automation project is to drastically speed up and streamline the workflow.
 The improvements can be visualized in the flow charts below:
 
-## Original Workflow
+### Original Workflow
 
 Multi-actor, involving repetitive manual processes, high dependencies.
 
@@ -91,7 +91,7 @@ flowchart LR
 	slide_text --> InDesign
 ```
 
-## Proposed Workflow
+### Proposed Workflow
 
 Streamlined, cloud-based,automated, and more efficient.
 
