@@ -1,0 +1,297 @@
+// Available sass variables from Bootstrap
+// $body-bg	The page background color.
+// $body-color	The page text color.
+// $link-color	The link color.
+// $input-bg	The background color for HTML inputs.
+// $popover-bg	The background color for popovers (for example, when a citation preview is shown).
+
+// $font-family-sans-serif	The sans-serif font family for the page.
+// $font-family-monospace	The monospace font family for the page.
+// $font-size-root	The base font size for the page.
+// $toc-font-size	The font size for the page TOC.
+// $h1-font-size Font sizes for the specified headings.
+// $h2-font-size
+// $h3-font-size
+// $h4-font-size
+// $h5-font-size
+
+/*-- scss:defaults --*/
+$presentation-font-size-root: 11pt;
+$bs-root-font-size: 16px;
+$pale-color: #5a6570;
+$topbar-height: 2rem;
+
+/*-- scss:rules --*/
+
+// SCROLLYTELLING LAYOUT
+// Sets the page to full screen
+.page-columns main.content {
+  grid-column: screen-start-inset / screen-end-inset;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 2em auto auto auto;
+  grid-column-gap: 2ch;
+  align-items: start;
+  min-height: 90vh;
+  padding-bottom: 5vh;
+  border-bottom: 2px;
+  margin-top: 0;
+  margin-bottom: 5vh;
+}
+
+.text-column {
+  grid-column: 1 / 2;
+  grid-row: 3 / 5;
+  
+  h3 {
+    grid-column: 1 / 2;
+    grid-row-start: 1;
+    margin-top: 0;
+  }
+
+  div.footnote {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+    // align-self: end; // Now that the divs are `display: flex`, `align-self: end` pushes to the rights
+  }
+
+  // Prevent map from scrolling up too much & ensuring all sections hit scrollama offset point
+  section {
+    min-height: 50vh;
+    section.level4 {min-height: 0vh; padding-bottom: 1rem;}
+    // This is probably an overly complicated way to ensure each slide is vertically centered
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  section.level3 {
+    padding-bottom: 3rem;
+  }
+
+  > section:last-child {
+    margin-bottom: 100vh;
+  }
+
+  form {
+    width: 100%
+  }
+}
+
+// TYPOGRAPHY
+.text-column {
+  // Text is grey when not in focus, black when in focus
+  color: darkgrey;
+  section.is-active {color: black;};
+  section#executive-summary {color: black;};
+
+h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    color: #1e90ff;
+    background-image: radial-gradient(dodgerblue 1px, transparent 0);
+    background-size: 10px 10px;
+    height: 10rem;
+    padding: calc(100vh - 10rem) 1.5rem 10rem 1.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    margin-bottom: -1px;
+    margin-top: 0;
+  }
+
+  h2, h3 {
+    color: black;
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    font-size: 2rem;
+    color: dodgerblue;
+    background-image: radial-gradient(dodgerblue 1px, transparent 0);
+    background-size: 10px 10px;
+    padding: 30vh 1.5rem 0.5rem 1.5rem;
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    border-bottom: 1px solid black;
+  }
+
+  h4 { font-size: 1.1rem; }
+
+  p { font-size: 1rem; }
+
+  .takeaways { font-size: 1.1rem; }
+
+  div.footnote p {
+      font-size: 0.8rem;
+      color: $pale-color;
+  }
+}
+
+// MAPS & FIGURES
+.maps {
+  grid-column: 2 / 3;
+  grid-row: 1 / 5;
+  position: sticky;
+  top: $topbar-height;
+  height: 100vh;
+
+  // I now set image height in R, but leaving this here to remember CSS tags
+  // img,
+  // .leaflet.html-widget {
+    // height: 100vh !important;
+  // }
+}
+
+// TOP BAR 
+.topbar {
+  width: 100%;
+  height: $topbar-height;
+  background-color: white;
+  display: grid;
+  grid-template-columns: 2fr 4fr;
+  position: fixed;
+  z-index: 1;
+  text-align: left;
+  border-bottom: 1px solid black;
+  padding-top: 3px;
+
+  h1 {
+    grid-column: 1/2;
+    padding: .25rem .5rem;
+    font-size: 1.1rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  a {
+    color: black;
+    padding: .25rem .5rem;
+  }
+}
+
+// Navigation Menu
+.navigation {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  display: flex;
+  flex-direction: row;
+  // justify-content: end;
+
+  #dynamic-header {
+    text-transform: uppercase;
+  }
+
+  // This puts "Inputs version" on the same line as the navivation menu 
+  div.cell + p {
+    margin-top: 0;
+    padding: .25rem .5rem;
+  }
+
+  ul {
+    // background: #FFF;
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+  }
+
+  >ul>li {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  li {
+    color: #000;
+    background: #FFF;
+    display: block;
+    float: left;
+    padding: .25rem 0.5rem;
+    position: relative;
+    text-decoration: none;
+    transition-duration: 0.5s;
+  }
+
+  li a {
+    color: #000;
+  }
+
+  li:hover,
+  li:focus-within {
+    cursor: pointer;
+  }
+
+  // To highlight the chain of selected items
+  li:focus-within,
+  li:hover {
+    background: lightblue;
+  }
+
+  // But I don't want to highlight the whole table of contents
+  >ul>li:focus-within,
+  >ul>li:hover {
+    background-color: #FFF;
+    border: 1px solid black
+  }
+
+  // li:focus-within a {
+  //   outline: none;
+  // }
+
+  ul li ul,
+  ul li ul li ul {
+    background: #FFF;
+    visibility: hidden;
+    opacity: 0;
+    min-width: 5rem;
+    position: relative;
+    transition: all 0.5s ease;
+    margin-top: .5rem;
+    display: none;
+  }
+
+  ul li ul {
+    position: relative;
+    left: 0;
+  }
+
+  ul li ul li ul {
+    position: absolute;
+    left: 100%;
+    right: -105%;
+    top: -0.5em;
+    border: 1px solid black;
+  }
+
+  ul li:hover>ul,
+  ul li:focus-within>ul,
+  ul li ul:hover,
+  ul li ul:focus {
+    visibility: visible;
+    opacity: 1;
+    display: block;
+  }
+
+  ul li ul li {
+    clear: both;
+    width: 100%;
+  }
+}
+
+// HIDDEN ELEMENTS
+#title-block-header { display: none; }
+
+.setup section { display: none; }
+
+// Leaflet controls and legends
+// .leaflet .info, .leaflet-control-layers, .leaflet-control-layers-expanded, .leaflet-control,
+// .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar
+// {
+	// box-shadow: none;
+    // border-radius: 0;
+    // border: 1px solid grey;
+// }
