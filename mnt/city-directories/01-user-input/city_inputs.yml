@@ -1,9 +1,21 @@
 # city basic info
-city_name: 'Matara'
-AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Sri Lanka/Matara/data/AOI/Matara_AOI.shp"
-country_name: 'Sri Lanka'
-country_iso3: 'LKA'
+city_name: 'Goris'
+# BN: if AOI is consistently stored in 01-user-inputs, this need not be included
+# in city_inputs.yml. Here I have changed path but we could delete this line
+# (assuming python can read shapefile from directory name) 
+AOI_path: "mnt/city-directories/01-user-input/AOI"
+country_name: 'Armenia'
+country_iso3: 'ARM'
 
+# Benchmark cities
+# - When multiple countries, add country name as key before city (e.g. "- Armenia: Yerevan")
+# - When not providing manual benchmark cities, simply write `null` (without ticks)
+bm_cities_manual:
+  - Yerevan
+  - Gyumri
+  - Areni
+  - Dilijan
+nearby_countries_string: "georgia|turkey|iran|azerbaijan|russia"
 
 # data sources (will override global_inputs if duplicates exist)
 # put False as default value if no data exists for a city
