@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("menu.yml", 'r') as f:
+with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['raster_processing']:
@@ -26,7 +26,7 @@ if menu['raster_processing']:
     # SET UP ##############################################
 
     # load city inputs files, to be updated for each city scan
-    with open("city_inputs.yml", 'r') as f:
+    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
@@ -43,7 +43,7 @@ if menu['raster_processing']:
     aoi_bounds = aoi_file.bounds
 
     # Define output folder ---------
-    output_folder = Path('output')
+    output_folder = Path('../mnt/city-directories/02-process-output')
 
     if not exists(output_folder):
         os.mkdir(output_folder)
@@ -405,7 +405,12 @@ if menu['raster_processing']:
                                     copyfile(raster_to_mosaic[0], flood_folder / mosaic_file)
                                 else:
                                     try:
-                                        mosaic, output = merge(raster_to_mosaic)
+                                        raster_to_mosaic1 = []
+                                        for p in raster_to_mosaic:
+                                            raster = rasterio.open(p)
+                                            raster_to_mosaic1.append(raster)
+                                        
+                                        mosaic, output = merge(raster_to_mosaic1)
                                         output_meta = raster.meta.copy()
                                         output_meta.update(
                                             {"driver": "GTiff",
@@ -430,7 +435,10 @@ if menu['raster_processing']:
                                     out_image[out_image == src.meta['nodata']] = 0
                                     out_image[out_image < flood_threshold] = 0
                                     out_image[out_image >= flood_threshold] = 1
-
+                                    if np.nanmax(out_image) > 1:
+                                        print(mosaic_file)
+                                        print('max value: ', np.nanmax(out_image))
+                                        exit()
                                     out_meta = src.meta.copy()
                                     out_meta.update({'nodata': 0})
 
@@ -471,7 +479,12 @@ if menu['raster_processing']:
                                         copyfile(raster_to_mosaic[0], flood_folder / mosaic_file)
                                     else:
                                         try:
-                                            mosaic, output = merge(raster_to_mosaic)
+                                            raster_to_mosaic1 = []
+                                            for p in raster_to_mosaic:
+                                                raster = rasterio.open(p)
+                                                raster_to_mosaic1.append(raster)
+                                            
+                                            mosaic, output = merge(raster_to_mosaic1)
                                             output_meta = raster.meta.copy()
                                             output_meta.update(
                                                 {"driver": "GTiff",

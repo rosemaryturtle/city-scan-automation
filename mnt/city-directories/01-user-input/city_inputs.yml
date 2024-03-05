@@ -1,8 +1,8 @@
 # city basic info
-city_name: 'Goris'
-AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Armenia & Georgia/shapefile/goris.shp"
-country_name: 'Armenia'
-country_iso3: 'ARM'
+city_name: 'Matara'
+AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Sri Lanka/Matara/data/AOI/Matara_AOI.shp"
+country_name: 'Sri Lanka'
+country_iso3: 'LKA'
 
 
 # data sources (will override global_inputs if duplicates exist)
