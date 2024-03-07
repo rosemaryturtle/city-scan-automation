@@ -1,0 +1,12 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <Description>avg_rad_sum</Description>
+    <Metadata>
+      <MDI key="STATISTICS_MAXIMUM">1329.0001120567</MDI>
+      <MDI key="STATISTICS_MEAN">252.34024181807</MDI>
+      <MDI key="STATISTICS_MINIMUM">31.90139009431</MDI>
+      <MDI key="STATISTICS_STDDEV">237.44093243244</MDI>
+      <MDI key="STATISTICS_VALID_PERCENT">39.21</MDI>
+    </Metadata>
+  </PAMRasterBand>
+</PAMDataset>

@@ -2,30 +2,27 @@
 
 # raster processing
 raster_processing: True
-population: False
-
+population: True
 wsf: True
-elevation: True
-wsf: False
 elevation: False
 slope: True
-
 solar: False
 air: False
-flood: False
+flood: True
 landslide: False
 liquefaction: False
 impervious: False
 slr: False
 demographics: False
+amenities: True
 
 # GEE
 landcover: True
-summer_lst: False
+summer_lst: True
 nightlight: False
 green: True
 forest: False
-ndmi: False
+ndmi: True
 
 # accessibility
 accessibility: False

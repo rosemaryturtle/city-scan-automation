@@ -1,10 +1,10 @@
 # city basic info
 
-city_name: 'Shahrisabz'
-AOI_path: "/Users/ipshitakarmakar/Dropbox (MIT)/WB/01-current-scans/2023-11- Uzbekistan-Shahrisabz/AOI/shahrisabz.shp"
-lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/01-current-scans/2023-11- Uzbekistan-Shahrisabz/AOI/gadm41_UZB_2.shp'
-country_name: 'Uzbekistan'
-country_iso3: 'UZB'
+city_name: 'Goris'
+AOI_path: "/Users/ipshitakarmakar/Documents/GitHub/city-scan-automation/mnt/city-directories/01-user-input/AOI/goris.shp"
+lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/01-current-scans/2024-03-05-armenia-goris/gadm41_ARM_shp/gadm41_ARM_1.shp'
+country_name: 'Armenia'
+country_iso3: 'ARM'
 
 
 # data sources (will override global_inputs if duplicates exist)
