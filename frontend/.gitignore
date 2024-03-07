@@ -1,0 +1,24 @@
+**/.DS_Store
+/*_files
+/*.html
+.Rhistory
+images/*
+_site
+.quarto
+cities
+plots
+scratchheap
+city-scan-input-results.json
+!/mnt/**.gitkeep
+!/mnt/README.md
+other (review for deletion)
+other-cities
+gce-test
+styled-maps
+.vscode
+rosm.cache/
+.Rproj.user
+index_cache
+.sass-cache
+source/custom.css*
+spatial-statistics

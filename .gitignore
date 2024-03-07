@@ -168,6 +168,7 @@ relative_wealth_index/.DS_Store
 road_network_analysis/.DS_Store
 scan-assembly/.DS_Store
 multi-scan-materials/.DS_Store
+**/.DS_Store
 
 # Raster files
 *.tif
@@ -186,4 +187,5 @@ multi-scan-materials/.DS_Store
 *.zip
 *.csv
 *.png
-data/road_network/*
+output/*_road_network/*
+data/flood/*
