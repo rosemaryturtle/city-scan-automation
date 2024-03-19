@@ -1,0 +1,126 @@
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Altitude</b>' to '<b>Altitud'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Altitude</b>' to '<b>Altitud'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Altitude</b>' to '<b>Altitud'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Altitude</b>' to '<b>Altitud'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Altitude</b>' to '<b>Altitud'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Altitude</b>' to '<b>Altitud'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 1: Value 'Aéreo
+250 kVA
+ENDE
+
+Seccionador Operacional 
+Ruptor Fusivel Tipo Xs
+
+CABO MT
+XLPE - 3x150 mm2
+
+BT
+Interruptor Seccionador 400 A - Hager Electro
+HA 456
+Ue = 415 V   Ie=400A
+
+T.I  - SACI
+400/5 A    
+Nº 166012025
+
+
+CABO BT 
+
+
+TRANSFORMADOR
+ANO:27/110/2018
+Código do Produto:
+Numero de Série de Fabrico:18-11371
+Modelo:ASTOR
+Potencia:250 kVA
+Forma de Arrefecimento:
+Tensão Nominal: 30/0,4 [kV]
+Corrente Nominal:   4,811 / 360,844 [A]
+Impedancia de C.C. :4,11
+Grupo Ligação:Dyn11
+Peso do Oleo:200
+Peso Total:900
+Uso Exterior
+
+
+
+
+Fabrica de gelo
+Activado no dia 23/07/2019' of field descriptio has been truncated to 254 characters.  This warning will not be emitted any more for that layer.
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: '<b>Coordinate</b>' to '<b>Coordin'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 1: Value 'Alvenaria
+1600 kVA
+
+DATA DE INSERÇÃO: 11-10-2019
+LD 30 kV - UCHY
+
+Seccionador MT - ICMH/36 36/30 kV
+Ruptor Fusivel Tipo Xs
+
+CABO MT - 
+
+
+
+CABO Secundário - QGBT: 
+
+
+T.I -  
+CODE 
+
+
+Interruptor Seccionador - 
+SIRCO A - Ue - V Ie: A
+
+
+T.P - 
+
+T.S - 
+
+TRAFO -Premo Electrico 
+ANO:
+TIPO:
+Numero de Série de Fabrico:201411046
+Morma:
+Potencia:250 kVA
+Forma de Arrefecimento: ONAN
+Tensão Nominal: 30 / 0,4 [kV]
+Corrente Nominal: 4,81 / 361 [A]
+Tensão Nominal C.C. - 4,46
+Impedancia CC - 
+Grupo Ligação:Dyn11
+Peso do Oleo:
+Peso Tota:
+Uso Exterior' of field descriptio has been truncated to 254 characters.  This warning will not be emitted any more for that layer.
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+Warning 6: Normalized/laundered field name: 'description' to 'descriptio'
+ERROR 1: Attempt to write non-point (POLYGON) geometry to point shapefile.
+ERROR 1: Unable to write feature 2 from layer merged.
+ERROR 1: Terminating translation prematurely after failed
+translation of layer merged (use -skipfailures to skip errors)
