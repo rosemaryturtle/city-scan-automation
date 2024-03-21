@@ -10,7 +10,6 @@ if menu['nightlight']:
     
     import ee
     import geopandas as gpd
-    import datetime as dt
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
@@ -62,7 +61,6 @@ if menu['nightlight']:
     viirs_with_time1 = viirs.filterDate(NTL_time).map(addTime)
 
     linear_fit = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.linearFit()).clip(AOI).unmask(value = no_data_val, sameFootprint = False)
-
     sum_of_light = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.sum()).clip(AOI).unmask(value = no_data_val, sameFootprint = False)
 
     # Export results to Google Cloud Storage bucket ------------------

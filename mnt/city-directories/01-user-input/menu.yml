@@ -3,8 +3,8 @@
 raster_processing: True
 population: False
 wsf: False
-elevation: True
-slope: False
+elevation: False
+slope: True
 solar: False
 air: False
 flood_coastal: False

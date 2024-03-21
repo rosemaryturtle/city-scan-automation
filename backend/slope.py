@@ -27,14 +27,12 @@ if menu['raster_processing'] and menu['slope']:
     output_folder = Path('../mnt/city-directories/02-process-output')
 
     # Check if elevation raster exists ------------
-    if not exists(output_folder / f'{city_name_l}_elevation.tif', 'elevation'):
+    if not exists(output_folder / f'{city_name_l}_elevation.tif'):
         print('cannot generate slope because elevation raster does not exist')
         exit()
     
     import os
-    import math
     import csv
-    import geopandas as gpd
     import numpy as np
     import richdem as rd
     import rasterio
