@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("menu.yml", 'r') as f:
+with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['summer_lst']:
@@ -13,7 +13,7 @@ if menu['summer_lst']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("city_inputs.yml", 'r') as f:
+    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
@@ -74,8 +74,9 @@ if menu['summer_lst']:
         return image.addBands(thermalBand, None, True).updateMask(qaMask).updateMask(saturationMask)
 
 
-    # GEE PROCESSING ###############################
-    collectionSummer = landsat.filter(rangefilter).filterBounds(AOI).map(maskL457sr).select('ST_B10').mean().add(-273.15).clip(AOI)
+    # PROCESSING ###############################
+    no_data_val = -9999
+    collectionSummer = landsat.filter(rangefilter).filterBounds(AOI).map(maskL457sr).select('ST_B10').mean().add(-273.15).clip(AOI).unmask(value = no_data_val, sameFootprint = False)
     task = ee.batch.Export.image.toCloudStorage(**{
         'image': collectionSummer,
         'description': f"{city_name_l}_summer",
@@ -83,6 +84,11 @@ if menu['summer_lst']:
         # 'folder': city_inputs['country_name'],
         'region': AOI,
         'scale': 30,
-        'maxPixels': 1e9
+        'maxPixels': 1e9,
+        'fileFormat': 'GeoTIFF',
+        'formatOptions': {
+            'cloudOptimized': True,
+            'noData': no_data_val
+        }
     })
     task.start()

@@ -1,3 +1,5 @@
+# TODO: make sure AOI is a polygon of an appropriate size
+
 script_list = ["accessibility.py",
                "burned_area.py",
                'fwi.py',

@@ -317,12 +317,13 @@ if menu['raster_processing']:
         elif len(list(filter(tif_counter, os.listdir(elev_folder)))) == 1:
             os.rename(elev_folder / (list(filter(tif_counter, os.listdir(elev_folder)))[0]), elev_folder / f'{city_name_l}_elevation.tif')
         else:
-            err_msg = 'No elevation file available'
+            err_msg = 'No elevation file available; use SRTM instead for elevation'
             print(err_msg)
             failed.append(err_msg)
 
-            # output something to trigger gee_elevation.py
-            # TODO: ask copilot what's a good way to do this
+            # trigger gee_elevation.py
+            with open('gee_elevation.py') as f:
+                exec(f.read())
     
     # Download and prepare demographics data ------------------
     if menu['demographics']:
