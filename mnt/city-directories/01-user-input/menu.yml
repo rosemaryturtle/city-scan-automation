@@ -15,6 +15,10 @@ liquefaction: True
 impervious: False
 demographics: True
 
+#Infrastructure
+existing: True
+proposed: True
+
 # GEE
 landcover: False
 summer_lst: True
@@ -39,7 +43,7 @@ road_network: True
 
 # stats
 # flood_timeline and earthquake_timeline unclear
-all_stats: False
+all_stats: True
 
 # toolbox
 toolbox: True
