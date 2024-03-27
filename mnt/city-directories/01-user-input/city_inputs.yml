@@ -27,7 +27,7 @@ impervious_source: False
 # can add to the OSM POIs in global_inputs; will override global_inputs if duplicates exist
 
 # land surface temperature parameters
-first_hot_month: 7
-last_hot_month: 9
+# first_hot_month: 7
+# last_hot_month: 9
 first_year: 2014
 last_year: 2023
