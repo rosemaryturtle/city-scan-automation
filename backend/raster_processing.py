@@ -454,10 +454,6 @@ if menu['raster_processing']:
                                         out_image[out_image == src.meta['nodata']] = 0
                                         out_image[out_image < flood_threshold] = 0
                                         out_image[out_image >= flood_threshold] = 1
-                                        if np.nanmax(out_image) > 1:
-                                            print(mosaic_file)
-                                            print('max value: ', np.nanmax(out_image))
-                                            exit()
                                         out_meta = src.meta.copy()
                                         out_meta.update({'nodata': 0})
 
