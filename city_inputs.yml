@@ -1,5 +1,5 @@
 # city basic info
-city_name: 'Luanda'
+city_name: 'Huambo'
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
