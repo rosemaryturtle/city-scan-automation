@@ -3,7 +3,8 @@ city_name: 'Goris'
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
-AOI_path: "mnt/city-directories/01-user-input/AOI"
+# AOI_path: "mnt/city-directories/01-user-input/AOI"
+AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Armenia & Georgia/shapefile/goris.shp"
 country_name: 'Armenia'
 country_iso3: 'ARM'
 
@@ -26,7 +27,7 @@ impervious_source: False
 # can add to the OSM POIs in global_inputs; will override global_inputs if duplicates exist
 
 # land surface temperature parameters
-first_hot_month: 7
-last_hot_month: 9
-first_year: 2013
-last_year: 2022
+# first_hot_month: 7
+# last_hot_month: 9
+first_year: 2014
+last_year: 2023

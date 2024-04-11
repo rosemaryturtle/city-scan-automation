@@ -15,6 +15,7 @@ oxford_locations_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-
 un_data_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/undata-pop.csv'
 fwi_source: 'D:/World Bank/CRP/data/NASA FWI'
 lc_burn_source: "D:/World Bank/CRP/data/Landcover burnability/ESACCI.tif"
+temperature_source: "D:/World Bank/CRP/data/CRU/tmp"
 
 # non-data sources
 gostnets_path: 'C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/GOSTnets'
@@ -27,10 +28,13 @@ flood:
   threshold: 15  # unit: cm
   year:
     - 2020
+    # - 2050
+    # - 2080
   ssp:
     - 1
     - 2
     - 3
+    - 5
   prob_cutoff:  # unit: %
     - 1
     - 10

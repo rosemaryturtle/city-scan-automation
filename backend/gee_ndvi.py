@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("menu.yml", 'r') as f:
+with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['green']:
@@ -14,7 +14,7 @@ if menu['green']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("city_inputs.yml", 'r') as f:
+    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
@@ -73,12 +73,13 @@ if menu['green']:
 
 
     # PROCESSING #########################################
-    s2a_Season = ee.ImageCollection('COPERNICUS/S2').filterBounds(AOI).filter(rangefilter).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
+    no_data_val = -9999
 
+    s2a_Season = ee.ImageCollection('COPERNICUS/S2').filterBounds(AOI).filter(rangefilter).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
     S2a_RecentAnnual = ee.ImageCollection('COPERNICUS/S2').filterBounds(AOI).filterDate(NDVI_last_year).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
 
-    s2a_med_Season = s2a_Season.median().clip(AOI)
-    s2a_med_RecentAnnual = S2a_RecentAnnual.median().clip(AOI)
+    s2a_med_Season = s2a_Season.median().clip(AOI).unmask(value = no_data_val, sameFootprint = False)
+    s2a_med_RecentAnnual = S2a_RecentAnnual.median().clip(AOI).unmask(value = no_data_val, sameFootprint = False)
 
     ndvi_Season = s2a_med_Season.normalizedDifference(['B8', 'B4']).rename('NDVI')
     ndvi_recentannual = s2a_med_RecentAnnual.normalizedDifference(['B8', 'B4']).rename('NDVI')
@@ -90,7 +91,12 @@ if menu['green']:
         'bucket': global_inputs['cloud_bucket'],
         'region': AOI,
         'scale': 10,
-        'maxPixels': 1e9
+        'maxPixels': 1e9,
+        'fileFormat': 'GeoTIFF',
+        'formatOptions': {
+            'cloudOptimized': True,
+            'noData': no_data_val
+        }
     })
     task0.start()
 
@@ -100,6 +106,11 @@ if menu['green']:
         'bucket': global_inputs['cloud_bucket'],
         'region': AOI,
         'scale': 10,
-        'maxPixels': 1e9
+        'maxPixels': 1e9,
+        'fileFormat': 'GeoTIFF',
+        'formatOptions': {
+            'cloudOptimized': True,
+            'noData': no_data_val
+        }
     })
     task1.start()
