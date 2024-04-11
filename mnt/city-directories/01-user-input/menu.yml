@@ -2,14 +2,14 @@
 # if the first item is False, all other items in this section will be skipped
 raster_processing: True
 population: False
-wsf: False
+wsf: True
 elevation: False
 slope: False
 solar: False
 air: False
 flood_coastal: False
-flood_fluvial: True
-flood_pluvial: True
+flood_fluvial: False
+flood_pluvial: False
 landslide: False
 liquefaction: False
 impervious: False

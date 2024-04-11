@@ -190,3 +190,4 @@ multi-scan-materials/.DS_Store
 output/*_road_network/*
 data/flood/*
 backend/temp.ipynb
+mnt/city-directories/02-process-output/*
