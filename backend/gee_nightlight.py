@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("menu.yml", 'r') as f:
+with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['nightlight']:
@@ -10,11 +10,10 @@ if menu['nightlight']:
     
     import ee
     import geopandas as gpd
-    import datetime as dt
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("city_inputs.yml", 'r') as f:
+    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
@@ -55,13 +54,14 @@ if menu['nightlight']:
 
 
     # PROCESSING #########################################
+    no_data_val = -9999
+
     viirs_cf_cvg = viirs.select('avg_rad')
     viirs_with_time = viirs.filterDate(NTL_time).map(addTime)
     viirs_with_time1 = viirs.filterDate(NTL_time).map(addTime)
 
-    linear_fit = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.linearFit()).clip(AOI)
-
-    sum_of_light = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.sum()).clip(AOI)
+    linear_fit = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.linearFit()).clip(AOI).unmask(value = no_data_val, sameFootprint = False)
+    sum_of_light = viirs_with_time.select(['system:time_start', 'avg_rad']).reduce(ee.Reducer.sum()).clip(AOI).unmask(value = no_data_val, sameFootprint = False)
 
     # Export results to Google Cloud Storage bucket ------------------
     task0 = ee.batch.Export.image.toCloudStorage(**{
@@ -70,7 +70,12 @@ if menu['nightlight']:
         'bucket': global_inputs['cloud_bucket'],
         'region': AOI,
         'scale': 100,
-        'maxPixels': 1e9
+        'maxPixels': 1e9,
+        'fileFormat': 'GeoTIFF',
+        'formatOptions': {
+            'cloudOptimized': True,
+            'noData': no_data_val
+        }
     })
     task0.start()
 
@@ -80,6 +85,11 @@ if menu['nightlight']:
         'bucket': global_inputs['cloud_bucket'],
         'region': AOI,
         'scale': 100,
-        'maxPixels': 1e9
+        'maxPixels': 1e9,
+        'fileFormat': 'GeoTIFF',
+        'formatOptions': {
+            'cloudOptimized': True,
+            'noData': no_data_val
+        }
     })
     task1.start()
