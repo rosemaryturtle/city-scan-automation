@@ -46,6 +46,7 @@ cover_image: False
 # stats
 # flood_timeline and earthquake_timeline unclear
 all_stats: True
+oxford: True
 
 # toolbox
 toolbox: True
