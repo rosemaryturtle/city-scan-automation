@@ -1,0 +1,35 @@
+# city basic info
+
+city_name: 'Goris'
+AOI_path: "/Users/ipshitakarmakar/Documents/GitHub/city-scan-automation/mnt/city-directories/01-user-input/AOI/goris.shp"
+lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/01-current-scans/2024-03-05-armenia-goris/gadm41_ARM_shp/gadm41_ARM_1.shp'
+country_name: 'Armenia'
+country_iso3: 'ARM'
+
+
+# data sources (will override global_inputs if duplicates exist)
+# put False as default value if no data exists for a city
+flood_source: False
+impervious_source: False
+
+# accessibility analysis parameters
+# can add to the OSM POIs in global_inputs; will override global_inputs if duplicates exist
+
+# land surface temperature parameters
+first_hot_month: 7
+last_hot_month: 9
+first_year: 2013
+last_year: 2022
+
+# sea level rise parameters
+ssp:
+  - 2
+  - 5
+year:
+  - 2020
+  - 2050
+  - 2100
+slr_scenario:
+  - 'high tide'
+  - 'RL10'
+  
