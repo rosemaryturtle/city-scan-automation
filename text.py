@@ -27,11 +27,7 @@ if menu['all_stats']:
     import numpy as np
     from io import StringIO
     import requests
-    from sklearn.preprocessing import MinMaxScaler
     from shapely.geometry import shape
-    from shapely.ops import unary_union
-    import pint
-    import folium
     from pathlib import Path
     import matplotlib.pyplot as plt
     import requests
@@ -43,7 +39,6 @@ if menu['all_stats']:
     from nbconvert import MarkdownExporter
     import nbformat
     import base64
-    import pickle
     import plotly.graph_objects as go
     import osmnx as ox
     from shapely.geometry import box
@@ -62,9 +57,6 @@ if menu['all_stats']:
     from functools import partial
     import pyproj
     import warnings
-    import plotly.offline as pyo
-    #from pysal import lib
-    #from pysal.explore import esda
     
 
 
@@ -75,7 +67,7 @@ if menu['all_stats']:
 
 # SET UP ##############################################
 # load city inputs files, to be updated for each city scan
-with open("city_inputs.yml", 'r') as f:
+with open("mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
     city_inputs = yaml.safe_load(f)
 
 city = city_inputs['city_name'].replace(' ', '_').lower()
@@ -83,7 +75,7 @@ country = city_inputs['country_name'].replace(' ', '_').lower()
 
 # load global inputs, such as data sources that generally remain the same across scans
 
-with open("global_inputs.yml", 'r') as f:
+with open("backend/global_inputs.yml", 'r') as f:
     global_inputs = yaml.safe_load(f)
 # run scan assembly and toolbox
 get_ipython().run_line_magic('run', "'scan_assembly.ipynb'")
