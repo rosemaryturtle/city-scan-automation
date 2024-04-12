@@ -27,11 +27,7 @@ if menu['all_stats']:
     import numpy as np
     from io import StringIO
     import requests
-    from sklearn.preprocessing import MinMaxScaler
     from shapely.geometry import shape
-    from shapely.ops import unary_union
-    import pint
-    import folium
     from pathlib import Path
     import matplotlib.pyplot as plt
     import requests
@@ -43,7 +39,6 @@ if menu['all_stats']:
     from nbconvert import MarkdownExporter
     import nbformat
     import base64
-    import pickle
     import plotly.graph_objects as go
     import osmnx as ox
     from shapely.geometry import box
@@ -62,9 +57,6 @@ if menu['all_stats']:
     from functools import partial
     import pyproj
     import warnings
-    import plotly.offline as pyo
-    #from pysal import lib
-    #from pysal.explore import esda
     
 
 
@@ -75,7 +67,7 @@ if menu['all_stats']:
 
 # SET UP ##############################################
 # load city inputs files, to be updated for each city scan
-with open("city_inputs.yml", 'r') as f:
+with open("mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
     city_inputs = yaml.safe_load(f)
 
 city = city_inputs['city_name'].replace(' ', '_').lower()
@@ -83,7 +75,7 @@ country = city_inputs['country_name'].replace(' ', '_').lower()
 
 # load global inputs, such as data sources that generally remain the same across scans
 
-with open("global_inputs.yml", 'r') as f:
+with open("backend/global_inputs.yml", 'r') as f:
     global_inputs = yaml.safe_load(f)
 # run scan assembly and toolbox
 get_ipython().run_line_magic('run', "'scan_assembly.ipynb'")
@@ -551,8 +543,12 @@ if menu['population']:
         pop_cluster_gdf = get_cluster_boundaries(cluster_labels, transform)
         pop_cluster = describe_cluster_location(pop_cluster_gdf, aoi_file)
         pop_cluster
-    find_highest_lowest_pixel_value_path(pop_path)
-    pixelwise_regression(pop_path, summer_path)
+    
+    try:
+        find_highest_lowest_pixel_value_path(pop_path)
+        pixelwise_regression(pop_path, summer_path)
+    except Exception as e:
+        print("An error occurred:", e)
 
 
 # Economic Activity
@@ -560,41 +556,53 @@ if menu['population']:
 # In[21]:
 
 
-if menu['raster_processing']:  
+if menu['nightlight']:  
     rad_path = os.path.join(output_folder, city + '_avg_rad_sum.tiff')
     with rasterio.open(rad_path) as src:
         rad_data = src.read(1)
         rad_data = np.nan_to_num(rad_data, nan=0) 
         transform = src.transform
+    
     rad_cluster_labels = create_raster_clusters(rad_data, n_clusters=5)
     plot_cluster_labels_plotly(rad_cluster_labels)
+    
     if cluster_labels is not None:
         print("Cluster labels shape:", rad_cluster_labels.shape)
         rad_cluster_gdf = get_cluster_boundaries(rad_cluster_labels, transform)
         rad_cluster = describe_cluster_location(rad_cluster_gdf, aoi_file)
         rad_cluster
-    find_highest_lowest_pixel_value(rad_data)
-
+    
+    try:
+        find_highest_lowest_pixel_value(rad_data)
+    except Exception as e:
+        print("An error occurred:", e)
 
 # Change in Economic Activity 
 
 # In[22]:
 
 
-if menu['raster_processing']:  
+if menu['nightlight']:  
     linfit_path = os.path.join(output_folder, city + '_linfit.tiff')
     with rasterio.open(linfit_path) as src:
         linfit_data = src.read(1)
         linfit_data = np.nan_to_num(linfit_data, nan=0) 
         transform = src.transform
+    
     linfit_cluster_labels = create_raster_clusters(linfit_data, n_clusters=5)
     plot_cluster_labels_plotly(linfit_cluster_labels)
+    
     if cluster_labels is not None:
         print("Cluster labels shape:", linfit_cluster_labels.shape)
         linfit_cluster_gdf = get_cluster_boundaries(linfit_cluster_labels, transform)
         linfit_cluster = describe_cluster_location(linfit_cluster_gdf, aoi_file)
         linfit_cluster
-    find_highest_lowest_pixel_value(linfit_data)
+    
+    try:
+        find_highest_lowest_pixel_value(linfit_data)
+    except Exception as e:
+        print("An error occurred:", e)
+
 
 
 # Urban Extent and Change
@@ -632,8 +640,11 @@ if menu['summer_lst']:
         summer_data = src.read(1)
         summer_data = np.nan_to_num(summer_data, nan=0) 
         transform = src.transform
-    find_highest_lowest_pixel_value(summer_data)
-
+    
+    try:
+        find_highest_lowest_pixel_value(summer_data)
+    except Exception as e:
+        print("An error occurred:", e)
 
 # Green Spaces
 
@@ -645,7 +656,11 @@ if menu['green']:
     with rasterio.open(NDVI_path) as src:
         NDVI_data = src.read(1)
         NDVI_data = np.nan_to_num(NDVI_data, nan=0) 
-    find_highest_lowest_pixel_value(NDVI_data)
+    
+    try:
+        find_highest_lowest_pixel_value(NDVI_data)
+    except Exception as e:
+        print("An error occurred:", e)
 
 
 # Elevation
@@ -667,14 +682,21 @@ if menu['slope']:
         slope_data = src.read(1)
         slope_data = np.nan_to_num(slope_data, nan=0) 
         transform = src.transform
-    slope_cluster_labels = create_raster_clusters(linfit_data, n_clusters=10)
+    
+    slope_cluster_labels = create_raster_clusters(slope_data, n_clusters=10)
     plot_cluster_labels_plotly(slope_cluster_labels)
+    
     if cluster_labels is not None:
         print("Cluster labels shape:", slope_cluster_labels.shape)
         slope_cluster_gdf = get_cluster_boundaries(slope_cluster_labels, transform)
         slope_cluster = describe_cluster_location(slope_cluster_gdf, aoi_file)
         slope_cluster
-    find_highest_lowest_pixel_value(slope_data)
+    
+    try:
+        find_highest_lowest_pixel_value(slope_data)
+    except Exception as e:
+        print("An error occurred:", e)
+
 
 
 # In[65]:
@@ -693,7 +715,11 @@ if menu['ndmi']:
     with rasterio.open(NDMI_path) as src:
         NDMI_data = src.read(1)
         NDMI_data = np.nan_to_num(NDMI_data, nan=0) 
-    find_highest_lowest_pixel_value(NDMI_data)
+    
+    try:
+        find_highest_lowest_pixel_value(NDMI_data)
+    except Exception as e:
+        print("An error occurred:", e)
 
 
 # Flooding 
