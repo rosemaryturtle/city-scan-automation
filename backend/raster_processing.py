@@ -42,6 +42,14 @@ if menu['raster_processing']:
     features = aoi_file.geometry
     aoi_bounds = aoi_file.bounds
 
+    # Set UTM CRS ---------------------
+    # automatically find utm zone
+    avg_lng = features.unary_union.centroid.x
+
+    # calculate UTM zone from avg longitude to define CRS to project to
+    utm_zone = math.floor((avg_lng + 180) / 6) + 1
+    utm_crs = f"+proj=utm +zone={utm_zone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
     # Define output folder ---------
     output_folder = Path('../mnt/city-directories/02-process-output')
 
@@ -100,14 +108,6 @@ if menu['raster_processing']:
 
         return coord_list
 
-    # Set UTM CRS ---------------------
-    if menu['wsf'] or menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:
-        # automatically find utm zone
-        avg_lng = features.unary_union.centroid.x
-
-        # calculate UTM zone from avg longitude to define CRS to project to
-        utm_zone = math.floor((avg_lng + 180) / 6) + 1
-        utm_crs = f"+proj=utm +zone={utm_zone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
     # Download and prepare WorldPop data ------------
     if menu['population']:
@@ -189,6 +189,7 @@ if menu['raster_processing']:
                         file = requests.get(f'https://download.geoservice.dlr.de/WSF_EVO/files/{file_name}/{file_name}.tif')
                         open(wsf_folder / f'{file_name}.tif', 'wb').write(file.content)
 
+        # TODO: instead of merging all tifs in the folder, only merge the relevant ones
         # count how many raster files have been downloaded
         def tif_counter(list):
             if list.endswith('.tif'):
@@ -624,17 +625,33 @@ if menu['raster_processing']:
                         f.write("%s,%s\n" % (key, year_dict[key]))
 
             # Reclassify
-            out_image[out_image < 1985] = 0
-            out_image[(out_image <= 2015) & (out_image >= 2006)] = 4
-            out_image[(out_image < 2006) & (out_image >= 1996)] = 3
-            out_image[(out_image < 1996) & (out_image >= 1986)] = 2
-            out_image[out_image == 1985] = 1
+            def wsf_reclassify():
+                with rasterio.open(output_folder / f'{city_name_l}_wsf_4326.tif') as src:
+                    out_image = src.read(1)
+                    out_image[out_image < 1985] = 0
+                    out_image[(out_image <= 2015) & (out_image >= 2006)] = 4
+                    out_image[(out_image < 2006) & (out_image >= 1996)] = 3
+                    out_image[(out_image < 1996) & (out_image >= 1986)] = 2
+                    out_image[out_image == 1985] = 1
+                    out_meta = src.meta.copy()
+                    out_meta.update({'nodata': 0})
 
-            output_4326_raster_clipped_reclass = output_folder / f'{city_name_l}_wsf_4326_reclass.tif'
+                with rasterio.open(output_folder / f'{city_name_l}_wsf_4326_reclass.tif', "w", **out_meta) as dest:
+                    dest.write(out_image, 1)
+
+            def wsf_raster_check(raster):
+                with rasterio.open(raster) as src:
+                    return (np.nanmax(src.read(1)) > 4)
+            
+            wsf_reclassify()
+            while wsf_raster_check(output_folder / f'{city_name_l}_wsf_4326_reclass.tif'):
+                wsf_reclassify()
+
+            # output_4326_raster_clipped_reclass = output_folder / f'{city_name_l}_wsf_4326_reclass.tif'
 
             # save for stats
-            with rasterio.open(output_4326_raster_clipped_reclass, "w", **out_meta) as dest:
-                dest.write(out_image)
+            # with rasterio.open(output_4326_raster_clipped_reclass, "w", **out_meta) as dest:
+            #     dest.write(out_image)
 
     def clipdata_demo(input_raster):
         with rasterio.open(input_raster) as src:
@@ -663,11 +680,11 @@ if menu['raster_processing']:
 
     # wsf
     if menu['wsf']:
-        try:
-            print('process wsf')
-            clipdata_wsf(wsf_folder / f'{city_name_l}_wsf_evolution.tif')
-        except:
-            failed.append('process wsf failed')
+        # try:
+        print('process wsf')
+        clipdata_wsf(wsf_folder / f'{city_name_l}_wsf_evolution.tif')
+        # except:
+        #     failed.append('process wsf failed')
     
     # elevation
     if menu['elevation'] or menu['slope']:
