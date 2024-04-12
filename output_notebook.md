@@ -1,94 +1,17 @@
-    read AOI shapefile
-
-
-
     
-![png](output_4_1.png)
-    
-
-
-    Area of the city of goris is 1.4398561252041046e-09 kilometer ** 2
-
-
-    Köppen climate classification:  Dfb,  Cfa,  Dfa (See https://en.wikipedia.org/wiki/Köppen_climate_classification for classes)
-
-
-    /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_3150/3057155416.py:8: UserWarning: Geometry is in a geographic CRS. Results from 'centroid' are likely incorrect. Use 'GeoSeries.to_crs()' to re-project geometries to a projected CRS before this operation.
-    
-      centroid = features.centroid.values[0]
-
-
-
-
-
-    array([' Dfb', ' Cfa', ' Dfa'], dtype=object)
-
-
-
-
-
-    under5: 9.40%
-    youth (15-24): 21.01%
-    working_age (15-64): 0.00%
-    elderly (60+): 39.65%
-    reproductive_age, percent of women (15-50): 45.97%
-    sex_ratio: 0.0 males to 100 females
-
-
-
-
-    The city's built-up area grew from 1.98 km^2 in 1985 to 4.2 in 2015 for 112.33% growth
-
-
-
-
-    The first highest landcover value is Tree cover with 49.16% of the total land area
-    The second highest landcover value is Grassland with 31.40% of the total land area
-    The third highest landcover value is Built-up with 17.66% of the total land area
-
-
-
-
-    Highest percentage entry for Elevation:
-    legend         20-Oct
-    count            6627
-    percent      0.345084
-    Percent           35%
-    Elevation        20.0
-    Name: 3, dtype: object
-
-
-
-
-    Highest percentage entry for Slope:
-    legend       20-Oct
-    count          6627
-    percent    0.345084
-    Percent         35%
-    Slope          20.0
-    Name: 3, dtype: object
-
-
-    Tally of flood events
-    DEAD             2
-    DISPLACED    20000
-    BEGAN            1
-    dtype: int64
-
-
-
-    
-![png](output_20_1.png)
+![png](output_4_0.png)
     
 
 
 
+
+
+    '\ncity=\'Mumbai\'\ndef oxford_age_stats():\n    with open("global_inputs.yml", \'r\') as f:\n        global_inputs = yaml.safe_load(f)\n\n    # Get city inputs\n    city_inputs = global_inputs.get(\'city_inputs\')\n    \n# Define the \'oxford_age_stats\' function\ndef oxford_age_stats(city):\n    with open("global_inputs.yml", \'r\') as f:\n        global_inputs = yaml.safe_load(f)\n\n    # Get city inputs\n    city_inputs = global_inputs.get(\'city_inputs\')\n\n    if \'oxford\' in menu and menu[\'oxford\']:  \n        oxford_data_path = os.path.join(multi_scan_folder, "Oxford Global Cities Data.csv")\n        if os.path.exists(oxford_data_path):  \n            oxford_data = pd.read_csv(oxford_data_path)\n            indicators = oxford_data[\'Indicator\'].drop_duplicates()\n            pop_dist_inds = [indicator for indicator in indicators if "Population" in indicator and indicator not in ["Population 0-14", "Population 15-64", "Population 65+"]]  \n\n            if city in oxford_data[\'Location\'].values:\n                print(f"{city} exists in the Oxford file.")\n                pop_dist_structure = oxford_data.loc[(oxford_data[\'Location\'] == city) & (oxford_data[\'Indicator\'].isin(pop_dist_inds))]\n                print(pop_dist_structure.head(3))\n                pop_dist_structure[\'Age_Bracket\'] = pop_dist_structure[\'Indicator\'].str[11:19]\n                # Convert to numeric, handling errors by setting them to NaN\n                pop_dist_structure[\'Age_Bracket\'] = pd.to_numeric(pop_dist_structure[\'Age_Bracket\'], errors=\'coerce\')\n                pop_dist_structure[\'Group\'] = pd.cut(\n                    pop_dist_structure[\'Age_Bracket\'],\n                    bins=[0, 4, 14, np.inf],  # Replace float(\'inf\') with np.inf\n                    labels=[\'Young\', \'Working\', \'65+\']\n                )\n                \n                pop_dist_structure = pop_dist_structure.groupby([\'Year\', \'Group\']).agg(Count=(\'Value\', \'sum\')).reset_index()\n                pop_dist_structure[\'Percent\'] = pop_dist_structure.groupby(\'Year\')[\'Count\'].transform(lambda x: x / x.sum())\n                pop_dist_structure[\'pct_sum\'] = pop_dist_structure.groupby(\'Year\')[\'Percent\'].cumsum()\n                return pop_dist_structure\n            else:\n                print(f"{city} does not exist in the Oxford file.")\n        else:\n            print("Oxford file does not exist.")\n    else:\n        print("Oxford is not selected in the menu.")\n\n# Example usage\noxford_age_stats(\'Mumbai\')\n'
+
+
+
+    /Users/ipshitakarmakar/mambaforge/envs/geo/share/jupyter/nbconvert/templates/base/display_priority.j2:32: UserWarning:
     
-![png](output_20_2.png)
+    Your element with mimetype(s) dict_keys(['application/vnd.plotly.v1+json']) is not able to be represented.
     
-
-
-    Seasonality is low to moderate, making solar energy available in only some of the months
-
-
 
