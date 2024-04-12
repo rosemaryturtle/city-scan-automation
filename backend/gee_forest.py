@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("menu.yml", 'r') as f:
+with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['forest']:
@@ -14,7 +14,7 @@ if menu['forest']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("city_inputs.yml", 'r') as f:
+    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
@@ -44,12 +44,14 @@ if menu['forest']:
 
 
     # PROCESSING #####################################
-    deforestation0018 = fc.select('loss').eq(1).clip(AOI).rename('fcloss0018')
+    no_data_val = -9999
+
+    deforestation0018 = fc.select('loss').eq(1).clip(AOI).unmask(value = no_data_val, sameFootprint = False).rename('fcloss0018')
     forestCover00 = fc.select('treecover2000').gte(20).clip(AOI)
     forestCoverGain0018 = fc.select('gain').eq(1).clip(AOI)
-    forestCover18 = forestCover00.subtract(deforestation0018).add(forestCoverGain0018).gte(1).rename('fc00')
+    forestCover18 = forestCover00.subtract(deforestation0018).add(forestCoverGain0018).gte(1).rename('fc00').unmask(value = no_data_val, sameFootprint = False)
 
-    fc18Andfcloss = deforestation0018.addBands(forestCover18)
+    # fc18Andfcloss = deforestation0018.addBands(forestCover18)
 
     # Export results to Google Cloud Storage bucket ------------------
     task0 = ee.batch.Export.image.toCloudStorage(**{'image': forestCover18,
@@ -57,7 +59,12 @@ if menu['forest']:
                                                     'region': AOI,
                                                     'scale': 30,
                                                     'bucket': global_inputs['cloud_bucket'],
-                                                    'maxPixels': 1e9})
+                                                    'maxPixels': 1e9,
+                                                    'fileFormat': 'GeoTIFF',
+                                                    'formatOptions': {
+                                                        'cloudOptimized': True,
+                                                        'noData': no_data_val
+                                                    }})
     task0.start()
 
     task1 = ee.batch.Export.image.toCloudStorage(**{'image': deforestation0018,
@@ -65,5 +72,10 @@ if menu['forest']:
                                                     'region': AOI,
                                                     'scale': 30,
                                                     'bucket': global_inputs['cloud_bucket'],
-                                                    'maxPixels': 1e9})
+                                                    'maxPixels': 1e9,
+                                                    'fileFormat': 'GeoTIFF',
+                                                    'formatOptions': {
+                                                        'cloudOptimized': True,
+                                                        'noData': no_data_val
+                                                    }})
     task1.start()
