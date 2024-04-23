@@ -38,7 +38,8 @@ if menu['nightlight']:
         print('or do something else, like creating individual raster for each polygon and then merge')
         exit()
     
-    jsonDict['features'][0]['geometry']['coordinates'][0] = [x[:-1] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
+    if len(jsonDict['features'][0]['geometry']['coordinates'][0][0]) > 2:
+        jsonDict['features'][0]['geometry']['coordinates'][0] = [x[0:2] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
     AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 

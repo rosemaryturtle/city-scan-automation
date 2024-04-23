@@ -4,15 +4,15 @@ raster_processing: True
 population: True
 wsf: True
 elevation: True
-slope: False
-solar: False
-air: False
+slope: True
+solar: True
+air: True
 flood: True
-flood_coastal: False
-flood_fluvial: False
-flood_pluvial: False
-landslide: False
-liquefaction: False
+flood_coastal: True
+flood_fluvial: True
+flood_pluvial: True
+landslide: True
+liquefaction: True
 impervious: False
 demographics: True
 

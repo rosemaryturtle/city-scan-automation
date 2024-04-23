@@ -27,7 +27,7 @@ if menu['raster_processing'] and menu['elevation']:
     output_folder = Path('../mnt/city-directories/02-process-output')
 
     # Check if elevation raster exists ------------
-    if not exists(output_folder / f'{city_name_l}_elevation.tif', 'elevation'):
+    if not exists(output_folder / f'{city_name_l}_elevation.tif'):
         print('cannot generate contour lines or elevantion stats because elevation raster does not exist')
         exit()
     
@@ -44,8 +44,9 @@ if menu['raster_processing'] and menu['elevation']:
 
     try:
         # Determine contour interval ---------------------
-        with rasterio.open(output_folder / f'{city_name_l}_elevation.tif', 'elevation') as src:
+        with rasterio.open(output_folder / f'{city_name_l}_elevation.tif') as src:
             elev_array = src.read(1)
+            elev_array = elev_array[elev_array != -9999]
             max_elev = np.nanmax(elev_array)
             min_elev = np.nanmin(elev_array)
         
@@ -68,8 +69,8 @@ if menu['raster_processing'] and menu['elevation']:
         bin_edges = np.linspace(min_elev, max_elev, num_bins + 1)
         
         # TODO: use max_elev and min_elev to determine rounding
-        # Round bin edges to the nearest 10
-        bin_edges = np.round(bin_edges, -1)
+        # Round bin edges to the nearest 1
+        bin_edges = np.round(bin_edges, 0)
         
         # Calculate histogram
         hist, _ = np.histogram(elev_array, bins = bin_edges)

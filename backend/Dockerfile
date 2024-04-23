@@ -36,6 +36,7 @@ RUN adduser \
 # into this layer.
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    --mount=type=bind,source=../mnt,target=mnt \
     python -m pip install -r requirements.txt
 
 # Switch to the non-privileged user to run the application.
@@ -48,4 +49,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD docker run
+CMD ["python", "main.py"]
