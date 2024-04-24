@@ -1,10 +1,10 @@
 # city basic info
 
-city_name: 'Goris'
-AOI_path: "/Users/ipshitakarmakar/Documents/GitHub/city-scan-automation/mnt/city-directories/01-user-input/AOI/goris.shp"
-lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/01-current-scans/2024-03-05-armenia-goris/gadm41_ARM_shp/gadm41_ARM_1.shp'
-country_name: 'Armenia'
-country_iso3: 'ARM'
+city_name: 'Malakal'
+AOI_path: "/Users/ipshitakarmakar/Documents/GitHub/city-scan-automation/mnt/city-directories/01-user-input/AOI/Malakal.shp"
+lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/South Sudan/gadm41_SSD_shp /gadm41_SSD_3.shp'
+country_name: 'South Sudan'
+country_iso3: 'SSD'
 
 
 # data sources (will override global_inputs if duplicates exist)
