@@ -1,5 +1,6 @@
+# for all sections below, if the first item is False, all other items in the section will be skipped
+
 # raster processing
-# if the first item is False, all other items in this section will be skipped
 raster_processing: True
 population: True
 wsf: True
@@ -24,18 +25,23 @@ forest: False
 ndmi: True
 
 # accessibility
-accessibility: True
+accessibility: False
 
 # RWI
 rwi: True
 
+# historical burned area
+burned_area: False
+
 # wildfire
-burned_area: True
 fwi: True
-landcover_burn: True
+landcover_burn: False
 
 # road network
 road_network: True
+
+# cover image
+cover_image: False
 
 # stats
 # flood_timeline and earthquake_timeline unclear
@@ -44,3 +50,6 @@ oxford: True
 
 # toolbox
 toolbox: True
+
+#external layers
+IDP: True
