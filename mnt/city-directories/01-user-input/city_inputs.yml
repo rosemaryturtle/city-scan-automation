@@ -1,9 +1,10 @@
 # city basic info
-city_name: 'Bor'
+city_name: 'Wau'
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
 AOI_path: "mnt/city-directories/01-user-input/AOI"
+lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/South Sudan/gadm41_SSD_shp /gadm41_SSD_3.shp'
 country_name: 'South Sudan'
 country_iso3: 'SSD'
 
@@ -12,7 +13,7 @@ country_iso3: 'SSD'
 # - When not providing manual benchmark cities, simply write `null` (without ticks)
 bm_cities_manual:
   - Bentiu
-  - Wau
+  - Bor
   - Malakal
 
 nearby_countries_string: "sudan|ethiopia|kenya|uganda|central african republic"
