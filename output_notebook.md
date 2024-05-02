@@ -37,7 +37,7 @@
 
 Area of the city
 
-    Area of the city of wau is 7.59 kilometer ** 2
+    Area of the city of wau is 75.9 kilometer ** 2
 
 Koppen Climate
 
@@ -132,22 +132,11 @@ Flooding
 
 Pluvial and OSM
 
-    0 of 1 (0.00%) health are located in a riverine flood risk zone with a minimum depth of 15 cm.
-    0 of 2 (0.00%) police are located in a riverine flood risk zone with a minimum depth of 15 cm.
-    Fire stations do not exist
-    2 of 24 (8.33%) schools are located in a riverine flood risk zone with a minimum depth of 15 cm.
-    Statistics saved to mnt/city-directories/02-process-output/pu_osmpt.xlsx
-    Total length of highways intersecting pluvial data: 0.18 km
-    Percentage of highways intersecting pluvial data: 8%
+    22% of major roads, 2 of 24 schools, 0 of 1 health facilities, 0 of 0 fire stations, and 0 of 2 police stations are located in a surface water flood risk zone with a minimum depth of 15 cm
 
 Pluvial Flooding and WSF
 
-    PNG saved to mnt/city-directories/03-render-output/pu_wsf.png
-
-
-
-
-    In 2015, 23533.40 sq.m of the city’s built-up area (0.74%) was exposed to surface water flooding.
+    In 1985, 1.38 km^2 of the built-up area was exposed to surface water flooding at a minimum depth of 15 cm
 
 Pluvial and Population
 
@@ -157,22 +146,13 @@ Pluvial and Population
 
 Fluvial and OSM
 
-    0 of 1 (0.00%) health are located in a riverine flood risk zone with a minimum depth of 15 cm.
-    0 of 2 (0.00%) police are located in a riverine flood risk zone with a minimum depth of 15 cm.
-    Fire stations do not exist
-    1 of 24 (4.17%) schools are located in a riverine flood risk zone with a minimum depth of 15 cm.
-    Statistics saved to mnt/city-directories/02-process-output/fu_osmpt.xlsx
-    Total length of roads intersecting fluvial data: 0.19 km
-    Percentage of roads intersecting fluvial data: 0.0818%
+    14% of major roads, 1 of 24 schools, 0 of 1 health facilities, 0 of 0 fire stations, and 0 of 2 police stations are located in a riverine flood risk zone with a minimum depth of 15 cm
 
 Fluvial and WSF
 
     PNG saved to mnt/city-directories/03-render-output/fu_wsf.png
 
-
-
-
-    In 2015, 12237.37 sq.m of the city’s built-up area (0.40%) was exposed to river flooding.
+    In 1985, 0.56 km^2 of the built-up area was exposed to river flooding at a minimum depth of 15 cm
 
 Fluvial and Population
 

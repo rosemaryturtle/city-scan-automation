@@ -50,6 +50,3 @@ oxford: True
 
 # toolbox
 toolbox: True
-
-#external layers
-IDP: True

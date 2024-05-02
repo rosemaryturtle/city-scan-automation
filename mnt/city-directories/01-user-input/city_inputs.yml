@@ -1,5 +1,5 @@
 # city basic info
-city_name: 'Wau'
+city_name: 'Malakal'
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
@@ -14,7 +14,7 @@ country_iso3: 'SSD'
 bm_cities_manual:
   - Bentiu
   - Bor
-  - Malakal
+  - Wau
 
 nearby_countries_string: "sudan|ethiopia|kenya|uganda|central african republic"
 
