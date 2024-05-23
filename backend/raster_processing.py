@@ -392,8 +392,12 @@ if menu['raster_processing']:
 
             # function to check output flood raster validity
             def flood_raster_check(raster):
+                print('checking', raster)
                 with rasterio.open(raster) as src:
-                    return (np.nanmax(src.read(1)) > 1)
+                    max_value = np.nanmax(src.read(1))
+                    print('max value:', max_value)
+                    print('return value:', max_value > 1)
+                    return (max_value > 1)
 
             def flood_processing0(flood_type):
                 print(f'prepare {flood_type} flood')
@@ -463,6 +467,7 @@ if menu['raster_processing']:
                                 
                                 flood_con()
                                 while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
+                                    print('flood_raster_check', mosaic_file[:-4])
                                     flood_con()
 
                     elif year > 2020:
@@ -640,8 +645,12 @@ if menu['raster_processing']:
                     dest.write(out_image, 1)
 
             def wsf_raster_check(raster):
+                print('checking', raster)
                 with rasterio.open(raster) as src:
-                    return (np.nanmax(src.read(1)) > 4)
+                    max_value = np.nanmax(src.read(1))
+                    print('max value:', max_value)
+                    print('return value:', max_value > 4)
+                    return (max_value > 4)
             
             wsf_reclassify()
             while wsf_raster_check(output_folder / f'{city_name_l}_wsf_4326_reclass.tif'):

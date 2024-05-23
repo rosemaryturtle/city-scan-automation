@@ -1,3 +1,10 @@
+import os
+
+# Set the environment variable in your code
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/other/google-cloud-city-scan-service-account-key.json"
+
+# TODO: create city folder and 3 subdirectories in crp-city-scan
+
 # TODO: make sure AOI is a polygon of an appropriate size
 
 script_list = ["accessibility.py",
@@ -14,7 +21,8 @@ script_list = ["accessibility.py",
                "road_network.py",
                "rwi.py",
                "contour_elev_stats.py",
-               'slope.py']
+               'slope.py'
+               ]
 
 for s in script_list:
     with open(s) as f:

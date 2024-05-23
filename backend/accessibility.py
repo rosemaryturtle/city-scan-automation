@@ -148,8 +148,10 @@ if menu['accessibility']:
     # SNAP POI TO ROADS ############################
     snapped_destinations_dict = {}
     for results_gpd in global_inputs['isochrone']:
-        snapped_destinations = gn.pandana_snap(G, gpd.read_file(output_folder / f'{city_name_l}_osm_{results_gpd}' / f'{city_name_l}_osm_{results_gpd}.shp'))
-        snapped_destinations_dict[results_gpd] = list(snapped_destinations['NN'].unique())
+        results_gpd_shp = output_folder / f'{city_name_l}_osm_{results_gpd}' / f'{city_name_l}_osm_{results_gpd}.shp'
+        if exists(results_gpd_shp):
+            snapped_destinations = gn.pandana_snap(G, gpd.read_file(results_gpd_shp))
+            snapped_destinations_dict[results_gpd] = list(snapped_destinations['NN'].unique())
 
 
     # PROCESS ISOCHRONES ###########################
@@ -177,5 +179,5 @@ if menu['accessibility']:
                         os.mkdir(output_folder / gdf_out2_shp)
                     gdf_out2.to_file(output_folder / gdf_out2_shp / f'{gdf_out2_shp}.shp')
             
-    for key in global_inputs['isochrone']:
+    for key in snapped_destinations_dict:
         isochrone_processing(key)
