@@ -1,5 +1,5 @@
 # city basic info
-city_name: 'Bentiu'
+city_name: 'Bor'
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
@@ -11,7 +11,7 @@ country_iso3: 'SSD'
 # - When multiple countries, add country name as key before city (e.g. "- Armenia: Yerevan")
 # - When not providing manual benchmark cities, simply write `null` (without ticks)
 bm_cities_manual:
-  - Bor
+  - Bentiu
   - Wau
   - Malakal
 
