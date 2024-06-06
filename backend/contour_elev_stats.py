@@ -37,25 +37,58 @@ if menu['raster_processing'] and menu['elevation']:
     import geopandas as gpd
     import numpy as np
     import rasterio
+    from osgeo import osr, ogr, gdal
 
 
     # CONTOUR ##############################################
     print('generate contour lines')
 
     try:
-        # Determine contour interval ---------------------
-        with rasterio.open(output_folder / f'{city_name_l}_elevation.tif') as src:
-            elev_array = src.read(1)
-            elev_array = elev_array[elev_array != -9999]
-            max_elev = np.nanmax(elev_array)
-            min_elev = np.nanmin(elev_array)
-        
-        elev_diff = max_elev - min_elev
-        
-        # TODO: ask copilot about what's a good contour interval
+        # Open the elevation raster
+        rasterDs = gdal.Open(str(output_folder / f'{city_name_l}_elevation.tif'))
+        rasterBand = rasterDs.GetRasterBand(1)
+        proj = osr.SpatialReference(wkt=rasterDs.GetProjection())
 
-        # Generate contour lines -----------------------
-        # TODO
+        # Get elevation data as a numpy array
+        elevArray = rasterBand.ReadAsArray()
+
+        # Define no-data value
+        demNan = -9999
+
+        # Get min and max elevation values
+        demMax = elevArray.max()
+        demMin = elevArray[elevArray != demNan].min()
+        demDiff = demMax - demMin
+
+        # Determine contour intervals
+        contourInt = 1
+        if demDiff > 250:
+            contourInt = math.ceil(demDiff / 500) * 10
+        elif demDiff > 100:
+            contourInt = 5
+        elif demDiff > 50:
+            contourInt = 2
+        
+        contourMin = math.floor(demMin / contourInt) * contourInt
+        contourMax = math.ceil(demMax / contourInt) * contourInt
+
+        # Create contour shapefile
+        contourPath = str(output_folder / f'{city_name_l}_contour.shp')
+        contourDs = ogr.GetDriverByName("ESRI Shapefile").CreateDataSource(contourPath)
+        contourShp = contourDs.CreateLayer('contour', proj)
+
+        # Define fields for ID and elevation
+        fieldDef = ogr.FieldDefn("ID", ogr.OFTInteger)
+        contourShp.CreateField(fieldDef)
+        fieldDef = ogr.FieldDefn("elev", ogr.OFTReal)
+        contourShp.CreateField(fieldDef)
+
+        # Generate contours
+        for level in range(contourMin, contourMax + contourInt, contourInt):
+            gdal.ContourGenerate(rasterBand, level, level, [], 1, demNan, contourShp, 0, 1)
+
+        # Clean up
+        contourDs.Destroy()
     except:
         print('generate contour lines failed')
     
@@ -66,14 +99,14 @@ if menu['raster_processing'] and menu['elevation']:
     try:
         # Calculate equal interval bin edges
         num_bins = 5
-        bin_edges = np.linspace(min_elev, max_elev, num_bins + 1)
+        bin_edges = np.linspace(demMin, demMax, num_bins + 1)
         
         # TODO: use max_elev and min_elev to determine rounding
         # Round bin edges to the nearest 1
         bin_edges = np.round(bin_edges, 0)
         
         # Calculate histogram
-        hist, _ = np.histogram(elev_array, bins = bin_edges)
+        hist, _ = np.histogram(elevArray, bins = bin_edges)
         
         # Write bins and hist to a CSV file
         with open(output_folder / f'{city_name_l}_elevation.csv', 'w', newline='') as csvfile:
