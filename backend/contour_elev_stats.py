@@ -71,7 +71,8 @@ if menu['raster_processing'] and menu['elevation']:
         
         contourMin = math.floor(demMin / contourInt) * contourInt
         contourMax = math.ceil(demMax / contourInt) * contourInt
-
+        contourLevels = range(contourMin, contourMax + contourInt, contourInt)
+        
         # Create contour shapefile
         contourPath = str(output_folder / f'{city_name_l}_contour.shp')
         contourDs = ogr.GetDriverByName("ESRI Shapefile").CreateDataSource(contourPath)
@@ -84,7 +85,7 @@ if menu['raster_processing'] and menu['elevation']:
         contourShp.CreateField(fieldDef)
 
         # Generate contours
-        for level in range(contourMin, contourMax + contourInt, contourInt):
+        for level in contourLevels:
             gdal.ContourGenerate(rasterBand, level, level, [], 1, demNan, contourShp, 0, 1)
 
         # Clean up
@@ -98,12 +99,10 @@ if menu['raster_processing'] and menu['elevation']:
 
     try:
         # Calculate equal interval bin edges
-        num_bins = 5
-        bin_edges = np.linspace(demMin, demMax, num_bins + 1)
-        
-        # TODO: use max_elev and min_elev to determine rounding
-        # Round bin edges to the nearest 1
-        bin_edges = np.round(bin_edges, 0)
+        contourLevels = list(contourLevels)
+        bin_edges = []
+        for i in range(6):
+            bin_edges.append(contourLevels[int(((len(contourLevels) - 6) / 5 + 1) * i)])
         
         # Calculate histogram
         hist, _ = np.histogram(elevArray, bins = bin_edges)
