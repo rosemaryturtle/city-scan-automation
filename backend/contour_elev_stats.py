@@ -74,7 +74,9 @@ if menu['raster_processing'] and menu['elevation']:
         contourLevels = range(contourMin, contourMax + contourInt, contourInt)
         
         # Create contour shapefile
-        contourPath = str(output_folder / f'{city_name_l}_contour.shp')
+        if not exists(output_folder / f'{city_name_l}_contour'):
+            os.mkdir(output_folder / f'{city_name_l}_contour')
+        contourPath = str(output_folder / f'{city_name_l}_contour' / f'{city_name_l}_contour.shp')
         contourDs = ogr.GetDriverByName("ESRI Shapefile").CreateDataSource(contourPath)
         contourShp = contourDs.CreateLayer('contour', proj)
 

@@ -6,6 +6,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Document
 # TODO: create city folder and 3 subdirectories in crp-city-scan
 
 # TODO: make sure AOI is a polygon of an appropriate size
+# TODO: if an AOI includes several polygons, make it a multipolygon
 
 script_list = ["accessibility.py",
                "burned_area.py",

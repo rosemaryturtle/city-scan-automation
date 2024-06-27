@@ -575,7 +575,8 @@ if menu['raster_processing']:
             out_meta.update({"driver": "GTiff",
                              "height": out_image.shape[1],
                              "width": out_image.shape[2],
-                             "transform": out_transform})
+                             "transform": out_transform,
+                             "nodata": 0})
 
             output_4326_raster_clipped = output_folder / f'{city_name_l}_wsf_4326.tif'
 
