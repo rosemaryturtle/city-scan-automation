@@ -5,8 +5,8 @@ import yaml
 with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
-if menu['erosion']:
-    print('run erosion')
+if menu['water_salinity']:
+    print('run water salinity')
 
     import os
     import pandas as pd
@@ -20,6 +20,7 @@ if menu['erosion']:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    country_name_l = city_inputs['country_name'].replace(' ', '_').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -34,22 +35,24 @@ if menu['erosion']:
 
     if not exists(output_folder):
         os.mkdir(output_folder)
+    
+
+    # SET PARAMETERS ################################
+    water_bodies = ['Groundwaters', 'Lakes_Reservoirs', 'Rivers']
+    data_types = ['database', 'summary']
 
 
     # PROCESS DATA ##################################
-    if not exists(output_folder / f'{city_name_l}_erosion_accretion' / f'{city_name_l}_erosion_accretion.shp'):
-        # Buffer AOI ------------------
-        xmin, ymin, xmax, ymax = aoi_file.total_bounds
-        aoi_buff = aoi_file.buffer(max(xmax-xmin, ymax-ymin))
-        features = aoi_buff.geometry
+    # filter country data
+    data_folder = Path('data')
+    ws_folder = data_folder / 'water_salinity'
 
-        # Read data --------------
-        real_nodes = gpd.read_file(global_inputs['erosion_source'])
-
-        # Filter REAL data ----------------
-        real_aoi = real_nodes[real_nodes.geometry.intersects(features.unary_union)]
-
-        # Save nodes to shapefile ----------------
-        if not os.path.exists(output_folder / f'{city_name_l}_erosion_accretion'):
-            os.mkdir(output_folder / f'{city_name_l}_erosion_accretion')
-        real_aoi.to_file(output_folder / f'{city_name_l}_erosion_accretion' / f'{city_name_l}_erosion_accretion.shp')
+    if not exists(ws_folder):
+        os.mkdir(ws_folder)
+    
+    for water_body in water_bodies:
+        for data_type in data_types:
+            if not exists(ws_folder / f'{country_name_l}_{water_body}_{data_type}.csv'):
+                df = pd.read_csv(Path(global_inputs['water_salinity_source']) / f'{water_body}_{data_type}.csv', low_memory = False)
+                df[df['Country'] == city_inputs['country_name']].to_csv(ws_folder / f'{country_name_l}_{water_body}_{data_type}.csv')
+    

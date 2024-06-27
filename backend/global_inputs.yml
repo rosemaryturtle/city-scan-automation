@@ -19,6 +19,9 @@ un_data_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-mate
 fwi_source: 'D:/World Bank/CRP/data/NASA FWI'
 lc_burn_source: "D:/World Bank/CRP/data/Landcover burnability/ESACCI.tif"
 temperature_source: "D:/World Bank/CRP/data/CRU/tmp"
+erosion_source: "D:/World Bank/CRP/data/Riverbank Erosion and Accretion from Landsat/REAL_nodes.csv"
+lightning_source: "D:/World Bank/CRP/data/Gridded Lightning Climatology/VHRFC_LIS_FRD.tif"
+water_salinity_source: "D:/World Bank/CRP/data/Water salinity"
 
 # non-data sources
 gostnets_path: 'C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/GOSTnets'

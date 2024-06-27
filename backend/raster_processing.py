@@ -884,7 +884,7 @@ if menu['raster_processing']:
     # other raster files
     # these are simple raster clipping from a global raster
     # to add another such type of raster clipping, just add to the list below
-    simple_raster_clip = ['solar', 'air', 'landslide', 'impervious', 'liquefaction']
+    simple_raster_clip = ['solar', 'air', 'landslide', 'impervious', 'liquefaction', 'lightning']
 
     # if the data source for a certain raster file is provided in both city_inputs and global_inputs,
     # city_inputs will override global_inputs.
