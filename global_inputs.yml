@@ -12,6 +12,7 @@ burned_area_source: 'C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/dat
 oxford_global_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/Oxford Global Cities Data.csv'
 koeppen_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/Koeppen-Geiger-ASCII.csv'
 oxford_locations_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/oxford-locations.csv'
+oxford_areas_source: '/Users/ipshitakarmakar/Documents/GitHub/city-scan-automation/multi-scan-materials/oxford-economics-areas.csv'
 un_data_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/undata-pop.csv'
 fwi_source: 'D:/World Bank/CRP/data/NASA FWI'
 lc_burn_source: "D:/World Bank/CRP/data/Landcover burnability/ESACCI.tif"
