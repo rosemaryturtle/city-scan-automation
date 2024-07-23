@@ -1,5 +1,7 @@
 # PDF README
 
+*_post-render.R generates the PDF.*
+
 We are using [Vivliostyle](https://vivliostyle.org) to save the City Scan to PDF. This allows us to use CSS to style a PDF, enabling us to use the same styles as the interactive version (when desired).
 
 ## Sass → CSS
