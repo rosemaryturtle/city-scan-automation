@@ -9,7 +9,6 @@ cities
 plots
 scratchheap
 city-scan-input-results.json
-/mnt
 !/mnt/**.gitkeep
 !/mnt/README.md
 other (review for deletion)
@@ -22,3 +21,5 @@ rosm.cache/
 index_cache
 .sass-cache
 source/custom.css*
+spatial-statistics
+index-plotly-test_cache
