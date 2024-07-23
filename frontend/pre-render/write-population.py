@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 # import re
 
-def get_de_pop_growth(city, country):
+def get_de_pop_growth(city, country = country):
   url = f'https://www.citypopulation.de/en/{country.lower().replace(" ", "")}/cities/'
   # Scrape data from the citypopulation.de
   response = requests.get(url)
