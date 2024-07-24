@@ -19,6 +19,9 @@ source("R/r20mm-r50mm.R")
 source("R/rx5day.R") # Needs fixing
 source("R/tas-txx.R")
 
+# Lightning
+source("R/lightning.R")
+
 # Standard city scan plots
 
 # Population growth

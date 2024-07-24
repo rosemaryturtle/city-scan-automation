@@ -1,14 +1,15 @@
 # lightning.R
 
 # Lightning
-readr::read_csv("/Users/bennotkin/Documents/world-bank/crp/city-scans/city-scan-automation/mnt/2024-06-bangladesh-cumilla/02-process-output/spatial/avg_lightning.csv") %>%
-# read_csv(file.path(spatial_dir, "avg_lightning.csv")) %>%
+read_csv(file.path(spatial_dir, "avg_lightning.csv")) %>%
   arrange(-avg) %>%
+  rename(location = city) %>%
   mutate(
-    city = ordered(city, levels = unique(.$city)),
-    group = case_when(city == "Cumilla" ~ "focus", T ~ "other")) %>%
+    location = ordered(location, levels = unique(.$location)),
+    group = case_when(location == city ~ "focus", T ~ "other")) %>%
   ggplot() +
-  geom_col(aes(x = city, y = avg, fill = group)) +
+  geom_col(aes(x = location, y = avg, fill = group)) +
+  scale_fill_manual(values = c(focus = "black", other = "darkgrey")) +
   labs(y = "Daily flash rate") +
   theme_minimal() +
   theme(legend.position = "none", axis.title.x = element_blank())
