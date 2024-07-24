@@ -1,25 +1,4 @@
 # Packages ----
-# Install packages from CRAN using librarian
-if (!"librarian" %in% installed.packages()) install.packages("librarian")
-librarian::shelf(
-  terra, 
-  sf, 
-  leaflet, 
-  yaml, 
-  stringr, 
-  dplyr, 
-  ggplot2, # 3.5 or higher
-  plotly, 
-  ggspatial, 
-  tidyterra, 
-  cowplot, 
-  glue, 
-  purrr, 
-  readr)
-
-librarian::stock(
-  ggnewscale # 4.10 or higher
-)
 
 # Map Functions ----
 # Function for reading rasters with fuzzy names
@@ -144,9 +123,7 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
       stop(paste(yaml_key, "data is neither SpatVector nor SpatRaster"))
     }
 
-  title_broken <- str_replace_all(params$title, "(.{20}[^\\s]*)\\s", "\\1<br>")
-  subtitle_broken <- str_replace_all(params$subtitle, "(.{20}[^\\s]*)\\s", "\\1<br>")
-  title <- paste0(title_broken, "<br><br><em>", subtitle_broken, "</em>")
+  title <- format_title(params$title, params$subtitle)
 
   if(params$bins > 0 && is.null(params$breaks)) {
     params$breaks <- break_pretty2(
@@ -385,4 +362,11 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif,
   }
 
   return(pretty_breaks)
+}
+
+format_title <- function(title, subtitle, width = 20) {
+  title_broken <- str_replace_all(title, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
+  subtitle_broken <- str_replace_all(subtitle, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
+  formatted_title <- paste0(title_broken, "<br><br><em>", subtitle_broken, "</em>")
+  return(formatted_title)
 }

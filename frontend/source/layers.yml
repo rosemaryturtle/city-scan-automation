@@ -51,11 +51,6 @@ economic_change:
   palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
   center: 0
   bins: 0
-social_distancing:
-  title: Difficulty of Social Distancing
-  palette: ['#ffffbf', '#de8250', '#a80000', '#82003b', '#4d0073']
-  bins: 5
-  group_id: social-distancing
 # SECTION 5 BUILT FORM
 wsf:
   fuzzy_string: wsf_4326.tif$
@@ -178,34 +173,38 @@ deforest: # Requires preprocessing to combine forest and deforestation?
 # SECTION 7 RISK IDENTIFICATION
 fluvial: # This will require pre-processing
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 11]  
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: fluvial-flooding
 pluvial: # This will require pre-processing
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 100]
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: pluvial-flooding
 coastal:
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 11]  
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: coastal-flooding
-flooding_combined: # This will require pre-processing
+combined_flooding: # This will require pre-processing
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 100]
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
-  title: 'Flood probability'
+  title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: combined-fluvial-pluvial-flooding
 elevation: # how to indicate contours?
@@ -272,10 +271,3 @@ moisture:
   center: 0
   bins: 5
   group_id: moisture
-fwi:
-  fuzzy_string: fwi
-  title: NDMI
-  palette: ['#EEEA55', '#992C29']
-  bins: 5
-  group_id: fire-potential
-# SECTION 8 LOCAL INSTITUTIONS AND PLANNING

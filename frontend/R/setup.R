@@ -1,28 +1,44 @@
 # Packages
-# For CCKP plots
-librarian::shelf(terra, dplyr, stringr, ggplot2, glue)
-librarian::stock(pammtools)
 
-# For standard city scan plots
+# Install packages from CRAN using librarian
+if (!"librarian" %in% installed.packages()) install.packages("librarian")
 librarian::shelf(
-  tidyr,
-  ggplot2,
-  forcats,
+  # Read-in
   readxl,
   readr,
-  stringr,
+  yaml, 
+  
+  # Plots
+  ggplot2, # 3.5 or higher
   ggrepel,
   directlabels,
   ggh4x,
+  plotly, 
+  cowplot,
+
+  # Spatial
   sf,
+  terra,
+  tidyterra, 
+  leaflet, 
+  ggspatial, 
+
+  # Web
   curl,
   rvest,
-  units,
-  terra,
-  dplyr,
+
+  # Basic
+  stringr,
   glue,
-  purrr
-)
+  tidyr,
+  purrr,
+  forcats,
+  units,
+  dplyr)
+
+librarian::stock(
+  ggnewscale, # 4.10 or higher
+  pammtools) # Only used for geom_stepribbon(), not currently used
 
 source("source/fns.R")
 source("source/helpers.R")
@@ -33,7 +49,8 @@ user_input_dir <- file.path(city_dir, "01-user-input/")
 process_output_dir <- file.path(city_dir, "02-process-output/")
 spatial_dir <- file.path(process_output_dir, "spatial/")
 output_dir <- file.path(city_dir, "03-render-output/")
-styled_maps_dir <- file.path(output_dir, "styled-maps/")
+# styled_maps_dir <- file.path(output_dir, "styled-maps/")
+styled_maps_dir <- file.path("maps")
 
 # Load city parameters
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
