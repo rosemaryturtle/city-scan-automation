@@ -198,8 +198,7 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_a
   ## I am now returning the CRS to 3857. I don't think this is a global fix, because it causes reprojections of the rasters
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
-        geom_sf(data = static_map_bounds, fill = NA, color = NA) +
-        coord_sf(expand = F) +
+      geom_sf(data = static_map_bounds, fill = NA, color = NA) +
       tiles 
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +

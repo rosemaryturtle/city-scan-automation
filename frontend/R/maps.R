@@ -22,56 +22,38 @@ static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
 zoom <- round(14.6 + -0.00015 * units::drop_units(sqrt(st_area(aoi))))
 tiles <- annotation_map_tile(type = "cartolight", zoom = zoom, progress = "none")
 
-# # Loop through map production
-
-# # For this to work, I'll need to do some pre-processing, like selecting only the rwi column for RWI
-# 1. ~~rwi <- fuzzy_read(spatial_dir, "rwi", FUN = vect)["rwi"]~~
-# 2. values(wsf)[values(wsf) == 0] <- NA
-# 3. values(land_cover)[values(land_cover) == 0] <- NA
-# 4. Slope, calculate from elevation (Rui is now handling this)
-# There are also multi-layer maps:
-# - Schools
-# - Health
-# - Flooding
-
 # Add primary distinction to roads file (ask Rui to do this?)
 roads <- fuzzy_read(spatial_dir, "road_network/.*edges.shp$") %>%
   mutate(primary = highway %in% c("motorway", "trunk", "primary")) %>%
   select(edge_centr, primary)
 writeVector(roads, filename = file.path(spatial_dir, "edges-edit.gpkg"), overwrite = T)
 
-# Initiate plots list
+# Initiate plots list ----------------------------------------------------------
 plots <- list()
 
-# Plot AOI
+# Plot AOI ---------------------------------------------------------------------
 plots$aoi <- plot_static(aoi_only = T)
 save_plot(plot = plots$aoi, filename = "aoi.png",
           directory = styled_maps_dir)
 
-# Most plots
-lapply(layer_params, \(x) x$fuzzy_string) %>%
-  unlist() %>%
-  .[11] %>%
+# Most plots -------------------------------------------------------------------
+unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch({
-      # browser()
-      print(yaml_key)
       data <- fuzzy_read(spatial_dir, fuzzy_string)
       if (class(data)[1] == "SpatRaster") {
-        # Vectorize only if resolution is coarse
+        # Vectorize only if resolution is coarse (7000 is based off Cumilla population)
         cell_count <- (units::drop_units(st_area(aoi)) / cellSize(data)[1,1])[[1]]
-        if (cell_count < 7000) data <- rast_as_vect(data) # Somewhat arbitrary number, based off population
+        if (cell_count < 7000) data <- rast_as_vect(data)
       }
       plot <- plot_static(data = data, yaml_key = yaml_key)
       plots[[yaml_key]] <<- plot
-      # save_plot(plot = plot, filename = glue("{yaml_key}.png"),
-      #           directory = styled_maps_dir)
+      message(paste("Success:", yaml_key))
     },
     error = \(e) {
-      warning(paste("Error on yaml_key", e))
-      return(NULL)
+      warning(glue("Error on {yaml_key}: {e}"))
     })
-  })
+  }) %>% unlist() -> log
 
 # Elevation --------------------------------------------------------------------
 elevation_params <- prepare_parameters("elevation")
