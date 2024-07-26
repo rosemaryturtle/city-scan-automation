@@ -46,41 +46,6 @@ land_cover:
   palette: ['transparent', '#277242', '#DEBA59', '#79A54F', '#E88B39', '#C62421', '#9C9085', '#DDDDDD', '#2491D7', '#707CBA', '#00C86E', '#f6e8a1']
   breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
   labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
-school_zones:
-  data_variable: thresh
-  title: Travel distance to nearest school
-  subtitle: Distance along road network in meters
-  palette: ['#B6D053', '#B6D053AA', '#B6D05366']
-  breaks: [800, 1600, 2400]
-  labels: ["<800 m", "800–1,600 m", "1,600–2,400 m"]
-  bins: 3
-  factor: TRUE
-  group_id: access-to-schools
-school_points:
-  title: School
-  palette: ['black']
-  alpha: 1
-  labels: ['School']
-  factor: TRUE
-  group_id: access-to-schools
-health_zones:
-  data_variable: thresh
-  title: Travel distance to nearest health facility
-  subtitle: Distance along road network
-  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
-  palette: ['#B6D053CC', '#B6D053AA', '#B6D05366']
-  breaks: [1000, 2000, 3000]
-  labels: ["<1 km", "1–2 km", "2–3 km"]
-  bins: 3
-  factor: TRUE
-  group_id: access-to-healthcare
-health_points:
-  title: Health Facility
-  palette: ['black']
-  alpha: 1
-  labels: ['Health facility']
-  factor: TRUE
-  group_id: access-to-healthcare
 # SECTION 6 CLIMATE CONDITIONS
 solar:
   fuzzy_string: solar.*.tif$
@@ -127,7 +92,17 @@ deforest:
   palette: ['#EEEC00', '#D73837']
   group_id: 'forests-deforestation'
 # SECTION 7 RISK IDENTIFICATION
+infrastructure:
+  fuzzy_string: infrastructure.gpkg$
+  title: Infrastructure and Services
+  data_variable: Feature
+  factor: TRUE
+  palette: ['green', 'red', 'blue', 'yellow']
+  labels:  ['Hospital or clinic', 'Fire station', 'Police station', 'School']
+  alpha: 1
+  group_id: infrastructure
 fluvial:
+  # fuzzy_string: fluvial_2020.tif$
   factor: TRUE
   palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
@@ -137,6 +112,7 @@ fluvial:
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: fluvial-flooding
 pluvial:
+  # fuzzy_string: pluvial_2020.tif$
   factor: TRUE
   palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
@@ -146,6 +122,7 @@ pluvial:
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: pluvial-flooding
 coastal:
+  # fuzzy_string: coastal_2020.tif$
   factor: TRUE
   palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
@@ -155,6 +132,7 @@ coastal:
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: coastal-flooding
 combined_flooding: # This will require pre-processing
+  # fuzzy_string: combined_flooding_2020.tif$
   factor: TRUE
   palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
@@ -165,11 +143,11 @@ combined_flooding: # This will require pre-processing
   group_id: combined-fluvial-pluvial-flooding
 elevation:
   fuzzy_string: contour.shp$
-  title: Elevation
-  subtitle: "Meters above sea level (MASL)"
   palette: ['#f5c4c0', '#762175']
   bins: 5
   stroke: 
+    title: Elevation
+    subtitle: "Meters above sea level (MASL)"
     variable: elev
     palette: ['#f5c4c0', '#762175']
   weight: 1
@@ -200,18 +178,22 @@ liquefaction:
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
   breaks: [1, 2, 3, 4, 5]
   group_id: liquefaction
-road_network_criticality:
-  title: Road network segment criticality
-  subtitle: 'Criticality %'
+roads:
+  fuzzy_string: edges-edit.gpkg
   palette: NULL
   stroke:
-    name: Road criticality
+    title: Road network segment criticality
+    subtitle: 'Criticality %'
     variable: edge_centr
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
-    name: Road type
-    variable: primary
+    title: Road type
+    variable: road_type
+    factor: TRUE
     range: [0.25, 1]
+    palette: [0.24, 1]
+    # breaks: [FALSE, TRUE]
+    labels: ['Secondary', 'Primary']
   suffix: "%"
   group_id: road-network-criticality
 burnable:

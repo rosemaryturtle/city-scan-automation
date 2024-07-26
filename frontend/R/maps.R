@@ -2,6 +2,7 @@
 
 # setwd("lgcrrp-mille-feuille/frontend")
 source("R/setup.R")
+source("R/pre-mapping.R")
 
 # Load map layer parameters
 layer_params_file <- 'source/layers.yml' # Also used by fns.R
@@ -21,12 +22,6 @@ static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
 # Create basemaps
 zoom <- round(14.6 + -0.00015 * units::drop_units(sqrt(st_area(aoi))))
 tiles <- annotation_map_tile(type = "cartolight", zoom = zoom, progress = "none")
-
-# Add primary distinction to roads file (ask Rui to do this?)
-roads <- fuzzy_read(spatial_dir, "road_network/.*edges.shp$") %>%
-  mutate(primary = highway %in% c("motorway", "trunk", "primary")) %>%
-  select(edge_centr, primary)
-writeVector(roads, filename = file.path(spatial_dir, "edges-edit.gpkg"), overwrite = T)
 
 # Initiate plots list ----------------------------------------------------------
 plots <- list()
@@ -55,26 +50,6 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     })
   }) %>% unlist() -> log
 
-# Elevation --------------------------------------------------------------------
-elevation_params <- prepare_parameters("elevation")
-elevation_title <- format_title(elevation_params$title, elevation_params$subtitle)
-plots$elevation <- plots$elevation + labs(color = elevation_title)
-
-# Road criticality -------------------------------------------------------------
-# Doing this manually because of stroke weight and color legends
-road_params <- prepare_parameters("road_network_criticality")
-road_title <- format_title(road_params$title, road_params$subtitle)
-road_data <- fuzzy_read(spatial_dir, "edges-edit.gpkg")
-plots$roads <- plot_static(data = road_data, yaml_key = "road_network_criticality") +
-  scale_color_stepsn(
-    name = road_title,
-    colors = road_params$stroke$palette,
-    labels = scales::label_percent()) +
-  scale_linewidth_manual(
-    name = "Road type",
-    values = c("FALSE" = 0.24, "TRUE" = 1),
-    labels = c("Secondary", "Primary"))
-
 # Deforestation ----------------------------------------------------------------
 deforest <- fuzzy_read(spatial_dir, "Deforest", rast)
 values(deforest) <- values(deforest) + 2000
@@ -82,23 +57,6 @@ plots$deforest <- plot_static(deforest, "deforest")
 plots$forest_deforest <- plot_static(deforest, "deforest", baseplot = plots$forest)
 
 # Flooding ---------------------------------------------------------------------
-combined_flooding <- str_subset(list.files(spatial_dir, full.names = T), "(fluvial|pluvial|coastal)_2020.tif$") %>%
-  lapply(rast) %>% 
-  reduce(\(x, y) max(x, y, na.rm = T))
-writeRaster(combined_flooding, filename = file.path(spatial_dir, paste0(city, "_combined_flooding_2020.tif")), overwrite = T)
-
-# Infrastructure base layer
-fire_points <- fuzzy_read(spatial_dir, "osm_fire") %>% mutate(Feature = "Fire station")
-police_points <- fuzzy_read(spatial_dir, "osm_police") %>% mutate(Feature = "Police station")
-health_points <- fuzzy_read(spatial_dir, "osm_health") %>% mutate(Feature = "School")
-school_points <- fuzzy_read(spatial_dir, "osm_school") %>% mutate(Feature = "Hospital or clinic")
-infrastructure_points <- rbind(fire_points, police_points, health_points, school_points)
-
-plots$infrastructure <- ggplot() +
-  geom_sf(data = static_map_bounds, fill = NA, color = NA) +
-  coord_sf(expand = F) +
-  tiles  +
-  geom_spatvector(data = infrastructure_points, aes(color = Feature))
 
 plot_flooding <- function(flood_type) {
   # browser()
@@ -179,4 +137,3 @@ plots$burnt_area_smooth <- plots$burnt_area +
 walk2(plots, names(plots), \(plot, name) {
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir)
 })
-

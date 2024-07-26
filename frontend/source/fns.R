@@ -14,7 +14,6 @@ fuzzy_read <- function(dir, fuzzy_string, FUN = NULL, path = T, convert_to_vect 
   }
   if (length(file) == 1) {
     if (is.null(FUN)) {
-      # print(tolower(str_sub(file, -4, -1)) == ".tif")
       FUN <- if (tolower(str_sub(file, -4, -1)) == ".tif") rast else vect
     }
     if (!path) {
@@ -54,13 +53,11 @@ prepare_parameters <- function(yaml_key, ...) {
   params$breaks <- unlist(params$breaks) # Necessary for some color scales
   if (is.null(params$bins)) {
     params$bins <- if(is.null(params$breaks)) 0 else length(params$breaks)
-    # params$bins <- if(is.null(params$breaks)) 0 else NULL
   }
-  # if (is.null(params$labFormat)) params$labFormat <- labelFormat()
   if (is.null(params$stroke)) params$stroke <- NA
-  # if (!is.null(params$factor) && params$factor) {
-  #   params$labFormat <- function(type, levels) {return(params$labels)}
-  # }
+  if (!is.null(params$factor) && params$factor) {
+    if (is.null(params$breaks)) params$breaks <- params$labels
+  }
 
   # Apply layer transparency to palette
   params$palette <- sapply(params$palette, \(p) {
@@ -98,29 +95,32 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
   palette <- params$palette
   stroke_variable <- if (length(params$stroke) > 1) params$stroke$variable else NULL
   weight_variable <- if (length(params$weight) > 1) params$weight$variable else NULL
-# browser()
+
+  data_class <- class(data)[1]
+  if (data_class %ni% c("SpatVector", "SpatRaster")) {
+    stop(glue("On {yaml_key} data is neither SpatVector or SpatRaster, but {data_class}"))
+  }
+  data_type <- if (data_class == "SpatRaster") "raster" else geomtype(data)
+  if (data_type %ni% c("raster", "points", "lines", "polygons")) {
+    stop(glue("On {yaml_key} data is not of type 'raster', 'points', 'lines', or 'polygons'"))
+  }
+
   geom <-
-    if (class(data)[1] == "SpatVector") {
-      if (geomtype(data) == "points") {
-        geom_spatvector(data = data, color = palette, size = 1)
-      } else if (geomtype(data) == "polygons") {
-        geom_spatvector(data = data, aes(fill = layer_values), color = params$stroke)
-      } else if (geomtype(data) == "lines") {
-        # I could use aes_list in a safer way
-        # aes_list2 <- c(
-        #   aes(color = .data[[stroke_variable]]))
-        #   aes(linewidth = (.data[[weight_variable]])))
-        aes_list <- aes(color = .data[[stroke_variable]], linewidth = (.data[[weight_variable]]))
-        if (is.null(weight_variable)) aes_list <- aes_list[-2]
-        if (is.null(stroke_variable)) aes_list <- aes_list[-1]
-        geom_spatvector(data = data, aes_list)
-      } else {
-        stop(paste(yaml_key, "data is a SpatVector but not of type 'points' or 'polygons'"))
-      }
-    } else if (class(data)[1] == "SpatRaster") {
+    if (data_type == "points") {
+      geom_spatvector(data = data, aes(color = layer_values), size = 1)
+    } else if (data_type == "polygons") {
+      geom_spatvector(data = data, aes(fill = layer_values), color = params$stroke)
+    } else if (data_type == "lines") {
+      # I could use aes_list in a safer way
+      # aes_list2 <- c(
+      #   aes(color = .data[[stroke_variable]]))
+      #   aes(linewidth = (.data[[weight_variable]])))
+      aes_list <- aes(color = .data[[stroke_variable]], linewidth = (.data[[weight_variable]]))
+      if (is.null(weight_variable)) aes_list <- aes_list[-2]
+      if (is.null(stroke_variable)) aes_list <- aes_list[-1]
+      geom_spatvector(data = data, aes_list)
+    } else if (data_type == "raster") {
       geom_spatraster(data = data)
-    } else {
-      stop(paste(yaml_key, "data is neither SpatVector nor SpatRaster"))
     }
 
   title <- format_title(params$title, params$subtitle)
@@ -132,8 +132,9 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
   }
 
   fill_scale <-
-    if (length(palette) == 0) NULL else {
-    if (!is.null(params$factor) && params$factor) {
+    if (length(palette) == 0 | data_type %in% c("points", "line")) {
+      NULL 
+    } else if (!is.null(params$factor) && params$factor) {
       # Switched to na.translate = F because na.value = "transparent" includes
       # NA in legend for forest. Haven't tried with non-raster.
       scale_fill_manual(values = palette, na.translate = F, name = title)
@@ -159,25 +160,33 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
         name = title,
         guide = if (diff(lengths(list(params$labels, params$breaks))) == 1) "legend" else "colorsteps")
     }
-  }
-
   color_scale <-
-    if (length(params$stroke) < 2 || is.null(params$stroke$palette)) {
+    if (data_type == "points") {
+      scale_color_manual(values = palette, name = title)
+    } else if (length(params$stroke) < 2 || is.null(params$stroke$palette)) {
       NULL
     } else {
-      scale_color_stepsn(colors = params$stroke$palette)
+      scale_color_stepsn(
+        colors = params$stroke$palette,
+        name = format_title(params$stroke$title, params$stroke$subtitle))
     }
   linewidth_scale <- if (length(params$weight) < 2 || is.null(params$weight$range)) {
       NULL
+    } else if (params$weight$factor) {
+      scale_linewidth_manual(
+        name = format_title(params$weight$title, params$weight$subtitle),
+        values = unlist(setNames(params$weight$palette, params$weight$labels)))
     } else {
-      scale_linewidth(range = c(params$weight$range[[1]], params$weight$range[[2]]))
+      scale_linewidth(
+        range = c(params$weight$range[[1]], params$weight$range[[2]]),
+        name = format_title(params$weight$title, params$weight$subtitle))
     }
-
   scales <- list(fill_scale, color_scale, linewidth_scale) %>% .[lengths(.) > 1]
 
-  legend_text_alignment <- if (
-      !is.null(params$labels) && is.character(params$labels)
-      | is.character(layer_values)) 0 else 1
+  is_legend_text <- function() {
+    !is.null(params$labels) && is.character(params$labels) | is.character(layer_values)
+  }
+  legend_text_alignment <- if (is_legend_text()) 0 else 1
 
   theme <- theme(
     legend.title = ggtext::element_markdown(),
@@ -190,8 +199,8 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_a
   if (aoi_only) {
     layer <- NULL
   } else { 
-  params <- prepare_parameters(yaml_key = yaml_key, ...)
-  layer <- create_static_layer(data, params = params)
+    params <- prepare_parameters(yaml_key = yaml_key, ...)
+    layer <- create_static_layer(data, params = params)
   }
   # baseplot <- if (is.null(baseplot)) ggplot() + tiles else baseplot + ggnewscale::new_scale_fill()
   # This  method sets the plot CRS to 4326, but this requires reprojecting the tiles
@@ -202,26 +211,26 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_a
       tiles 
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
-        layer + 
-        annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
-        annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
-        theme(
-          # legend.key = element_rect(fill = "#FAFAF8"),
-          legend.justification = c("left", "bottom"),
-          legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
-          legend.margin = margin(4,0,4,0, unit = "pt"),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.ticks.length = unit(0, "pt"),
-          plot.margin = margin(0,0,0,0))
+    layer + 
+    annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
+    annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
+    theme(
+      # legend.key = element_rect(fill = "#FAFAF8"),
+      legend.justification = c("left", "bottom"),
+      legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
+      legend.margin = margin(4,0,4,0, unit = "pt"),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.ticks.length = unit(0, "pt"),
+      plot.margin = margin(0,0,0,0))
   if (plot_aoi) p <- p + geom_sf(data = aoi, fill = NA, linetype = "dashed", linewidth = .5) #+ 
   # # There may be issues caused by this, but excluding this causes the tiles to be reprojected, which can cause darkening
   bbox_3857 <- st_bbox(st_transform(static_map_bounds, crs = "epsg:3857"))
   p <- p + coord_sf(
-              crs = "epsg:3857",
-          expand = F,
-              xlim = bbox_3857[c(1,3)],
-              ylim = bbox_3857[c(2,4)])
+    crs = "epsg:3857",
+    expand = F,
+    xlim = bbox_3857[c(1,3)],
+    ylim = bbox_3857[c(2,4)])
   if (!is.null(filename)) save_plot(filename = filename, plot = p, directory = styled_maps_dir)
   return(p)
 }
@@ -234,14 +243,11 @@ save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
     # there are now multiple guide-boxes
     get_plot_component(plot, "guide-box-right"),
     rel_widths = rel_widths,
-    nrow = 1
-  )
-  
+    nrow = 1)
   cowplot::save_plot(
-  plot = plot_layout,
-  filename = file.path(directory, filename),
-  base_height = map_height, base_width = sum(rel_widths)/rel_widths[1] * map_width
-  )
+    plot = plot_layout,
+    filename = file.path(directory, filename),
+    base_height = map_height, base_width = sum(rel_widths)/rel_widths[1] * map_width)
 }
 
 get_layer_values <- function(data) {
@@ -359,7 +365,6 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif,
     }
     digits <- digits + 1
   }
-
   return(pretty_breaks)
 }
 
