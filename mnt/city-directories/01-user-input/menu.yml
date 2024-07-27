@@ -1,5 +1,6 @@
+# for all sections below, if the first item is False, all other items in the section will be skipped
+
 # raster processing
-# if the first item is False, all other items in this section will be skipped
 raster_processing: True
 population: True
 wsf: True
@@ -15,7 +16,9 @@ landslide: True
 liquefaction: True
 demographics: True
 impervious: False
-lightning: False
+slr: False
+lightning: True
+amenities: True
 
 # GEE
 landcover: False
@@ -32,6 +35,9 @@ accessibility: False
 # RWI
 rwi: True
 
+# historical burned area
+burned_area: False
+
 # wildfire
 burned_area: False
 fwi: False
@@ -47,7 +53,8 @@ soil_salinity: False
 
 # stats
 # flood_timeline and earthquake_timeline unclear
-all_stats: False
+all_stats: True
+oxford: True
 
 # toolbox
-toolbox: False
+toolbox: True
