@@ -37,7 +37,6 @@ if menu['road_network']:
     # Read AOI shapefile --------
     # transform the input gpkg to correct prj (epsg 4326)
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
-    features = aoi_file.geometry
 
     # Define output folder ---------
     output_folder = Path('../mnt/city-directories/02-process-output')
@@ -52,7 +51,7 @@ if menu['road_network']:
 
         pol = [i for i in boundary_poly.geometry]
         boundary_poly = unary_union(pol)
-            
+        
         return boundary_poly
 
     def get_graph():
@@ -71,7 +70,7 @@ if menu['road_network']:
             val = 1
         except FileNotFoundError:
             print("no pickle file found, retrieving new graph via OSMNX")
-            G = ox.graph_from_polygon(poly, network_type = 'drive')
+            G = ox.graph_from_polygon(poly, network_type = 'drive', retain_all = True, truncate_by_edge = True)
             val = 0
 
         print('Writing graph file')
@@ -100,7 +99,7 @@ if menu['road_network']:
         except Exception as e:
             print('Exception Occurred', e)
 
-    def get_centrality(centrality_type = "both"):
+    def get_centrality(centrality_type):
         # centrality_type can be either node, edge, or both
         
         # download and project a street network

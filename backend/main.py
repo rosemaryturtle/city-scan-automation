@@ -1,12 +1,15 @@
 import os
+from os.path import exists
+import yaml
 
 # Set the environment variable in your code
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/other/google-cloud-city-scan-service-account-key.json"
 
 # TODO: create city folder and 3 subdirectories in crp-city-scan
+# circular process? Which one comes first: city directory or city_inputs.yml?
 
 # TODO: make sure AOI is a polygon of an appropriate size
-# TODO: if an AOI includes several polygons, make it a multipolygon
+# TODO? if an AOI includes several polygons, make it a multipolygon
 
 script_list = ["accessibility.py",
                "burned_area.py",

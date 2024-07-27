@@ -44,7 +44,7 @@ if menu['raster_processing']:
 
     # Set UTM CRS ---------------------
     # automatically find utm zone
-    avg_lng = features.unary_union.centroid.x
+    avg_lng = features.union_all().centroid.x
 
     # calculate UTM zone from avg longitude to define CRS to project to
     utm_zone = math.floor((avg_lng + 180) / 6) + 1
@@ -453,22 +453,23 @@ if menu['raster_processing']:
                             
                             # apply threshold
                             if exists(flood_folder / mosaic_file):
-                                def flood_con():
-                                    with rasterio.open(flood_folder / mosaic_file) as src:
-                                        out_image = src.read(1)
-                                        out_image[out_image == src.meta['nodata']] = 0
-                                        out_image[out_image < flood_threshold] = 0
-                                        out_image[out_image >= flood_threshold] = 1
-                                        out_meta = src.meta.copy()
-                                        out_meta.update({'nodata': 0})
+                                if (not exists(flood_folder / f'{mosaic_file[:-4]}_con.tif')) or flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
+                                    def flood_con():
+                                        with rasterio.open(flood_folder / mosaic_file) as src:
+                                            out_image = src.read(1)
+                                            out_image[out_image == src.meta['nodata']] = 0
+                                            out_image[out_image < flood_threshold] = 0
+                                            out_image[out_image >= flood_threshold] = 1
+                                            out_meta = src.meta.copy()
+                                            out_meta.update({'nodata': 0})
 
-                                    with rasterio.open(flood_folder / f'{mosaic_file[:-4]}_con.tif', "w", **out_meta) as dest:
-                                        dest.write(out_image, 1)
-                                
-                                flood_con()
-                                while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
-                                    print('flood_raster_check', mosaic_file[:-4])
+                                        with rasterio.open(flood_folder / f'{mosaic_file[:-4]}_con.tif', "w", **out_meta) as dest:
+                                            dest.write(out_image, 1)
+                                    
                                     flood_con()
+                                    while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
+                                        print('flood_raster_check', mosaic_file[:-4])
+                                        flood_con()
 
                     elif year > 2020:
                         for ssp in flood_ssps:
@@ -514,25 +515,22 @@ if menu['raster_processing']:
                                 
                                 # apply threshold
                                 if exists(flood_folder / mosaic_file):
-                                    def flood_con():
-                                        with rasterio.open(flood_folder / mosaic_file) as src:
-                                            out_image = src.read(1)
-                                            out_image[out_image == src.meta['nodata']] = 0
-                                            out_image[out_image < flood_threshold] = 0
-                                            out_image[out_image >= flood_threshold] = 1
-                                            if np.nanmax(out_image) > 1:
-                                                print(mosaic_file)
-                                                print('max value: ', np.nanmax(out_image))
-                                                exit()
-                                            out_meta = src.meta.copy()
-                                            out_meta.update({'nodata': 0})
+                                    if (not exists(flood_folder / f'{mosaic_file[:-4]}_con.tif')) or flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
+                                        def flood_con():
+                                            with rasterio.open(flood_folder / mosaic_file) as src:
+                                                out_image = src.read(1)
+                                                out_image[out_image == src.meta['nodata']] = 0
+                                                out_image[out_image < flood_threshold] = 0
+                                                out_image[out_image >= flood_threshold] = 1
+                                                out_meta = src.meta.copy()
+                                                out_meta.update({'nodata': 0})
 
-                                        with rasterio.open(flood_folder / f'{mosaic_file[:-4]}_con.tif', "w", **out_meta) as dest:
-                                            dest.write(out_image, 1)
-                                
-                                    flood_con()
-                                    while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
+                                            with rasterio.open(flood_folder / f'{mosaic_file[:-4]}_con.tif', "w", **out_meta) as dest:
+                                                dest.write(out_image, 1)
+                                    
                                         flood_con()
+                                        while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
+                                            flood_con()
 
 
             for ft in ['coastal', 'fluvial', 'pluvial']:
@@ -541,6 +539,11 @@ if menu['raster_processing']:
 
 
     # DEFINE FUNCTIONS #################################
+    # Find raster value range --------------
+    def rast_range(raster):
+        with rasterio.open(raster) as src:
+            src_array = src.read(1)
+            return [np.nanmin(src_array), np.nanmax(src_array)]
 
     # Raster clip functions ----------------
     def clipdata(input_raster, data_type):
@@ -563,105 +566,98 @@ if menu['raster_processing']:
 
     # Different from clipdata because wsf needs to be bucketed by year
     def clipdata_wsf(input_raster):
-        # features = features.tolist()
-
         # clip
-        with rasterio.open(input_raster) as src:
-            # shapely presumes all operations on two or more features exist in the same Cartesian plane.
-            out_image, out_transform = rasterio.mask.mask(
-                src, features, all_touched = True, crop = True)
-            out_meta = src.meta.copy()
+        while (not exists(output_folder / f'{city_name_l}_wsf_4326.tif')) or (rast_range(output_folder / f'{city_name_l}_wsf_4326.tif')[0] < 0) or (rast_range(output_folder / f'{city_name_l}_wsf_4326.tif')[1] > 2015):
+            with rasterio.open(input_raster) as src:
+                # shapely presumes all operations on two or more features exist in the same Cartesian plane.
+                out_image, out_transform = rasterio.mask.mask(
+                    src, features, all_touched = True, crop = True)
+                out_meta = src.meta.copy()
 
-            out_meta.update({"driver": "GTiff",
-                             "height": out_image.shape[1],
-                             "width": out_image.shape[2],
-                             "transform": out_transform,
-                             "nodata": 0})
+                out_meta.update({"driver": "GTiff",
+                                "height": out_image.shape[1],
+                                "width": out_image.shape[2],
+                                "transform": out_transform,
+                                "nodata": 0})
 
-            output_4326_raster_clipped = output_folder / f'{city_name_l}_wsf_4326.tif'
+                output_4326_raster_clipped = output_folder / f'{city_name_l}_wsf_4326.tif'
 
-            # save for stats
-            with rasterio.open(output_4326_raster_clipped, "w", **out_meta) as dest:
-                dest.write(out_image)
+                # save for stats
+                with rasterio.open(output_4326_raster_clipped, "w", **out_meta) as dest:
+                    dest.write(out_image)
 
-            # 3. need to transform the clipped ghsl to utm
-            with rasterio.open(output_4326_raster_clipped) as src:
-                transform, width, height = calculate_default_transform(
-                    src.crs, utm_crs, src.width, src.height, *src.bounds)
-                kwargs = src.meta.copy()
-                kwargs.update({
-                    'crs': utm_crs,
-                    'transform': transform,
-                    'width': width,
-                    'height': height
-                })
+                # 3. need to transform the clipped ghsl to utm
+                with rasterio.open(output_4326_raster_clipped) as src:
+                    transform, width, height = calculate_default_transform(
+                        src.crs, utm_crs, src.width, src.height, *src.bounds)
+                    kwargs = src.meta.copy()
+                    kwargs.update({
+                        'crs': utm_crs,
+                        'transform': transform,
+                        'width': width,
+                        'height': height
+                    })
 
-                output_utm_raster_clipped = output_folder / f'{city_name_l}_wsf_utm.tif'
-                with rasterio.open(output_utm_raster_clipped, 'w', **kwargs) as dst:
-                    for i in range(1, src.count + 1):
-                        reproject(
-                            source=rasterio.band(src, i),
-                            destination=rasterio.band(dst, i),
-                            src_transform=src.transform,
-                            src_crs=src.crs,
-                            dst_transform=transform,
-                            dst_crs=utm_crs,
-                            resampling=Resampling.nearest)
-            
-            with rasterio.open(output_utm_raster_clipped) as src:
-                pixelSizeX, pixelSizeY = src.res
+                    output_utm_raster_clipped = output_folder / f'{city_name_l}_wsf_utm.tif'
+                    with rasterio.open(output_utm_raster_clipped, 'w', **kwargs) as dst:
+                        for i in range(1, src.count + 1):
+                            reproject(
+                                source=rasterio.band(src, i),
+                                destination=rasterio.band(dst, i),
+                                src_transform=src.transform,
+                                src_crs=src.crs,
+                                dst_transform=transform,
+                                dst_crs=utm_crs,
+                                resampling=Resampling.nearest)
+                
+                with rasterio.open(output_utm_raster_clipped) as src:
+                    pixelSizeX, pixelSizeY = src.res
 
-                array = src.read()
+                    array = src.read()
+
+                    # Reclassify
+                    year_dict = {}
+                    for year in range(1985, 2016):
+                        # resolution of each pixel about 30 sq meters. Multiply by pixelSize and Divide by 1,000,000 to get sq km
+                        if year == 1985:
+                            year_dict[year] = np.count_nonzero(
+                            array == year) * pixelSizeX * pixelSizeY / 1e6
+                        else:
+                            year_dict[year] = np.count_nonzero(
+                                array == year) * pixelSizeX * pixelSizeY / 1e6 + year_dict[year-1]
+
+                    # save CSV
+                    with open(output_folder / f"{city_name_l}_wsf_stats.csv", 'w') as f:
+                        f.write("year,cumulative sq km\n")
+                        for key in year_dict.keys():
+                            f.write("%s,%s\n" % (key, year_dict[key]))
 
                 # Reclassify
-                year_dict = {}
-                for year in range(1985, 2016):
-                    # resolution of each pixel about 30 sq meters. Multiply by pixelSize and Divide by 1,000,000 to get sq km
-                    if year == 1985:
-                        year_dict[year] = np.count_nonzero(
-                        array == year) * pixelSizeX * pixelSizeY / 1000000
-                    else:
-                        year_dict[year] = np.count_nonzero(
-                            array == year) * pixelSizeX * pixelSizeY / 1000000 + year_dict[year-1]
+                def wsf_reclassify():
+                    with rasterio.open(output_folder / f'{city_name_l}_wsf_4326.tif') as src:
+                        out_image = src.read(1)
+                        out_image[out_image < 1985] = 0
+                        out_image[(out_image <= 2015) & (out_image >= 2006)] = 4
+                        out_image[(out_image < 2006) & (out_image >= 1996)] = 3
+                        out_image[(out_image < 1996) & (out_image >= 1986)] = 2
+                        out_image[out_image == 1985] = 1
+                        out_meta = src.meta.copy()
+                        out_meta.update({'nodata': 0})
 
-                # save CSV
-                with open(output_folder / f"{city_name_l}_wsf_stats.csv", 'w') as f:
-                    f.write("year,cumulative sq km\n")
-                    for key in year_dict.keys():
-                        f.write("%s,%s\n" % (key, year_dict[key]))
+                    with rasterio.open(output_folder / f'{city_name_l}_wsf_4326_reclass.tif', "w", **out_meta) as dest:
+                        dest.write(out_image, 1)
 
-            # Reclassify
-            def wsf_reclassify():
-                with rasterio.open(output_folder / f'{city_name_l}_wsf_4326.tif') as src:
-                    out_image = src.read(1)
-                    out_image[out_image < 1985] = 0
-                    out_image[(out_image <= 2015) & (out_image >= 2006)] = 4
-                    out_image[(out_image < 2006) & (out_image >= 1996)] = 3
-                    out_image[(out_image < 1996) & (out_image >= 1986)] = 2
-                    out_image[out_image == 1985] = 1
-                    out_meta = src.meta.copy()
-                    out_meta.update({'nodata': 0})
-
-                with rasterio.open(output_folder / f'{city_name_l}_wsf_4326_reclass.tif', "w", **out_meta) as dest:
-                    dest.write(out_image, 1)
-
-            def wsf_raster_check(raster):
-                print('checking', raster)
-                with rasterio.open(raster) as src:
-                    max_value = np.nanmax(src.read(1))
-                    print('max value:', max_value)
-                    print('return value:', max_value > 4)
-                    return (max_value > 4)
-            
-            wsf_reclassify()
-            while wsf_raster_check(output_folder / f'{city_name_l}_wsf_4326_reclass.tif'):
+                def wsf_raster_check(raster):
+                    print('checking', raster)
+                    with rasterio.open(raster) as src:
+                        max_value = np.nanmax(src.read(1))
+                        print('max value:', max_value)
+                        print('return value:', max_value > 4)
+                        return (max_value > 4)
+                
                 wsf_reclassify()
-
-            # output_4326_raster_clipped_reclass = output_folder / f'{city_name_l}_wsf_4326_reclass.tif'
-
-            # save for stats
-            # with rasterio.open(output_4326_raster_clipped_reclass, "w", **out_meta) as dest:
-            #     dest.write(out_image)
+                while wsf_raster_check(output_folder / f'{city_name_l}_wsf_4326_reclass.tif'):
+                    wsf_reclassify()
 
     def clipdata_demo(input_raster):
         with rasterio.open(input_raster) as src:
@@ -778,8 +774,9 @@ if menu['raster_processing']:
             print(f'process {flood_type} flood')
             for year in flood_years:
                 if year <= 2020:
-                    for bin in flood_rp_bins:
-                        raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[bin] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif'))]
+                    composite_raster_arrays = []
+                    for i in range(len(flood_rp_bins)):
+                        raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[list(flood_rp_bins.keys())[i]] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif'))]
                         raster_arrays = []
 
                         for r in raster_to_merge:
@@ -795,41 +792,48 @@ if menu['raster_processing']:
                                             "transform": out_transform})
                             
                             raster_arrays.append(out_image)
-                            # raster_arrays.append(src.read(1))
-                            # out_meta = src.meta.copy()
                         
                         if raster_arrays:
-                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
-                            out_meta.update(dtype = rasterio.uint8)
+                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint16)
+                            composite_raster_arrays.append(out_image * (i+1))
+                            out_meta.update(dtype = rasterio.uint16)
                             
-                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{bin}.tif', 'w', **out_meta) as dst:
+                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{list(flood_rp_bins.keys())[i]}.tif', 'w', **out_meta) as dst:
                                 dst.write(out_image)
+                    
+                    if composite_raster_arrays:
+                        out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint16)
+                        out_meta.update(dtype = rasterio.uint16)
                             
-                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{bin}.tif') as src:
-                                transform, width, height = calculate_default_transform(
-                                    src.crs, utm_crs, src.width, src.height, *src.bounds)
-                                kwargs = src.meta.copy()
-                                kwargs.update({
-                                    'crs': utm_crs,
-                                    'transform': transform,
-                                    'width': width,
-                                    'height': height
-                                })
+                        with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}.tif', 'w', **out_meta) as dst:
+                            dst.write(out_image)
 
-                                with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{bin}_utm.tif', 'w', **kwargs) as dst:
-                                    for i in range(1, src.count + 1):
-                                        reproject(
-                                            source=rasterio.band(src, i),
-                                            destination=rasterio.band(dst, i),
-                                            src_transform=src.transform,
-                                            src_crs=src.crs,
-                                            dst_transform=transform,
-                                            dst_crs=utm_crs,
-                                            resampling=Resampling.nearest)
+                        with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}.tif') as src:
+                            transform, width, height = calculate_default_transform(
+                                src.crs, utm_crs, src.width, src.height, *src.bounds)
+                            kwargs = src.meta.copy()
+                            kwargs.update({
+                                'crs': utm_crs,
+                                'transform': transform,
+                                'width': width,
+                                'height': height
+                            })
+
+                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_utm.tif', 'w', **kwargs) as dst:
+                                for i in range(1, src.count + 1):
+                                    reproject(
+                                        source=rasterio.band(src, i),
+                                        destination=rasterio.band(dst, i),
+                                        src_transform=src.transform,
+                                        src_crs=src.crs,
+                                        dst_transform=transform,
+                                        dst_crs=utm_crs,
+                                        resampling=Resampling.nearest)
                 elif year > 2020:
                     for ssp in flood_ssps:
-                        for bin in flood_rp_bins:
-                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif' for rp in flood_rp_bins[bin] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
+                        composite_raster_arrays = []
+                        for i in range(len(flood_rp_bins)):
+                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[list(flood_rp_bins.keys())[i]] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
                             raster_arrays = []
 
                             for r in raster_to_merge:
@@ -845,37 +849,43 @@ if menu['raster_processing']:
                                                 "transform": out_transform})
                                 
                                 raster_arrays.append(out_image)
-                                # raster_arrays.append(src.read(1))
-                                # out_meta = src.meta.copy()
-
+                            
                             if raster_arrays:
-                                out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
-                                out_meta.update(dtype = rasterio.uint8)
+                                out_image = np.logical_or.reduce(raster_arrays).astype(np.uint16)
+                                composite_raster_arrays.append(out_image * (i+1))
+                                out_meta.update(dtype = rasterio.uint16)
                                 
-                                with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{bin}.tif', 'w', **out_meta) as dst:
+                                with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{list(flood_rp_bins.keys())[i]}.tif', 'w', **out_meta) as dst:
                                     dst.write(out_image)
+                        
+                        if composite_raster_arrays:
+                            out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint16)
+                            out_meta.update(dtype = rasterio.uint16)
                                 
-                                with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{bin}.tif') as src:
-                                    transform, width, height = calculate_default_transform(
-                                        src.crs, utm_crs, src.width, src.height, *src.bounds)
-                                    kwargs = src.meta.copy()
-                                    kwargs.update({
-                                        'crs': utm_crs,
-                                        'transform': transform,
-                                        'width': width,
-                                        'height': height
-                                    })
+                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}.tif', 'w', **out_meta) as dst:
+                                dst.write(out_image)
 
-                                    with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{bin}_utm.tif', 'w', **kwargs) as dst:
-                                        for i in range(1, src.count + 1):
-                                            reproject(
-                                                source=rasterio.band(src, i),
-                                                destination=rasterio.band(dst, i),
-                                                src_transform=src.transform,
-                                                src_crs=src.crs,
-                                                dst_transform=transform,
-                                                dst_crs=utm_crs,
-                                                resampling=Resampling.nearest)
+                            with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}.tif') as src:
+                                transform, width, height = calculate_default_transform(
+                                    src.crs, utm_crs, src.width, src.height, *src.bounds)
+                                kwargs = src.meta.copy()
+                                kwargs.update({
+                                    'crs': utm_crs,
+                                    'transform': transform,
+                                    'width': width,
+                                    'height': height
+                                })
+
+                                with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_utm.tif', 'w', **kwargs) as dst:
+                                    for i in range(1, src.count + 1):
+                                        reproject(
+                                            source=rasterio.band(src, i),
+                                            destination=rasterio.band(dst, i),
+                                            src_transform=src.transform,
+                                            src_crs=src.crs,
+                                            dst_transform=transform,
+                                            dst_crs=utm_crs,
+                                            resampling=Resampling.nearest)
         
         for ft in ['coastal', 'fluvial', 'pluvial']:
             if menu[f'flood_{ft}']:
