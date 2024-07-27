@@ -1,4 +1,7 @@
 # data sources
+data_bucket: 'city-scan-global-data'
+lc_burn_blob: 'ESACCI.tif'
+
 solar_source: "D:/World Bank/CRP/data/Global Solar Atlas/World_PVOUT_GISdata_LTAy_AvgDailyTotals_GlobalSolarAtlas-v2_GEOTIFF/PVOUT.tif"
 solar_graph_source: "/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-materials/Uzbekistan_GISdata_LTAy_YearlyMonthlyTotals_GlobalSolarAtlas-v2_GEOTIFF/monthly"
 air_source: "D:/World Bank/CRP/data/Global Annual PM2.5 Grids 1998-2019/sdei-global-annual-gwr-pm2-5-modis-misr-seawifs-aod-v4-gl-03-2019.tif"
@@ -84,6 +87,10 @@ un_data_source: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/03-multi-scan-mate
 fwi_source: 'D:/World Bank/CRP/data/NASA FWI'
 lc_burn_source: "D:/World Bank/CRP/data/Landcover burnability/ESACCI.tif"
 temperature_source: "D:/World Bank/CRP/data/CRU/tmp"
+erosion_source: ""
+lightning_source: "D:/World Bank/CRP/data/Gridded Lightning Climatology/VHRFC_LIS_FRD.tif"
+water_salinity_source: "D:/World Bank/CRP/data/Water salinity"
+soil_salinity_source: 'D:/World Bank/CRP/data/Global Soil Salinity'
 
 # non-data sources
 gostnets_path: 'C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/GOSTnets'
@@ -135,6 +142,7 @@ isochrone:  # unit: m
     - 1000
     - 2000
     - 3000
+accessibility_buffer: 5  # percentage of AOI bounds to buffer in order to capture amenities and roads immediately outside the AOI
 
 # FWI date range
 fwi_first_year: 2016

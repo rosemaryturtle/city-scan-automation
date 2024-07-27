@@ -6,20 +6,25 @@ population: True
 wsf: True
 elevation: True
 slope: True
-solar: False
-air: False
-flood: True
-landslide: False
-liquefaction: False
+solar: True
+air: True
+flood: False
+flood_coastal: False
+flood_fluvial: True
+flood_pluvial: True
+landslide: True
+liquefaction: True
+demographics: True
 impervious: False
 slr: False
-demographics: True
+lightning: True
 amenities: True
 
 # GEE
-landcover: True
+landcover: False
 summer_lst: True
-nightlight: False
+winter_lst: False
+nightlight: True
 green: True
 forest: False
 ndmi: True
@@ -34,14 +39,17 @@ rwi: True
 burned_area: False
 
 # wildfire
-fwi: True
-landcover_burn: False
+burned_area: False
+fwi: False
+landcover_burn: True
 
 # road network
 road_network: True
 
-# cover image
-cover_image: False
+# other
+erosion: False
+water_salinity: False
+soil_salinity: False
 
 # stats
 # flood_timeline and earthquake_timeline unclear

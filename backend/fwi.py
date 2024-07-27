@@ -38,7 +38,7 @@ if menu['fwi']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Define output folder ---------
-    output_folder = Path('output')
+    output_folder = Path('../mnt/city-directories/02-process-output')
 
     if not exists(output_folder):
         os.mkdir(output_folder)

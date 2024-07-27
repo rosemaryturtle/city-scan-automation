@@ -25,7 +25,7 @@ if menu['landcover']:
         global_inputs = yaml.safe_load(f)
 
     # set output folder
-    output_folder = Path('output')
+    output_folder = Path('../mnt/city-directories/02-process-output')
 
     # Initialize Earth Engine
     ee.Initialize()
@@ -36,14 +36,16 @@ if menu['landcover']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Convert shapefile to ee.Geometry ------------
-    jsonDict = eval(aoi_file['geometry'].to_json())
+    jsonDict = eval(gpd.GeoSeries([aoi_file['geometry'].force_2d().union_all()]).to_json())
 
     if len(jsonDict['features']) > 1:
         print('Need to convert polygons into a multipolygon')
         print('or do something else, like creating individual raster for each polygon and then merge')
         exit()
-
-    jsonDict['features'][0]['geometry']['coordinates'][0] = [x[:-1] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
+    
+    # if len(jsonDict['features'][0]['geometry']['coordinates'][0][0]) > 2:
+    #     print('remove Z coordinate')
+    #     jsonDict['features'][0]['geometry']['coordinates'][0] = [x[0:2] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
     AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 
@@ -92,10 +94,17 @@ if menu['landcover']:
             writer.writerow({'Land Cover Type': class_name, 'Pixel Count': count})
 
     # Export results to Google Cloud Storage bucket ------------------
+    no_data_val = -9999
+    lc_aoi = lc_aoi.unmask(value = no_data_val, sameFootprint = False)
     task0 = ee.batch.Export.image.toCloudStorage(**{'image': lc_aoi,
                                                     'description': f'{city_name_l}_lc',
                                                     'region': AOI,
                                                     'scale': 10,
                                                     'bucket': global_inputs['cloud_bucket'],
-                                                    'maxPixels': 1e9})
+                                                    'maxPixels': 1e9,
+                                                    'fileFormat': 'GeoTIFF',
+                                                    'formatOptions': {
+                                                        'cloudOptimized': True,
+                                                        'noData': no_data_val
+                                                    }})
     task0.start()

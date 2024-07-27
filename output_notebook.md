@@ -84,6 +84,7 @@ Urban Extent and Change
     The city's built-up area grew from 14.42 sq. km in 1985 to 18.22 in 2015 for 26.34% growth
 
 Land Cover
+Land Cover
 
     The first highest landcover value is Grassland with 58.25% of the total land area
     The second highest landcover value is Built-up with 20.65% of the total land area
