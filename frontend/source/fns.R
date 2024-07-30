@@ -1,11 +1,8 @@
 # Packages ----
 
 # Map Functions ----
-# Function for reading rasters with fuzzy names
-# Ideally, though, we would name in a consistent way where this is rendered unnecessary
 fuzzy_read <- function(dir, fuzzy_string, FUN = NULL, path = T, convert_to_vect = F, ...) {
   file <- list.files(dir) %>% str_subset(fuzzy_string) #%>%
-    #str_extract("^[^\\.]*") %>% unique()
   if (length(file) > 1) warning(paste("Too many", fuzzy_string, "files in", dir))
   if (length(file) < 1) {
     file <- list.files(dir, recursive = T) %>% str_subset(fuzzy_string)
@@ -38,6 +35,8 @@ rast_as_vect <- function(x, digits = 8, ...) {
   return(out)
 }
 
+exists_and_true <- \(x) !is.null(x) && is.logical(x) && x
+
 # Functions for making the maps
 
 prepare_parameters <- function(yaml_key, ...) {
@@ -55,8 +54,8 @@ prepare_parameters <- function(yaml_key, ...) {
     params$bins <- if(is.null(params$breaks)) 0 else length(params$breaks)
   }
   if (is.null(params$stroke)) params$stroke <- NA
-  if (!is.null(params$factor) && params$factor) {
-    if (is.null(params$breaks)) params$breaks <- params$labels
+  if (exists_and_true(params$factor) & is.null(params$breaks)) {
+    params$breaks <- params$labels
   }
 
   # Apply layer transparency to palette
@@ -82,7 +81,7 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
     params <- prepare_parameters(yaml_key, ...)
   }
   if (!is.null(params$data_variable)) data <- data[params$data_variable]
-  if (!is.null(params$factor) && params$factor) {
+  if (exists_and_true(params$factor)) {
     data <- 
       set_layer_values(
         data = data,
@@ -134,7 +133,7 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
   fill_scale <-
     if (length(palette) == 0 | data_type %in% c("points", "line")) {
       NULL 
-    } else if (!is.null(params$factor) && params$factor) {
+  } else if (exists_and_true(params$factor)) {
       # Switched to na.translate = F because na.value = "transparent" includes
       # NA in legend for forest. Haven't tried with non-raster.
       scale_fill_manual(values = palette, na.translate = F, name = title)
@@ -270,24 +269,6 @@ set_layer_values <- function(data, values) {
       data$values <- values
     } else stop("Data is not of class SpatRaster, SpatVector or sf")
   return(data)
-}
-
-set_domain <- function(values, domain = NULL, center = NULL, factor = NULL) {
-  if (!is.null(factor) && factor) {
-    # Necessary for keeping levels in order
-    domain <- ordered(levels(values), levels = levels(values))
-  }
-  if (is.null(domain)) {
-    # This is a very basic way to set domain. Look at toolbox for more robust layer-specific methods
-    min <- min(values, na.rm = T)
-    max <- max(values, na.rm = T)
-    domain <- c(min, max)
-  }
-  if (!is.null(center) && center == 0) {
-    extreme <- max(abs(domain))
-    domain <- c(-extreme, extreme)
-  }
-  return(domain)
 }
 
 breaks_midpoints <- \(breaks, rescaler = scales::rescale, ...) {
