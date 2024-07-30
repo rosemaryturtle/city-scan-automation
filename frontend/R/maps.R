@@ -27,12 +27,14 @@ tiles <- annotation_map_tile(type = "cartolight", zoom = zoom, progress = "none"
 plots <- list()
 
 # Plot AOI ---------------------------------------------------------------------
-plots$aoi <- plot_static(aoi_only = T)
+plots$aoi <- plot_layer(aoi_only = T)
 save_plot(plot = plots$aoi, filename = "aoi.png",
           directory = styled_maps_dir)
 
 # Most plots -------------------------------------------------------------------
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
+  # keep_at("land_cover") %>%
+  # .[14] %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch({
       data <- fuzzy_read(spatial_dir, fuzzy_string)
@@ -41,7 +43,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         cell_count <- (units::drop_units(st_area(aoi)) / cellSize(data)[1,1])[[1]]
         if (cell_count < 7000) data <- rast_as_vect(data)
       }
-      plot <- plot_static(data = data, yaml_key = yaml_key)
+      plot <- plot_layer(data = data, yaml_key = yaml_key)
       plots[[yaml_key]] <<- plot
       message(paste("Success:", yaml_key))
     },
@@ -50,11 +52,31 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     })
   }) %>% unlist() -> log
 
+# Elevation --------------------------------------------------------------------
+# elevation_params <- prepare_parameters("elevation")
+# elevation_title <- format_title(elevation_params$title, elevation_params$subtitle)
+# plots$elevation <- plots$elevation + labs(color = elevation_title)
+
+# # Road criticality -------------------------------------------------------------
+# # Doing this manually because of stroke weight and color legends
+# road_params <- prepare_parameters("roads")
+# road_title <- format_title(road_params$title, road_params$subtitle)
+# road_data <- fuzzy_read(spatial_dir, "edges-edit.gpkg")
+# plots$roads <- plot_layer(data = road_data, yaml_key = "roads") +
+#   scale_color_stepsn(
+#     name = road_title,
+#     colors = road_params$stroke$palette,
+#     labels = scales::label_percent()) +
+#   scale_linewidth_manual(
+#     name = "Road type",
+#     values = c("FALSE" = 0.24, "TRUE" = 1),
+#     labels = c("Secondary", "Primary"))
+
 # Deforestation ----------------------------------------------------------------
 deforest <- fuzzy_read(spatial_dir, "Deforest", rast)
 values(deforest) <- values(deforest) + 2000
-plots$deforest <- plot_static(deforest, "deforest")
-plots$forest_deforest <- plot_static(deforest, "deforest", baseplot = plots$forest)
+plots$deforest <- plot_layer(deforest, "deforest")
+plots$forest_deforest <- plot_layer(deforest, "deforest", baseplot = plots$forest)
 
 # Flooding ---------------------------------------------------------------------
 
@@ -65,10 +87,10 @@ plot_flooding <- function(flood_type) {
   flood_data <- terra::crop(rast(file), static_map_bounds)
   # Temporary fix for if layer is all NAs
   if (all(is.na(values(flood_data)))) values(flood_data)[1] <- 0
-  plots[[flood_type]] <<- plot_static(flood_data, yaml_key = flood_type)
-  plots[[glue("{flood_type}_population")]] <<- plot_static(flood_data, yaml_key = flood_type, baseplot = plots$population)
-  plots[[glue("{flood_type}_wsf")]] <<- plot_static(flood_data, yaml_key = flood_type, baseplot = plots$wsf)
-  plots[[glue("{flood_type}_infrastructure")]] <<- plot_static(flood_data, yaml_key = flood_type, baseplot = plots$infrastructure)
+  plots[[flood_type]] <<- plot_layer(flood_data, yaml_key = flood_type)
+  plots[[glue("{flood_type}_population")]] <<- plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$population)
+  plots[[glue("{flood_type}_wsf")]] <<- plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$wsf)
+  plots[[glue("{flood_type}_infrastructure")]] <<- plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$infrastructure)
 }
 
 flooding_yaml_keys <- c("fluvial", "pluvial", "coastal", "combined_flooding")

@@ -76,43 +76,36 @@ prepare_parameters <- function(yaml_key, ...) {
   return(params)
 }
 
-create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
-  if (is.null(params)) {
-    params <- prepare_parameters(yaml_key, ...)
-  }
-  if (!is.null(params$data_variable)) data <- data[params$data_variable]
-  if (exists_and_true(params$factor)) {
-    data <- 
-      set_layer_values(
-        data = data,
-        values = ordered(get_layer_values(data),
-                        levels = params$breaks,
-                        labels = params$labels))
-    params$palette <- setNames(params$palette, params$labels)
-  }
-  if(params$bins > 0 && is.null(params$breaks)) {
-    params$breaks <- break_pretty2(
-      data = get_layer_values(data), n = params$bins + 1, FUN = signif,
-      method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
-  }
-  geom <- create_geom(data, params)
-  scales <- list(
-    fill_scale(data_type, params),
-    color_scale(data_type, params),
-    linewidth_scale(data_type, params)) %>%
-    .[lengths(.) > 1]
-  theme <- theme_legend(data, params)
-  layer <- list(geom = geom, scale = scales, theme = theme)
-  return(layer)
-}
-
-plot_static <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
-  if (aoi_only) {
+plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
+   if (aoi_only) {
     layer <- NULL
   } else { 
     params <- prepare_parameters(yaml_key = yaml_key, ...)
-    layer <- create_static_layer(data, params = params)
+    if (!is.null(params$data_variable)) data <- data[params$data_variable]
+    if (exists_and_true(params$factor)) {
+      data <- 
+        set_layer_values(
+          data = data,
+          values = ordered(get_layer_values(data),
+                          levels = params$breaks,
+                          labels = params$labels))
+      params$palette <- setNames(params$palette, params$labels)
+    }
+    if(params$bins > 0 && is.null(params$breaks)) {
+      params$breaks <- break_pretty2(
+        data = get_layer_values(data), n = params$bins + 1, FUN = signif,
+        method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
+    }
+    geom <- create_geom(data, params)
+    scales <- list(
+      fill_scale(data_type, params),
+      color_scale(data_type, params),
+      linewidth_scale(data_type, params)) %>%
+      .[lengths(.) > 1]
+    theme <- theme_legend(data, params)
+    layer <- list(geom = geom, scale = scales, theme = theme)
   }
+
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
       geom_sf(data = static_map_bounds, fill = NA, color = NA) +
