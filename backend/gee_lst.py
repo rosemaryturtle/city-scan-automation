@@ -2,14 +2,13 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['summer_lst']:
     print('run gee_lst')
     
     import ee
-    import math
     import geopandas as gpd
     import xarray as xr
     import numpy as np
@@ -18,7 +17,7 @@ if menu['summer_lst']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
@@ -37,7 +36,6 @@ if menu['summer_lst']:
 
     # Read AOI shapefile --------
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
-    centroid = aoi_file.centroid
 
     # Convert shapefile to ee.Geometry ------------
     jsonDict = eval(gpd.GeoSeries([aoi_file['geometry'].force_2d().union_all()]).to_json())
@@ -102,8 +100,8 @@ if menu['summer_lst']:
     range_list1 = ee_filter_month(hottest_months[1])
     range_list2 = ee_filter_month(hottest_months[2])
 
-    rangefilter = ee.Filter.Or(range_list0 + range_list1 + range_list2)
-    
+    rangefilter = ee.Filter.Or(range_list)
+
     # Cloud mask function ----------------
     def maskL457sr(image):
         # Bit 0 - Fill
@@ -119,9 +117,8 @@ if menu['summer_lst']:
         return image.addBands(thermalBand, None, True).updateMask(qaMask).updateMask(saturationMask)
 
 
-    # PROCESSING ###############################
-    no_data_val = -9999
-    collectionSummer = landsat.filter(rangefilter).filterBounds(AOI).map(maskL457sr).select('ST_B10').mean().add(-273.15).clip(AOI).unmask(value = no_data_val, sameFootprint = False)
+    # GEE PROCESSING ###############################
+    collectionSummer = landsat.filter(rangefilter).filterBounds(AOI).map(maskL457sr).select('ST_B10').mean().add(-273.15).clip(AOI)
     task = ee.batch.Export.image.toCloudStorage(**{
         'image': collectionSummer,
         'description': f"{city_name_l}_summer",
@@ -129,11 +126,6 @@ if menu['summer_lst']:
         # 'folder': city_inputs['country_name'],
         'region': AOI,
         'scale': 30,
-        'maxPixels': 1e9,
-        'fileFormat': 'GeoTIFF',
-        'formatOptions': {
-            'cloudOptimized': True,
-            'noData': no_data_val
-        }
+        'maxPixels': 1e9
     })
     task.start()
