@@ -1,4 +1,5 @@
 # city basic info
+<<<<<<< Updated upstream
 city_name: 'Bor'
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
@@ -7,6 +8,16 @@ AOI_path: "mnt/city-directories/01-user-input/AOI"
 lowest_admin_shp: '/Users/ipshitakarmakar/Dropbox (Personal)/WB/South Sudan/AOI/gadm41_SSD_shp /gadm41_SSD_3.shp'
 country_name: 'South Sudan'
 country_iso3: 'SSD'
+=======
+city_name: 'Msunduzi'
+# BN: if AOI is consistently stored in 01-user-inputs, this need not be included
+# in city_inputs.yml. Here I have changed path but we could delete this line
+# (assuming python can read shapefile from directory name) 
+# AOI_path: "mnt/city-directories/01-user-input/AOI"
+AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Africa Flood Risk Workshop/shapefile/Msunduzi.shp"
+country_name: 'South Africa'
+country_iso3: 'ZAF'
+>>>>>>> Stashed changes
 
 # Benchmark cities
 # - When multiple countries, add country name as key before city (e.g. "- Armenia: Yerevan")

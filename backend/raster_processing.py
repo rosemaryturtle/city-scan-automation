@@ -10,7 +10,6 @@ if menu['raster_processing']:
     
     import os
     import math
-    import csv
     import geopandas as gpd
     import numpy as np
     import rasterio.mask
@@ -406,7 +405,7 @@ if menu['raster_processing']:
                 flood_type_folder_dict = {'coastal': 'COASTAL_UNDEFENDED',
                                         'fluvial': 'FLUVIAL_UNDEFENDED',
                                         'pluvial': 'PLUVIAL_DEFENDED'}
-                raw_flood_folder = Path(global_inputs['flood_source']) / city_inputs['country_name'] / flood_type_folder_dict[flood_type]
+                raw_flood_folder = Path(global_inputs['flood_source']) / flood_type_folder_dict[flood_type]
                 
                 # prepare flood raster files (everything before clipping)
                 for year in flood_years:
@@ -794,16 +793,16 @@ if menu['raster_processing']:
                             raster_arrays.append(out_image)
                         
                         if raster_arrays:
-                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint16)
+                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
                             composite_raster_arrays.append(out_image * (i+1))
-                            out_meta.update(dtype = rasterio.uint16)
+                            out_meta.update(dtype = rasterio.uint8)
                             
                             with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{list(flood_rp_bins.keys())[i]}.tif', 'w', **out_meta) as dst:
                                 dst.write(out_image)
                     
                     if composite_raster_arrays:
-                        out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint16)
-                        out_meta.update(dtype = rasterio.uint16)
+                        out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint8)
+                        out_meta.update(dtype = rasterio.uint8)
                             
                         with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}.tif', 'w', **out_meta) as dst:
                             dst.write(out_image)
@@ -833,7 +832,7 @@ if menu['raster_processing']:
                     for ssp in flood_ssps:
                         composite_raster_arrays = []
                         for i in range(len(flood_rp_bins)):
-                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[list(flood_rp_bins.keys())[i]] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
+                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif' for rp in flood_rp_bins[list(flood_rp_bins.keys())[i]] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
                             raster_arrays = []
 
                             for r in raster_to_merge:
@@ -851,16 +850,16 @@ if menu['raster_processing']:
                                 raster_arrays.append(out_image)
                             
                             if raster_arrays:
-                                out_image = np.logical_or.reduce(raster_arrays).astype(np.uint16)
+                                out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
                                 composite_raster_arrays.append(out_image * (i+1))
-                                out_meta.update(dtype = rasterio.uint16)
+                                out_meta.update(dtype = rasterio.uint8)
                                 
                                 with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{list(flood_rp_bins.keys())[i]}.tif', 'w', **out_meta) as dst:
                                     dst.write(out_image)
                         
                         if composite_raster_arrays:
-                            out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint16)
-                            out_meta.update(dtype = rasterio.uint16)
+                            out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint8)
+                            out_meta.update(dtype = rasterio.uint8)
                                 
                             with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}.tif', 'w', **out_meta) as dst:
                                 dst.write(out_image)

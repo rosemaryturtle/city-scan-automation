@@ -95,6 +95,9 @@ soil_salinity_source: 'D:/World Bank/CRP/data/Global Soil Salinity'
 # non-data sources
 gostnets_path: 'C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/GOSTnets'
 
+# data storage paths
+fathom_path: 'D:/World Bank/CRP/data/Fathom 3.0'
+
 # data outputs
 cloud_bucket: 'gee-test-20231019'
 
@@ -103,13 +106,13 @@ flood:
   threshold: 15  # unit: cm
   year:
     - 2020
-    # - 2050
+    - 2050
     # - 2080
   ssp:
-    - 1
+    # - 1
     - 2
     - 3
-    - 5
+    # - 5
   prob_cutoff:  # unit: %
     - 1
     - 10
@@ -127,21 +130,21 @@ osm_query:
       - clinic
       - hospital
       - health
-  police:
-    amenity:
-      - police
-  fire:
-    amenity:
-      - fire_station
+  # police:
+  #   amenity:
+  #     - police
+  # fire:
+  #   amenity:
+  #     - fire_station
 isochrone:  # unit: m
   schools:
-    - 800
-    - 1600
-    - 2400
+    # - 800
+    # - 1600
+    # - 2400
   health:
-    - 1000
-    - 2000
-    - 3000
+    # - 1000
+    # - 2000
+    # - 3000
 accessibility_buffer: 5  # percentage of AOI bounds to buffer in order to capture amenities and roads immediately outside the AOI
 
 # FWI date range

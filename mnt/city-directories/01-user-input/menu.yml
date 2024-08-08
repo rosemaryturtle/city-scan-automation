@@ -3,18 +3,18 @@
 # raster processing
 raster_processing: True
 population: True
-wsf: True
-elevation: True
-slope: True
-solar: True
-air: True
+wsf: False
+elevation: False
+slope: False
+solar: False
+air: False
 flood: False
-flood_coastal: False
+flood_coastal: True
 flood_fluvial: True
 flood_pluvial: True
-landslide: True
-liquefaction: True
-demographics: True
+landslide: False
+liquefaction: False
+demographics: False
 impervious: False
 slr: False
 lightning: True
@@ -22,15 +22,15 @@ amenities: True
 
 # GEE
 landcover: False
-summer_lst: True
+summer_lst: False
 winter_lst: False
 nightlight: True
 green: True
-forest: False
-ndmi: True
+forest: True
+ndmi: False
 
 # accessibility
-accessibility: False
+accessibility: True
 
 # RWI
 rwi: True
@@ -41,7 +41,7 @@ burned_area: False
 # wildfire
 burned_area: False
 fwi: False
-landcover_burn: True
+landcover_burn: False
 
 # road network
 road_network: True

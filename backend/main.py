@@ -13,6 +13,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Document
 
 script_list = ["accessibility.py",
                "burned_area.py",
+               'fathom_download.py',
                'fwi.py',
                "gee_forest.py",
                "gee_landcover.py",
