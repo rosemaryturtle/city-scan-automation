@@ -13,11 +13,12 @@ if menu['accessibility']:
     import geopandas as gpd
     import osmnx as ox
     import networkx as nx
-    from shapely.geometry import box
     from pathlib import Path
     import pickle
     import pandas as pd
     import shutil
+    import GOSTnets as gn
+    from GOSTnets.fetch_pois import OsmObject
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
@@ -29,11 +30,6 @@ if menu['accessibility']:
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
-
-    # import GOSTnets -----------
-    sys.path.append(global_inputs['gostnets_path'])
-    import GOSTnets as gn
-    from GOSTnets.fetch_pois import OsmObject  # TODO: fix GOSTnets
 
     # Read AOI shapefile --------
     # transform the input shp to correct prj (epsg 4326)
