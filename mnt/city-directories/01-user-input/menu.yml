@@ -13,12 +13,13 @@ flood_fluvial: True
 flood_pluvial: True
 landslide: True
 liquefaction: True
-impervious: False
 demographics: True
+lightning: True
 
 # GEE
 landcover: True
 summer_lst: True
+winter_lst: False
 nightlight: True
 green: True
 forest: True
@@ -37,6 +38,11 @@ landcover_burn: True
 
 # road network
 road_network: True
+
+# other
+erosion: False
+water_salinity: False
+soil_salinity: False
 
 # stats
 # flood_timeline and earthquake_timeline unclear
