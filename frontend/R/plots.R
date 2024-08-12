@@ -118,7 +118,7 @@ fu_plot <- fu %>%
   geom_line() +
   geom_text(
     data = slice_max(fu, Year), aes(label = `Annual Probability`),
-    hjust = 0, vjust = 0.5, direction = "y", nudge_x = .5, min.segment.length = 10, size = rel(2.5)) +
+    hjust = 0, vjust = 0.5, nudge_x = .5, size = rel(2.5)) +
   scale_x_continuous(
     expand = expansion(c(0,.1)),
     breaks = seq(1985, 2020, 5),
@@ -149,7 +149,7 @@ pu_plot <- pu %>%
   geom_line() +
   geom_text(
     data = slice_max(pu, Year), aes(label = `Annual Probability`),
-    hjust = 0, vjust = 0.5, direction = "y", nudge_x = .5, min.segment.length = 10, size = rel(2.5)) +
+    hjust = 0, vjust = 0.5, nudge_x = .5, size = rel(2.5)) +
   scale_x_continuous(
     expand = expansion(c(0,.1)),
     breaks = seq(1985, 2020, 5),

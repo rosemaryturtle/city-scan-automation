@@ -1,11 +1,8 @@
 # Packages ----
 
 # Map Functions ----
-# Function for reading rasters with fuzzy names
-# Ideally, though, we would name in a consistent way where this is rendered unnecessary
 fuzzy_read <- function(dir, fuzzy_string, FUN = NULL, path = T, convert_to_vect = F, ...) {
   file <- list.files(dir) %>% str_subset(fuzzy_string) #%>%
-    #str_extract("^[^\\.]*") %>% unique()
   if (length(file) > 1) warning(paste("Too many", fuzzy_string, "files in", dir))
   if (length(file) < 1) {
     file <- list.files(dir, recursive = T) %>% str_subset(fuzzy_string)
@@ -38,6 +35,8 @@ rast_as_vect <- function(x, digits = 8, ...) {
   return(out)
 }
 
+exists_and_true <- \(x) !is.null(x) && is.logical(x) && x
+
 # Functions for making the maps
 
 prepare_parameters <- function(yaml_key, ...) {
@@ -55,8 +54,8 @@ prepare_parameters <- function(yaml_key, ...) {
     params$bins <- if(is.null(params$breaks)) 0 else length(params$breaks)
   }
   if (is.null(params$stroke)) params$stroke <- NA
-  if (!is.null(params$factor) && params$factor) {
-    if (is.null(params$breaks)) params$breaks <- params$labels
+  if (exists_and_true(params$factor) & is.null(params$breaks)) {
+    params$breaks <- params$labels
   }
 
   # Apply layer transparency to palette
@@ -77,134 +76,36 @@ prepare_parameters <- function(yaml_key, ...) {
   return(params)
 }
 
-create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
-  if (is.null(params)) {
-    params <- prepare_parameters(yaml_key, ...)
-  }
-  if (!is.null(params$data_variable)) data <- data[params$data_variable]
-  if (!is.null(params$factor) && params$factor) {
-    data <- 
-      set_layer_values(
-        data = data,
-        values = ordered(get_layer_values(data),
-                        levels = params$breaks,
-                        labels = params$labels))
-    params$palette <- setNames(params$palette, params$labels)
-  }
-  layer_values <- get_layer_values(data)
-  palette <- params$palette
-  stroke_variable <- if (length(params$stroke) > 1) params$stroke$variable else NULL
-  weight_variable <- if (length(params$weight) > 1) params$weight$variable else NULL
-
-  data_class <- class(data)[1]
-  if (data_class %ni% c("SpatVector", "SpatRaster")) {
-    stop(glue("On {yaml_key} data is neither SpatVector or SpatRaster, but {data_class}"))
-  }
-  data_type <- if (data_class == "SpatRaster") "raster" else geomtype(data)
-  if (data_type %ni% c("raster", "points", "lines", "polygons")) {
-    stop(glue("On {yaml_key} data is not of type 'raster', 'points', 'lines', or 'polygons'"))
-  }
-
-  geom <-
-    if (data_type == "points") {
-      geom_spatvector(data = data, aes(color = layer_values), size = 1)
-    } else if (data_type == "polygons") {
-      geom_spatvector(data = data, aes(fill = layer_values), color = params$stroke)
-    } else if (data_type == "lines") {
-      # I could use aes_list in a safer way
-      # aes_list2 <- c(
-      #   aes(color = .data[[stroke_variable]]))
-      #   aes(linewidth = (.data[[weight_variable]])))
-      aes_list <- aes(color = .data[[stroke_variable]], linewidth = (.data[[weight_variable]]))
-      if (is.null(weight_variable)) aes_list <- aes_list[-2]
-      if (is.null(stroke_variable)) aes_list <- aes_list[-1]
-      geom_spatvector(data = data, aes_list)
-    } else if (data_type == "raster") {
-      geom_spatraster(data = data)
-    }
-
-  title <- format_title(params$title, params$subtitle)
-
-  if(params$bins > 0 && is.null(params$breaks)) {
-    params$breaks <- break_pretty2(
-                data = layer_values, n = params$bins + 1, FUN = signif,
-                method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
-  }
-
-  fill_scale <-
-    if (length(palette) == 0 | data_type %in% c("points", "line")) {
-      NULL 
-    } else if (!is.null(params$factor) && params$factor) {
-      # Switched to na.translate = F because na.value = "transparent" includes
-      # NA in legend for forest. Haven't tried with non-raster.
-      scale_fill_manual(values = palette, na.translate = F, name = title)
-    } else if (params$bins == 0) {
-      scale_fill_gradientn(
-        colors = palette,
-        limits = if (is.null(params$domain)) NULL else params$domain,
-        rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
-        na.value = "transparent",
-        name = title)
-    } else if (params$bins > 0) {
-      scale_fill_stepsn(
-        colors = palette,
-        # Length of labels is one less than breaks when we want a discrete legend
-        breaks = if (is.null(params$breaks)) waiver() else if (diff(lengths(list(params$labels, params$breaks))) == 1) params$breaks[-1] else params$breaks,
-        # breaks_midpoints() is important for getting the legend colors to match the specified colors
-        values = if (is.null(params$breaks)) NULL else breaks_midpoints(params$breaks, rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale, mid = params$center),
-        labels = if (is.null(params$labels)) waiver() else params$labels,
-        limits = if (is.null(params$breaks)) NULL else range(params$breaks),
-        rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
-        na.value = "transparent",
-        oob = scales::oob_squish,
-        name = title,
-        guide = if (diff(lengths(list(params$labels, params$breaks))) == 1) "legend" else "colorsteps")
-    }
-  color_scale <-
-    if (data_type == "points") {
-      scale_color_manual(values = palette, name = title)
-    } else if (length(params$stroke) < 2 || is.null(params$stroke$palette)) {
-      NULL
-    } else {
-      scale_color_stepsn(
-        colors = params$stroke$palette,
-        name = format_title(params$stroke$title, params$stroke$subtitle))
-    }
-  linewidth_scale <- if (length(params$weight) < 2 || is.null(params$weight$range)) {
-      NULL
-    } else if (params$weight$factor) {
-      scale_linewidth_manual(
-        name = format_title(params$weight$title, params$weight$subtitle),
-        values = unlist(setNames(params$weight$palette, params$weight$labels)))
-    } else {
-      scale_linewidth(
-        range = c(params$weight$range[[1]], params$weight$range[[2]]),
-        name = format_title(params$weight$title, params$weight$subtitle))
-    }
-  scales <- list(fill_scale, color_scale, linewidth_scale) %>% .[lengths(.) > 1]
-
-  is_legend_text <- function() {
-    !is.null(params$labels) && is.character(params$labels) | is.character(layer_values)
-  }
-  legend_text_alignment <- if (is_legend_text()) 0 else 1
-
-  theme <- theme(
-    legend.title = ggtext::element_markdown(),
-    legend.text = element_text(hjust = legend_text_alignment))
-
-  return(list(geom = geom, scale = scales, theme = theme))
-}
-
-plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
-  if (aoi_only) {
+plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
+   if (aoi_only) {
     layer <- NULL
   } else { 
     params <- prepare_parameters(yaml_key = yaml_key, ...)
-    layer <- create_static_layer(data, params = params)
+    if (!is.null(params$data_variable)) data <- data[params$data_variable]
+    if (exists_and_true(params$factor)) {
+      data <- 
+        set_layer_values(
+          data = data,
+          values = ordered(get_layer_values(data),
+                          levels = params$breaks,
+                          labels = params$labels))
+      params$palette <- setNames(params$palette, params$labels)
+    }
+    if(params$bins > 0 && is.null(params$breaks)) {
+      params$breaks <- break_pretty2(
+        data = get_layer_values(data), n = params$bins + 1, FUN = signif,
+        method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
+    }
+    geom <- create_geom(data, params)
+    scales <- list(
+      fill_scale(data_type, params),
+      color_scale(data_type, params),
+      linewidth_scale(data_type, params)) %>%
+      .[lengths(.) > 1]
+    theme <- theme_legend(data, params)
+    layer <- list(geom = geom, scale = scales, theme = theme)
   }
-  # baseplot <- if (is.null(baseplot)) ggplot() + tiles else baseplot + ggnewscale::new_scale_fill()
-  # This  method sets the plot CRS to 4326, but this requires reprojecting the tiles
-  ## I am now returning the CRS to 3857. I don't think this is a global fix, because it causes reprojections of the rasters
+
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
       geom_sf(data = static_map_bounds, fill = NA, color = NA) +
@@ -214,25 +115,139 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_a
     layer + 
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
-    theme(
-      # legend.key = element_rect(fill = "#FAFAF8"),
-      legend.justification = c("left", "bottom"),
-      legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
-      legend.margin = margin(4,0,4,0, unit = "pt"),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.ticks.length = unit(0, "pt"),
-      plot.margin = margin(0,0,0,0))
+    theme_custom()
   if (plot_aoi) p <- p + geom_sf(data = aoi, fill = NA, linetype = "dashed", linewidth = .5) #+ 
-  # # There may be issues caused by this, but excluding this causes the tiles to be reprojected, which can cause darkening
+  p <- p + coord_3857_bounds()
+  return(p)
+}
+
+type_data <- function(data) {
+  data_class <- class(data)[1]
+  if (data_class %ni% c("SpatVector", "SpatRaster")) {
+    stop(glue("On {yaml_key} data is neither SpatVector or SpatRaster, but {data_class}"))
+  }
+  data_type <- if (data_class == "SpatRaster") "raster" else geomtype(data)
+  if (data_type %ni% c("raster", "points", "lines", "polygons")) {
+    stop(glue("On {yaml_key} data is not of type 'raster', 'points', 'lines', or 'polygons'"))
+  }
+  return(data_type)
+}
+
+create_geom <- function(data, params) {
+  data_type <- type_data(data)
+  layer_values <- get_layer_values(data)
+  if (data_type == "points") {
+    geom_spatvector(data = data, aes(color = layer_values), size = 1)
+  } else if (data_type == "polygons") {
+    geom_spatvector(data = data, aes(fill = layer_values), color = params$stroke)
+  } else if (data_type == "lines") {
+    stroke_variable <- if (length(params$stroke) > 1) params$stroke$variable else NULL
+    weight_variable <- if (length(params$weight) > 1) params$weight$variable else NULL
+    # I could use aes_list in a safer way
+    # aes_list2 <- c(
+    #   aes(color = .data[[stroke_variable]]))
+    #   aes(linewidth = (.data[[weight_variable]])))
+    aes_list <- aes(color = .data[[stroke_variable]], linewidth = (.data[[weight_variable]]))
+    if (is.null(weight_variable)) aes_list <- aes_list[-2]
+    if (is.null(stroke_variable)) aes_list <- aes_list[-1]
+    geom_spatvector(data = data, aes_list)
+  } else if (data_type == "raster") {
+    geom_spatraster(data = data)
+  }
+}
+
+fill_scale <- function(data_type, params) {
+  # data_type <- if (data_type %ni% c("raster", "points", "lines", "polygons")) type_data(data_type))
+  if (length(params$palette) == 0 | data_type %in% c("points", "line")) {
+    NULL 
+  } else if (exists_and_true(params$factor)) {
+    # Switched to na.translate = F because na.value = "transparent" includes
+    # NA in legend for forest. Haven't tried with non-raster.
+    scale_fill_manual(values = params$palette, na.translate = F, name = format_title(params$title, params$subtitle))
+  } else if (params$bins == 0) {
+    scale_fill_gradientn(
+      colors = params$palette,
+      limits = if (is.null(params$domain)) NULL else params$domain,
+      rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
+      na.value = "transparent",
+      name = format_title(params$title, params$subtitle))
+  } else if (params$bins > 0) {
+    scale_fill_stepsn(
+      colors = params$palette,
+      # Length of labels is one less than breaks when we want a discrete legend
+      breaks = if (is.null(params$breaks)) waiver() else if (diff(lengths(list(params$labels, params$breaks))) == 1) params$breaks[-1] else params$breaks,
+      # breaks_midpoints() is important for getting the legend colors to match the specified colors
+      values = if (is.null(params$breaks)) NULL else breaks_midpoints(params$breaks, rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale, mid = params$center),
+      labels = if (is.null(params$labels)) waiver() else params$labels,
+      limits = if (is.null(params$breaks)) NULL else range(params$breaks),
+      rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
+      na.value = "transparent",
+      oob = scales::oob_squish,
+      name = format_title(params$title, params$subtitle),
+      guide = if (diff(lengths(list(params$labels, params$breaks))) == 1) "legend" else "colorsteps")
+  }
+}
+
+color_scale <- function(data_type, params) {
+  if (data_type == "points") {
+    scale_color_manual(values = params$palette, name = title)
+  } else if (length(params$stroke) < 2 || is.null(params$stroke$palette)) {
+    NULL
+  } else {
+    scale_color_stepsn(
+      colors = params$stroke$palette,
+      name = format_title(params$stroke$title, params$stroke$subtitle))
+  }
+}
+
+linewidth_scale <- function(data_type, params) {
+  if (length(params$weight) < 2 || is.null(params$weight$range)) {
+    NULL
+  } else if (params$weight$factor) {
+    scale_linewidth_manual(
+      name = format_title(params$weight$title, params$weight$subtitle),
+      values = unlist(setNames(params$weight$palette, params$weight$labels)))
+  } else {
+    scale_linewidth(
+      range = c(params$weight$range[[1]], params$weight$range[[2]]),
+      name = format_title(params$weight$title, params$weight$subtitle))
+  }
+}
+
+theme_legend <- function(data, params) {
+  layer_values <- get_layer_values(data)
+  is_legend_text <- function() {
+    !is.null(params$labels) && is.character(params$labels) | is.character(layer_values)
+  }
+  legend_text_alignment <- if (is_legend_text()) 0 else 1
+
+  legend_theme <- theme(
+    legend.title = ggtext::element_markdown(),
+    legend.text = element_text(hjust = legend_text_alignment))
+  return(legend_theme)
+}
+
+theme_custom <- function(...) {
+  theme(
+  # legend.key = element_rect(fill = "#FAFAF8"),
+  legend.justification = c("left", "bottom"),
+  legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
+  legend.margin = margin(4,0,4,0, unit = "pt"),
+  axis.text = element_blank(),
+  axis.ticks = element_blank(),
+  axis.ticks.length = unit(0, "pt"),
+  plot.margin = margin(0,0,0,0),
+  ...)
+}
+
+coord_3857_bounds <- function(...) {
   bbox_3857 <- st_bbox(st_transform(static_map_bounds, crs = "epsg:3857"))
-  p <- p + coord_sf(
+  coord_sf(
     crs = "epsg:3857",
     expand = F,
     xlim = bbox_3857[c(1,3)],
-    ylim = bbox_3857[c(2,4)])
-  if (!is.null(filename)) save_plot(filename = filename, plot = p, directory = styled_maps_dir)
-  return(p)
+    ylim = bbox_3857[c(2,4)],
+    ...)
 }
 
 save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
@@ -270,24 +285,6 @@ set_layer_values <- function(data, values) {
       data$values <- values
     } else stop("Data is not of class SpatRaster, SpatVector or sf")
   return(data)
-}
-
-set_domain <- function(values, domain = NULL, center = NULL, factor = NULL) {
-  if (!is.null(factor) && factor) {
-    # Necessary for keeping levels in order
-    domain <- ordered(levels(values), levels = levels(values))
-  }
-  if (is.null(domain)) {
-    # This is a very basic way to set domain. Look at toolbox for more robust layer-specific methods
-    min <- min(values, na.rm = T)
-    max <- max(values, na.rm = T)
-    domain <- c(min, max)
-  }
-  if (!is.null(center) && center == 0) {
-    extreme <- max(abs(domain))
-    domain <- c(-extreme, extreme)
-  }
-  return(domain)
 }
 
 breaks_midpoints <- \(breaks, rescaler = scales::rescale, ...) {
