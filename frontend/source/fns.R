@@ -73,7 +73,7 @@ fuzzy_read <- function(dir, fuzzy_string, FUN = NULL, path = T, convert_to_vect 
 #   }
 # }
 
-rast_as_vect <- function(x, digits = 8, ...) {  
+rast_as_vect <- function(x, digits = 8, ...) {
   if (class(x) == "SpatVector") return(x)
   if (is.character(x)) x <- rast(x, ...)
   out <- as.polygons(x, digits = digits)
@@ -102,18 +102,18 @@ plot_basemap <- function(basemap_style = "vector") {
       options = leafletOptions(zoomControl = F, zoomSnap = 0.1)) %>% 
     fitBounds(
       lng1 = unname(aoi_bounds$xmin - (aoi_bounds$xmax - aoi_bounds$xmin)/20),
-              lat1 = unname(aoi_bounds$ymin - (aoi_bounds$ymax - aoi_bounds$ymin)/20),
-              lng2 = unname(aoi_bounds$xmax + (aoi_bounds$xmax - aoi_bounds$xmin)/20),
-              lat2 = unname(aoi_bounds$ymax + (aoi_bounds$ymax - aoi_bounds$ymin)/20))
+      lat1 = unname(aoi_bounds$ymin - (aoi_bounds$ymax - aoi_bounds$ymin)/20),
+      lng2 = unname(aoi_bounds$xmax + (aoi_bounds$xmax - aoi_bounds$xmin)/20),
+      lat2 = unname(aoi_bounds$ymax + (aoi_bounds$ymax - aoi_bounds$ymin)/20))
   if (basemap_style == "satellite") { 
-      basemap <- basemap %>% addProviderTiles(., providers$Esri.WorldImagery,
-                       options = providerTileOptions(opacity = basemap_opacity))
-    } else if (basemap_style == "vector") {
-      # addProviderTiles(., providers$Wikimedia,
+    basemap <- basemap %>% addProviderTiles(., providers$Esri.WorldImagery,
+                      options = providerTileOptions(opacity = basemap_opacity))
+  } else if (basemap_style == "vector") {
+    # addProviderTiles(., providers$Wikimedia,
     basemap <- basemap %>%
       addProviderTiles(providers$CartoDB.Positron)
-                       # addProviderTiles(., providers$Stadia.AlidadeSmooth,
-                      #  options = providerTileOptions(opacity = basemap_opacity))
+      # addProviderTiles(., providers$Stadia.AlidadeSmooth,
+      #  options = providerTileOptions(opacity = basemap_opacity))
   }
   return(basemap)
 }
@@ -326,38 +326,38 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
   subtitle_broken <- str_replace_all(params$subtitle, "(.{20}[^\\s]*)\\s", "\\1<br>")
   title <- paste0(title_broken, "<br><br><em>", subtitle_broken, "</em>")
 
-  if(params$bins > 0 && is.null(params$breaks)) {
+  if(params$bins > 0 && is.null(params$breaks)) { 
     params$breaks <- break_pretty2(
                 data = layer_values, n = params$bins + 1, FUN = signif,
                 method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
   }
 
   fill_scale <- if (length(palette) == 0) NULL else {
-        if (!is.null(params$factor) && params$factor) {
+    if (!is.null(params$factor) && params$factor) {
       # Switched to na.translate = F because na.value = "transparent" includes
       # NA in legend for forest. Haven't tried with non-raster.
       scale_fill_manual(values = palette, na.translate = F, name = title)
-        } else if (params$bins == 0) {
-            scale_fill_gradientn(
-              colors = palette,
+    } else if (params$bins == 0) {
+        scale_fill_gradientn(
+          colors = palette,
           limits = if (is.null(params$domain)) NULL else params$domain,
-              rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
-              na.value = "transparent",
-              name = title)
-          # }
-        } else if (params$bins > 0) {
-            scale_fill_stepsn(
-              colors = palette,
-              # Length of labels is one less than breaks when we want a discrete legend
-              breaks = if (is.null(params$breaks)) waiver() else if (diff(lengths(list(params$labels, params$breaks))) == 1) params$breaks[-1] else params$breaks,
+          rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
+          na.value = "transparent",
+          name = title)
+      # }
+    } else if (params$bins > 0) {
+        scale_fill_stepsn(
+          colors = palette,
+          # Length of labels is one less than breaks when we want a discrete legend
+          breaks = if (is.null(params$breaks)) waiver() else if (diff(lengths(list(params$labels, params$breaks))) == 1) params$breaks[-1] else params$breaks,
           # breaks_midpoints() is important for getting the legend colors to match the specified colors
-              values = if (is.null(params$breaks)) NULL else breaks_midpoints(params$breaks, rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale, mid = params$center),
-              labels = if (is.null(params$labels)) waiver() else params$labels,
-              limits = if (is.null(params$breaks)) NULL else range(params$breaks),
-              rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
-              na.value = "transparent",
-              oob = scales::oob_squish,
-              name = title,
+          values = if (is.null(params$breaks)) NULL else breaks_midpoints(params$breaks, rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale, mid = params$center),
+          labels = if (is.null(params$labels)) waiver() else params$labels,
+          limits = if (is.null(params$breaks)) NULL else range(params$breaks),
+          rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
+          na.value = "transparent",
+          oob = scales::oob_squish,
+          name = title,
           guide = if (diff(lengths(list(params$labels, params$breaks))) == 1) "legend" else "colorsteps"
           )
     }
@@ -391,8 +391,8 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_a
   if (aoi_only) {
     layer <- NULL
   } else { 
-  params <- prepare_parameters(yaml_key = yaml_key, ...)
-  layer <- create_static_layer(data, params = params)
+    params <- prepare_parameters(yaml_key = yaml_key, ...)
+    layer <- create_static_layer(data, params = params)
   }
   # baseplot <- if (is.null(baseplot)) ggplot() + tiles else baseplot + ggnewscale::new_scale_fill()
   # This  method sets the plot CRS to 4326, but this requires reprojecting the tiles
@@ -421,7 +421,7 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_a
   bbox_3857 <- st_bbox(st_transform(static_map_bounds, crs = "epsg:3857"))
   p <- p + coord_sf(
               crs = "epsg:3857",
-          expand = F,
+              expand = F,
               xlim = bbox_3857[c(1,3)],
               ylim = bbox_3857[c(2,4)])
   if (!is.null(filename)) save_plot(filename = filename, plot = p, directory = styled_maps_dir)
@@ -440,9 +440,9 @@ save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
   )
   
   cowplot::save_plot(
-  plot = plot_layout,
-  filename = file.path(directory, filename),
-  base_height = map_height, base_width = sum(rel_widths)/rel_widths[1] * map_width
+    plot = plot_layout,
+    filename = file.path(directory, filename),
+    base_height = map_height, base_width = sum(rel_widths)/rel_widths[1] * map_width
   )
 }
 

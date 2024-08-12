@@ -933,12 +933,12 @@ print_slide_text(slide_texts$risk_identification$burnt_area)
 ```{r}
 #| include: false
 #| label: fwi
-fwi <- fuzzy_read(spatial_dir, "fwi", rast)
-
-# Interactive Plot (Leaflet)
-add_fwi_layer <- create_layer_function(data = fwi, yaml_key = "fwi")
-all_maps <- add_fwi_layer(all_maps)
-added_layers <- c(added_layers, "fire-potential")
+# fwi <- fuzzy_read(spatial_dir, "fwi", rast)
+# 
+# # Interactive Plot (Leaflet)
+# add_fwi_layer <- create_layer_function(data = fwi, yaml_key = "fwi")
+# all_maps <- add_fwi_layer(all_maps)
+# added_layers <- c(added_layers, "fire-potential")
 
 # Static plot (PNG)
 # Commenting out because of large size (Need to change tile zoom level and static bounds)

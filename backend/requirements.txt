@@ -19,5 +19,5 @@ Requests==2.31.0
 richdem==2.3.0
 scipy==1.11.2
 Shapely==2.0.3
-skimage==0.0
+scikit-image==0.23.1
 xarray==2023.8.0

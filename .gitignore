@@ -193,7 +193,7 @@ backend/temp.ipynb
 backend/cover_image.py
 backend/desertification/*
 backend/vulnerability_mapping/*
-mnt/city-directories/02-process-output/*
+mnt/**
 
 # GitHub Wiki
 city-scan-automation.wiki.git
