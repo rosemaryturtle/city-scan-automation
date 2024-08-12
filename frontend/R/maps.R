@@ -112,11 +112,8 @@ plots$burnt_area <- ggplot() +
   stat_density_2d(
     data = historical_fire_data_3857,
     geom = "raster",
-    aes(
-      x = x, y = y,
-      fill = after_stat(ndensity)),
-    contour = FALSE,
-        n = 200) +
+    aes(x = x, y = y, fill = after_stat(ndensity)),
+    contour = FALSE, n = 200) +
   scale_fill_stepsn(
     name = "History of fire",
     limits = c(0, 1),
