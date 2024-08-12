@@ -36,7 +36,7 @@ rwi:
   data_variable: rwi
   title: 'Relative Wealth Index'
   palette: ['#ED431B', '#FF9169', '#FFFFBA', '#70C5AD', '#009E7A']
-  group_id: 'relative-wealth-index'
+  labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
 economic_activity:
   fuzzy_string: avg_rad_sum.*.tif$
@@ -157,7 +157,6 @@ vegetation:
   subtitle: 'Normalized difference vegetation index (NDVI)'
   palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
   breaks: [-1, 0.015, 0.14, 0.18, 0.27, 0.36, 1]
-  # breaks: [0.015, 0.14, 0.18, 0.27, 0.36, 1]
   labels: ['Water (-1 to 0.015)', 'Built-up (0.015 to 0.14)', 'Barren (0.14 to 0.18)', 'Shrub and Grassland (0.18 to 0.27)', 'Sparse (0.27 to 0.36)', 'Dense (0.36 to 1)']
   group_id: vegetated-areas
 forest: # Requires preprocessing to combine forest and deforestation?
@@ -174,47 +173,58 @@ deforest: # Requires preprocessing to combine forest and deforestation?
   subtitle: Year of deforestation
   domain: [2001, 2021]
   palette: ['#EEEC00', '#D73837']
-  group_id: 'forests-deforestation'
-# SECTION 7 RISK IDENTIFICATION
-fluvial: # This will require pre-processing
+infrastructure:
+  fuzzy_string: infrastructure.gpkg$
+  title: Infrastructure and Services
+  data_variable: Feature
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 11]  
+  palette: ['green', 'red', 'blue', 'yellow']
+  labels:  ['Hospital or clinic', 'Fire station', 'Police station', 'School']
+  alpha: 1
+fluvial:
+  # fuzzy_string: fluvial_2020.tif$
+  factor: TRUE
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: fluvial-flooding
-pluvial: # This will require pre-processing
+pluvial:
+  # fuzzy_string: pluvial_2020.tif$
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 100]
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: pluvial-flooding
 coastal:
+  # fuzzy_string: coastal_2020.tif$
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 11]  
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: coastal-flooding
-flooding_combined: # This will require pre-processing
+combined_flooding: # This will require pre-processing
+  # fuzzy_string: combined_flooding_2020.tif$
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 100]
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
-  title: 'Flood probability'
+  title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: combined-fluvial-pluvial-flooding
-elevation: # how to indicate contours?
+  group_id: combined-flooding
+elevation:
   fuzzy_string: contour.shp$
-  title: Elevation
-  subtitle: "Meters above sea level (MASL)"
   palette: ['#f5c4c0', '#762175']
   bins: 5
   stroke: 
+    title: Elevation
+    subtitle: "Meters above sea level (MASL)"
     variable: elev
     palette: ['#f5c4c0', '#762175']
   weight: 1
@@ -245,25 +255,28 @@ liquefaction:
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
   breaks: [1, 2, 3, 4, 5]
   group_id: liquefaction
-road_network_criticality:
-  title: Road network segment criticality
-  subtitle: 'Criticality %'
+roads:
+  fuzzy_string: edges-edit.gpkg
   palette: NULL
   stroke:
-    name: Road criticality
+    title: Road network segment criticality
+    subtitle: 'Criticality %'
     variable: edge_centr
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
-    name: Road type
-    variable: primary
+    title: Road type
+    variable: road_type
+    factor: TRUE
     range: [0.25, 1]
-  suffix: "%"
+    palette: [0.24, 1]
+    # breaks: [FALSE, TRUE]
+    labels: ['Secondary', 'Primary']
   group_id: road-network-criticality
 burnable:
   fuzzy_string: lc_burn.*.tif$
   title: Burnability Factor
-  palette: ['#FFFFFF', '#5C1316']
-  breaks: [0, .2, .4, .6, .8, 1]
+  palette: ['#FFFFFF', '#EFAD42', '#681A17']
+  breaks: [0, .17, .33, .5, .67, 83, 1]
   group_id: burnable-area
 moisture:
   fuzzy_string: NDMI_Annual.*.tif$

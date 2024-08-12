@@ -17,14 +17,6 @@ which_not <- function(v1, v2, swap = F, both = F) {
   }
 }
 
-paste_path <- compiler::cmpfun(function(...) {
-  items <- c(...)
-  if (items[1] == "") items <- items[-1]
-  path <- paste(items, collapse = "/") %>%
-    { gsub("/+", "/", .) }
-  return(path)
-})
-
 paste_and <- function(v) {
     if (length(v) == 1) {
     string <- paste(v)
