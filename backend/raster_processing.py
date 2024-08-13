@@ -28,7 +28,7 @@ if menu['raster_processing']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -391,11 +391,8 @@ if menu['raster_processing']:
 
             # function to check output flood raster validity
             def flood_raster_check(raster):
-                print('checking', raster)
                 with rasterio.open(raster) as src:
                     max_value = np.nanmax(src.read(1))
-                    print('max value:', max_value)
-                    print('return value:', max_value > 1)
                     return (max_value > 1)
 
             def flood_processing0(flood_type):
@@ -647,11 +644,8 @@ if menu['raster_processing']:
                         dest.write(out_image, 1)
 
                 def wsf_raster_check(raster):
-                    print('checking', raster)
                     with rasterio.open(raster) as src:
                         max_value = np.nanmax(src.read(1))
-                        print('max value:', max_value)
-                        print('return value:', max_value > 4)
                         return (max_value > 4)
                 
                 wsf_reclassify()

@@ -18,7 +18,6 @@ if menu['road_network']:
     import matplotlib.pyplot as plt
     import pickle
     from pathlib import Path
-    from os.path import exists
     # ox.config(log_console = True, use_cache = True)
 
 
@@ -28,7 +27,7 @@ if menu['road_network']:
         city_inputs = yaml.safe_load(f)
 
     AOI_name = city_inputs['city_name']
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -41,8 +40,7 @@ if menu['road_network']:
     # Define output folder ---------
     output_folder = Path('../mnt/city-directories/02-process-output')
 
-    if not exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok=True)
     
 
     # FUNCTIONS ###################################
@@ -55,8 +53,7 @@ if menu['road_network']:
         return boundary_poly
 
     def get_graph():
-        if not exists(output_folder / f'{city_name_l}_road_network'):
-            os.mkdir(output_folder / f'{city_name_l}_road_network')
+        os.makedirs(output_folder / f'{city_name_l}_road_network', exist_ok=True)
         
         print(f'Fetching graph data for {AOI_name}')
         

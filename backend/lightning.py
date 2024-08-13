@@ -7,7 +7,7 @@ cities = ['Cumilla', 'Chattogram', 'Gazipur', 'Narayanganj', 'Khulna', 'Rajshahi
           'Barishal', 'Mymensingh', 'Rangpur', 'Sylhet']
 
 def avg_l(city):
-    city_nospace = city.replace(" ", "_").lower()
+    city_nospace = city.replace(" ", "_").replace("'", '').lower()
     temp_file = Path('../mnt/city-directories/02-process-output') / (city_nospace + '_lightning.tif')
     temp = rasterio.open(temp_file)
     temp_array = temp.read(1)

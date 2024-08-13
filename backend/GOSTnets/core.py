@@ -781,7 +781,7 @@ def make_iso_polys(G, origins, trip_times, edge_buff=10, node_buff=25, infill=Fa
         all_gs = list(n) + list(e)
 
         print("unary_union")
-        new_iso = gpd.GeoSeries(all_gs).unary_union
+        new_iso = gpd.GeoSeries(all_gs).union_all()
 
         # If desired, try and "fill in" surrounded
         # areas so that shapes will appear solid and blocks
@@ -856,7 +856,7 @@ def make_iso_polys_original(G, origins, trip_times, edge_buff=10, node_buff=25, 
 
                 all_gs = list(n) + list(e)
 
-                new_iso = gpd.GeoSeries(all_gs).unary_union
+                new_iso = gpd.GeoSeries(all_gs).union_all()
 
                 # If desired, try and "fill in" surrounded
                 # areas so that shapes will appear solid and blocks
@@ -2754,7 +2754,7 @@ def project_gdf(gdf, to_crs=None, to_latlong=False):
             raise ValueError("Geometry must be unprojected to calculate UTM zone")
 
         # calculate longitude of centroid of union of all geometries in gdf
-        avg_lng = gdf["geometry"].unary_union.centroid.x
+        avg_lng = gdf["geometry"].union_all().centroid.x
 
         # calculate UTM zone from avg longitude to define CRS to project to
         utm_zone = math.floor((avg_lng + 180) / 6) + 1
@@ -2871,7 +2871,7 @@ def utm_of_graph(G):
     gdf_nodes = node_gdf_from_graph(G)
     
     # calculate longitude of centroid of union of all geometries in gdf
-    avg_lng = gdf_nodes["geometry"].unary_union.centroid.x
+    avg_lng = gdf_nodes["geometry"].union_all().centroid.x
 
     # calculate UTM zone from avg longitude to define CRS to project to
     utm_zone = math.floor((avg_lng + 180) / 6) + 1

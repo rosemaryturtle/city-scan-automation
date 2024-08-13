@@ -2,13 +2,14 @@
 import yaml
 
 # load menu
-with open("menu.yml", 'r') as f:
+with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['summer_lst']:
     print('run gee_lst')
     
     import ee
+    import math
     import geopandas as gpd
     import xarray as xr
     import numpy as np
@@ -17,10 +18,10 @@ if menu['summer_lst']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("city_inputs.yml", 'r') as f:
+    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs
     with open("global_inputs.yml", 'r') as f:
@@ -36,6 +37,7 @@ if menu['summer_lst']:
 
     # Read AOI shapefile --------
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
+    centroid = aoi_file.centroid
 
     # Convert shapefile to ee.Geometry ------------
     jsonDict = eval(gpd.GeoSeries([aoi_file['geometry'].force_2d().union_all()]).to_json())
@@ -100,7 +102,7 @@ if menu['summer_lst']:
     range_list1 = ee_filter_month(hottest_months[1])
     range_list2 = ee_filter_month(hottest_months[2])
 
-    rangefilter = ee.Filter.Or(range_list)
+    rangefilter = ee.Filter.Or(range_list0 + range_list1 + range_list2)
 
     # Cloud mask function ----------------
     def maskL457sr(image):

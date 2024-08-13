@@ -1,15 +1,12 @@
-import os, sys, time, logging
+import os
 
 import shapely
 
 import geopandas as gpd
 import osmnx as ox ### Make sure to install osmnx with -c conda-forge to get newest version
 import pandas as pd
-import networkx as nx
 
 from shapely.geometry import box
-from shapely.geometry import Polygon
-from shapely.wkt import loads
 from shapely.ops import unary_union
 
 ### Definitions
@@ -69,7 +66,7 @@ class OsmObject():
         # note that even as of Dec, 2020 the code below will be depreciated, as OSMNX deleted the poi modeule in favor of the new geometries module
         #df = ox.pois_from_polygon(polygon = self.bbox, tags = {'amenity':self.current_amenity} )
 
-        df = ox.geometries_from_polygon(self.bbox, self.tags).reset_index()
+        df = ox.features_from_polygon(self.bbox, self.tags).reset_index()
 
         print(f"is df empty: {df.empty}")
         if df.empty == True:
