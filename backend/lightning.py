@@ -8,7 +8,7 @@ cities = ['Cumilla', 'Chattogram', 'Gazipur', 'Narayanganj', 'Khulna', 'Rajshahi
 
 def avg_l(city):
     city_nospace = city.replace(" ", "_").replace("'", '').lower()
-    temp_file = Path(f'../mnt/city-directories/02-process-output/{city_nospace}/tabular') / (city_nospace + '_lightning.tif')
+    temp_file = Path(f'../mnt/city-directories/02-process-output/{city_nospace}/spatial') / (city_nospace + '_lightning.tif')
     temp = rasterio.open(temp_file)
     temp_array = temp.read(1)
     temp_array = temp_array[temp_array >= 0]
@@ -17,7 +17,6 @@ cities_avg_l = {}
 
 for city in cities:
     cities_avg_l[city] = avg_l(city)
-print(cities_avg_l)
 
 with open('../mnt/city-directories/02-process-output/avg_lightning.csv', 'w') as f:
     f.write('city,avg\n')
