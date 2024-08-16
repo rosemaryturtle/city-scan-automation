@@ -177,35 +177,32 @@ if menu['raster_processing']:
 
         wsf_folder = data_folder / 'wsf'
 
-        if not exists(wsf_folder):
-            os.mkdir(wsf_folder)
+        os.makedirs(wsf_folder, exist_ok=True)
 
+        wsf_downloaded_files = []
         for i in range(len(aoi_bounds)):
             for x in range(math.floor(aoi_bounds.minx[i] - aoi_bounds.minx[i] % 2), math.ceil(aoi_bounds.maxx[i]), 2):
                 for y in range(math.floor(aoi_bounds.miny[i] - aoi_bounds.miny[i] % 2), math.ceil(aoi_bounds.maxy[i]), 2):
                     file_name = f'WSFevolution_v1_{x}_{y}'
-                    if not exists(wsf_folder / f'{file_name}.tif'):
-                        file = requests.get(f'https://download.geoservice.dlr.de/WSF_EVO/files/{file_name}/{file_name}.tif')
-                        open(wsf_folder / f'{file_name}.tif', 'wb').write(file.content)
+                    if exists(wsf_folder / f'{file_name}.tif'):
+                        wsf_downloaded_files.append(file_name)
+                    else:
+                        try:
+                            file = requests.get(f'https://download.geoservice.dlr.de/WSF_EVO/files/{file_name}/{file_name}.tif')
+                            open(wsf_folder / f'{file_name}.tif', 'wb').write(file.content)
+                            wsf_downloaded_files.append(file_name)
+                        except Exception as e:
+                            print(f'WSF download exception: {e}')
 
-        # TODO: instead of merging all tifs in the folder, only merge the relevant ones
-        # count how many raster files have been downloaded
-        def tif_counter(list):
-            if list.endswith('.tif'):
-                return True
-            return False
-
-        if len(list(filter(tif_counter, os.listdir(wsf_folder)))) > 1:
+        if len(wsf_downloaded_files) > 1:
             try:
                 raster_to_mosaic = []
                 mosaic_file = f'{city_name_l}_wsf_evolution.tif'
 
                 if not exists(wsf_folder / mosaic_file):
-                    mosaic_list = os.listdir(wsf_folder)
-                    for p in mosaic_list:
-                        if p.endswith('.tif'):
-                            raster = rasterio.open(wsf_folder / p)
-                            raster_to_mosaic.append(raster)
+                    for p in wsf_downloaded_files:
+                        raster = rasterio.open(wsf_folder / f'{p}.tif')
+                        raster_to_mosaic.append(raster)
 
                     mosaic, output = merge(raster_to_mosaic)
                     output_meta = raster.meta.copy()
@@ -224,8 +221,8 @@ if menu['raster_processing']:
                 print(err_msg) 
                 print('Try GIS instead for merging.')
                 failed.append(err_msg)
-        elif len(list(filter(tif_counter, os.listdir(wsf_folder)))) == 1:
-            os.rename(wsf_folder / (list(filter(tif_counter, os.listdir(wsf_folder)))[0]), wsf_folder / f'{city_name_l}_wsf_evolution.tif')
+        elif len(wsf_downloaded_files) == 1:
+            os.rename(wsf_folder / f'{wsf_downloaded_files[0]}.tif', wsf_folder / f'{city_name_l}_wsf_evolution.tif')
         else:
             err_msg = 'No WSF evolution file available'
             print(err_msg)
@@ -259,6 +256,7 @@ if menu['raster_processing']:
                 print('tile_end_matcher function error')
                 print('Invalid input. How did this happen?')
 
+        elev_downloaded_files = []
         for lat in lat_tiles_big:
             for lon in lon_tiles_big:
                 file_name = f'{lat}{lon}-{tile_end_matcher(lat)}{tile_end_matcher(lon)}_FABDEM_V1-2.zip'
@@ -275,26 +273,19 @@ if menu['raster_processing']:
                             try:
                                 with zipfile.ZipFile(global_inputs['elevation_source'] / file_name, 'r') as z:
                                     z.extract(file_name1, elev_folder)
+                                    elev_downloaded_files.append(file_name1)
                             except:
                                 pass
 
-        # count how many raster files have been unzipped
-        def tif_counter(list):
-            if list.endswith('.tif'):
-                return True
-            return False
-
-        if len(list(filter(tif_counter, os.listdir(elev_folder)))) > 1:
+        if len(elev_downloaded_files) > 1:
             try:
                 raster_to_mosaic = []
                 mosaic_file = f'{city_name_l}_elevation.tif'
 
                 if not exists(elev_folder / mosaic_file):
-                    mosaic_list = os.listdir(elev_folder)
-                    for p in mosaic_list:
-                        if p.endswith('.tif'):
-                            raster = rasterio.open(elev_folder / p)
-                            raster_to_mosaic.append(raster)
+                    for p in elev_downloaded_files:
+                        raster = rasterio.open(elev_folder / p)
+                        raster_to_mosaic.append(raster)
 
                     mosaic, output = merge(raster_to_mosaic)
                     output_meta = raster.meta.copy()
@@ -313,8 +304,8 @@ if menu['raster_processing']:
                 print(err_msg)
                 print('Try GIS instead for merging.')
                 failed.append(err_msg)
-        elif len(list(filter(tif_counter, os.listdir(elev_folder)))) == 1:
-            os.rename(elev_folder / (list(filter(tif_counter, os.listdir(elev_folder)))[0]), elev_folder / f'{city_name_l}_elevation.tif')
+        elif len(elev_downloaded_files) == 1:
+            os.rename(elev_folder / elev_downloaded_files[0], elev_folder / f'{city_name_l}_elevation.tif')
         else:
             err_msg = 'No elevation file available; use SRTM instead for elevation'
             print(err_msg)
