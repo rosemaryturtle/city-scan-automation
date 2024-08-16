@@ -237,8 +237,7 @@ if menu['raster_processing']:
 
         elev_folder = data_folder / 'elev'
 
-        if not exists(elev_folder):
-            os.mkdir(elev_folder)
+        os.makedirs(elev_folder, exist_ok=True)
 
         aoi_bounds = aoi_file.bounds
 
@@ -263,10 +262,10 @@ if menu['raster_processing']:
         for lat in lat_tiles_big:
             for lon in lon_tiles_big:
                 file_name = f'{lat}{lon}-{tile_end_matcher(lat)}{tile_end_matcher(lon)}_FABDEM_V1-2.zip'
-                if not exists(elev_folder / file_name):
+                if not exists(global_inputs['elevation_source'] / file_name):
                     print(f'download elevation file: {file_name}')
                     file = requests.get(f'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/{file_name}')
-                    open(elev_folder / file_name, 'wb').write(file.content)
+                    open(global_inputs['elevation_source'] / file_name, 'wb').write(file.content)
 
                 # unzip downloads
                 for lat1 in lat_tiles_small:
@@ -274,7 +273,7 @@ if menu['raster_processing']:
                         file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
                         if not exists(elev_folder / file_name1):
                             try:
-                                with zipfile.ZipFile(elev_folder / file_name, 'r') as z:
+                                with zipfile.ZipFile(global_inputs['elevation_source'] / file_name, 'r') as z:
                                     z.extract(file_name1, elev_folder)
                             except:
                                 pass

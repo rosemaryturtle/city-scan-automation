@@ -24,6 +24,7 @@ erosion_source: ""
 lightning_source: "D:/World Bank/CRP/data/Gridded Lightning Climatology/VHRFC_LIS_FRD.tif"
 water_salinity_source: "D:/World Bank/CRP/data/Water salinity"
 soil_salinity_source: 'D:/World Bank/CRP/data/Global Soil Salinity'
+elevation_source: "D:/World Bank/CRP/data/FABDEM"
 
 # data storage paths
 fathom_path: 'D:/World Bank/CRP/data/Fathom 3.0'

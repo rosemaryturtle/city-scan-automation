@@ -1,12 +1,12 @@
 # city basic info
-city_name: "Bukavu"
+city_name: "Abuja"
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
 # AOI_path: "mnt/city-directories/01-user-input/AOI"
-AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/DRC/shapefile/city_scan/bukavu.shp"
-country_name: 'Democratic Republic of the Congo'
-country_iso3: 'COD'
+AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Nigeria/shapefile/abuja.shp"
+country_name: 'Nigeria'
+country_iso3: 'NGA'
 
 # Benchmark cities
 # - When multiple countries, add country name as key before city (e.g. "- Armenia: Yerevan")
