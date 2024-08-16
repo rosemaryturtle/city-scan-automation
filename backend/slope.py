@@ -17,17 +17,20 @@ if menu['raster_processing'] and menu['slope']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
+    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder_s = output_folder_parent / 'spatial'
+    output_folder_t = output_folder_parent / 'tabular'
+    os.makedirs(output_folder_t, exist_ok=True)
 
     # Check if elevation raster exists ------------
-    if not exists(output_folder / f'{city_name_l}_elevation.tif'):
+    if not exists(output_folder_s / f'{city_name_l}_elevation.tif'):
         print('cannot generate slope because elevation raster does not exist')
         exit()
     
@@ -42,7 +45,7 @@ if menu['raster_processing'] and menu['slope']:
         print('process slope')
 
         # Reproject elevation raster to a projected coordinate system
-        with rasterio.open(output_folder / f'{city_name_l}_elevation.tif') as src:
+        with rasterio.open(output_folder_s / f'{city_name_l}_elevation.tif') as src:
             dst_crs = 'EPSG:3857'  # Web Mercator projection
             transform, width, height = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
             out_meta = src.meta.copy()
@@ -53,7 +56,7 @@ if menu['raster_processing'] and menu['slope']:
                 'height': height
             })
 
-            with rasterio.open(output_folder / f'{city_name_l}_elevation_3857.tif', 'w', **out_meta) as dst:
+            with rasterio.open(output_folder_s / f'{city_name_l}_elevation_3857.tif', 'w', **out_meta) as dst:
                 for i in range(1, src.count + 1):
                     reproject(
                         source=rasterio.band(src, i),
@@ -65,12 +68,12 @@ if menu['raster_processing'] and menu['slope']:
                         resampling=Resampling.nearest)
 
         # Calculate slope
-        elev = rd.LoadGDAL(str(output_folder / f'{city_name_l}_elevation_3857.tif'))
+        elev = rd.LoadGDAL(str(output_folder_s / f'{city_name_l}_elevation_3857.tif'))
         slope = rd.TerrainAttribute(elev, attrib = 'slope_degrees')
-        rd.SaveGDAL(str(output_folder / f'{city_name_l}_slope_3857.tif'), slope)
+        rd.SaveGDAL(str(output_folder_s / f'{city_name_l}_slope_3857.tif'), slope)
 
         # Reproject slope raster to WGS84
-        with rasterio.open(output_folder / f'{city_name_l}_slope_3857.tif') as src:
+        with rasterio.open(output_folder_s / f'{city_name_l}_slope_3857.tif') as src:
             dst_crs = 'EPSG:4326'
             transform, width, height = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
             out_meta = src.meta.copy()
@@ -81,7 +84,7 @@ if menu['raster_processing'] and menu['slope']:
                 'height': height
             })
 
-            with rasterio.open(output_folder / f'{city_name_l}_slope.tif', 'w', **out_meta) as dst:
+            with rasterio.open(output_folder_s / f'{city_name_l}_slope.tif', 'w', **out_meta) as dst:
                 for i in range(1, src.count + 1):
                     reproject(
                         source=rasterio.band(src, i),
@@ -95,7 +98,7 @@ if menu['raster_processing'] and menu['slope']:
         # Calculate slope stats
         print('calculate slope stats')
         
-        with rasterio.open(output_folder / f'{city_name_l}_slope.tif') as src:
+        with rasterio.open(output_folder_s / f'{city_name_l}_slope.tif') as src:
             # Read raster data
             raster_data = src.read(1)
             
@@ -106,7 +109,7 @@ if menu['raster_processing'] and menu['slope']:
             hist, _ = np.histogram(raster_data, bins=bins)
             
             # Write bins and hist to a CSV file
-            with open(output_folder / f'{city_name_l}_slope.csv', 'w', newline='') as csvfile:
+            with open(output_folder_t / f'{city_name_l}_slope.csv', 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(['Bin', 'Count'])
                 for i, count in enumerate(hist):
@@ -117,10 +120,10 @@ if menu['raster_processing'] and menu['slope']:
     
     # Remove intermediate outputs
     try:
-        os.remove(output_folder / f'{city_name_l}_elevation_3857.tif')
-        os.remove(output_folder / f'{city_name_l}_slope_3857.tif')
+        os.remove(output_folder_s / f'{city_name_l}_elevation_3857.tif')
+        os.remove(output_folder_s / f'{city_name_l}_slope_3857.tif')
 
         if not menu['elevation']:
-            os.remove(output_folder / f'{city_name_l}_elevation.tif')
+            os.remove(output_folder_s / f'{city_name_l}_elevation.tif')
     except:
         print('remove intermediate slope outputs failed')

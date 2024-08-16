@@ -26,7 +26,7 @@ if menu['fwi']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -38,10 +38,11 @@ if menu['fwi']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
-
-    if not exists(output_folder):
-        os.mkdir(output_folder)
+    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder_s = output_folder_parent / 'spatial'
+    output_folder_t = output_folder_parent / 'tabular'
+    os.makedirs(output_folder_s, exist_ok=True)
+    os.makedirs(output_folder_t, exist_ok=True)
 
 
     # PARAMETERS #######################################
@@ -50,8 +51,9 @@ if menu['fwi']:
 
 
     # PROCESSING ###################################
-    if (not exists(output_folder / f'{city_name_l}_fwi.tif')) and (not exists(output_folder / f'{city_name_l}_fwi.csv')):
+    if (not exists(output_folder_s / f'{city_name_l}_fwi.tif')) and (not exists(output_folder_t / f'{city_name_l}_fwi.csv')):
         fwi_raster_dict = {}
+        out_meta = None
 
         # clip raster and store in dict --------------------
         for year in range(global_inputs['fwi_first_year'], global_inputs['fwi_last_year'] + 1):
@@ -61,7 +63,8 @@ if menu['fwi']:
                     
                     out_image, out_transform = rasterio.mask.mask(
                         src, features, all_touched = True, crop = True)
-                    out_meta = src.meta.copy()
+                    if out_meta is None:
+                        out_meta = src.meta.copy()
                 
                 if np.nansum(out_image) != 0:
                     fwi_raster_dict[r.split('.')[-2][-9:]] = out_image
@@ -72,7 +75,7 @@ if menu['fwi']:
                                     "transform": out_transform})
         q99_raster = np.nanpercentile(list(fwi_raster_dict.values()), 98.6, axis = 0)
 
-        with rasterio.open(output_folder / f'{city_name_l}_fwi.tif', 'w', **out_meta) as dest:
+        with rasterio.open(output_folder_s / f'{city_name_l}_fwi.tif', 'w', **out_meta) as dest:
             dest.write(q99_raster)
         
         # calculate 95th percentile FWI by week -------------------
@@ -87,4 +90,4 @@ if menu['fwi']:
         df = df.explode('fwi', ignore_index=True)
         week_95th = df.groupby('week').agg(pctile_95 = ('fwi', lambda x: np.nanpercentile(x, 95)))
 
-        week_95th.to_csv(output_folder / f'{city_name_l}_fwi.csv', index=True)
+        week_95th.to_csv(output_folder_t / f'{city_name_l}_fwi.csv', index=True)

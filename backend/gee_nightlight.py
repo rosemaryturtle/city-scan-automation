@@ -16,7 +16,7 @@ if menu['nightlight']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs
     with open("global_inputs.yml", 'r') as f:
@@ -31,15 +31,13 @@ if menu['nightlight']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Convert shapefile to ee.Geometry ------------
-    jsonDict = eval(aoi_file['geometry'].to_json())
+    jsonDict = eval(gpd.GeoSeries([aoi_file['geometry'].force_2d().union_all()]).to_json())
 
     if len(jsonDict['features']) > 1:
         print('Need to convert polygons into a multipolygon')
         print('or do something else, like creating individual raster for each polygon and then merge')
         exit()
     
-    if len(jsonDict['features'][0]['geometry']['coordinates'][0][0]) > 2:
-        jsonDict['features'][0]['geometry']['coordinates'][0] = [x[0:2] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
     AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 

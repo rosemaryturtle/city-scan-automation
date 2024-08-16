@@ -8,11 +8,11 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Document
 # TODO: make sure AOI is a polygon of an appropriate size
 # TODO: if an AOI includes several polygons, make it a multipolygon
 
-script_list = ["accessibility.py",
-               "burned_area.py",
+script_list = ["burned_area.py",
                'fwi.py',
                "gee_forest.py",
                "gee_landcover.py",
+               "gee_lst_winter.py",
                "gee_lst.py",
                "gee_ndmi.py",
                "gee_ndvi.py",
@@ -21,8 +21,10 @@ script_list = ["accessibility.py",
                "raster_processing.py",
                "road_network.py",
                "rwi.py",
+               "soil_salinity.py",
                "contour_elev_stats.py",
-               'slope.py'
+               'slope.py',
+               'flood_stats.py'
                ]
 # script_list = ['landcover_burnability_gcp.py']
 

@@ -20,7 +20,7 @@ if menu['landcover_burn']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -33,10 +33,9 @@ if menu['landcover_burn']:
     features = aoi_file.geometry
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
-
-    if not exists(output_folder):
-        os.mkdir(output_folder)
+    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder = output_folder_parent / 'spatial'
+    os.makedirs(output_folder, exist_ok=True)
 
 
     # PROCESSING ########################################

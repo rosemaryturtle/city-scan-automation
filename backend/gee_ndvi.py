@@ -8,6 +8,7 @@ with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
 if menu['green']:
     print('run gee_ndvi')
     
+    import os
     import ee
     import math
     import geopandas as gpd
@@ -22,14 +23,15 @@ if menu['green']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs
     with open("global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # set output folder
-    output_folder = Path('../mnt/city-directories/02-process-output')
+    output_folder = Path('../mnt/city-directories/02-process-output/tabular')
+    os.makedirs(output_folder, exist_ok=True)
 
     # Initialize Earth Engine
     ee.Initialize()
@@ -39,15 +41,13 @@ if menu['green']:
     centroid = aoi_file.centroid
 
     # Convert shapefile to ee.Geometry ------------
-    jsonDict = eval(aoi_file['geometry'].to_json())
+    jsonDict = eval(gpd.GeoSeries([aoi_file['geometry'].force_2d().union_all()]).to_json())
 
     if len(jsonDict['features']) > 1:
         print('Need to convert polygons into a multipolygon')
         print('or do something else, like creating individual raster for each polygon and then merge')
         exit()
     
-    if len(jsonDict['features'][0]['geometry']['coordinates'][0][0]) > 2:
-        jsonDict['features'][0]['geometry']['coordinates'][0] = [x[0:2] for x in jsonDict['features'][0]['geometry']['coordinates'][0]]
     AOI = ee.Geometry.MultiPolygon(jsonDict['features'][0]['geometry']['coordinates'])
 
 

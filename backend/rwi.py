@@ -22,7 +22,7 @@ if menu['rwi']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -34,16 +34,15 @@ if menu['rwi']:
     features = aoi_file.geometry
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
-
-    if not exists(output_folder):
-        os.mkdir(output_folder)
+    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder = output_folder_parent / 'spatial'
+    os.makedirs(output_folder, exist_ok=True)
 
     # PROCESS RWI DATA ################################
     rwi_data = Path(global_inputs['rwi_source']) / f"{city_inputs['country_iso3']}_relative_wealth_index.csv"
     
     if exists(rwi_data):
-        if not exists(output_folder / f"{city_name_l}_rwi.shp"):
+        if not exists(output_folder / f"{city_name_l}_rwi.gpkg"):
             FB_QKdata = pd.read_csv(rwi_data)
             # change quadkey format to str
             FB_QKdata["quadkey1"] = FB_QKdata["quadkey"].astype('str')
@@ -97,8 +96,6 @@ if menu['rwi']:
             # export to shapefile
             gdf_aoi = gpd.clip(gdf, aoi_file)
 
-            if not exists(output_folder / f"{city_name_l}_rwi"):
-                os.mkdir(output_folder / f"{city_name_l}_rwi")
-            gdf_aoi.to_file(output_folder / f"{city_name_l}_rwi" / f"{city_name_l}_rwi.shp")
+            gdf_aoi.set_crs(crs = 'epsg:4326').to_file(output_folder / f"{city_name_l}_rwi.gpkg")
     else:
         print(f'No RWI data for {city_inputs["country_iso3"]}')

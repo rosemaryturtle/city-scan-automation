@@ -9,7 +9,7 @@ if menu['raster_processing'] and menu['elevation']:
     print('run contour')
     
     # SET UP ##############################################
-
+    import os
     from os.path import exists
     from pathlib import Path
 
@@ -17,26 +17,27 @@ if menu['raster_processing'] and menu['elevation']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
+    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder_s = output_folder_parent / 'spatial'
+    output_folder_t = output_folder_parent / 'tabular'
+    os.makedirs(output_folder_t, exist_ok=True)
 
     # Check if elevation raster exists ------------
-    if not exists(output_folder / f'{city_name_l}_elevation.tif'):
+    if not exists(output_folder_s / f'{city_name_l}_elevation.tif'):
         print('cannot generate contour lines or elevantion stats because elevation raster does not exist')
         exit()
     
     import os
     import math
     import csv
-    import geopandas as gpd
     import numpy as np
-    import rasterio
     from osgeo import osr, ogr, gdal
 
 
@@ -45,7 +46,7 @@ if menu['raster_processing'] and menu['elevation']:
 
     try:
         # Open the elevation raster
-        rasterDs = gdal.Open(str(output_folder / f'{city_name_l}_elevation.tif'))
+        rasterDs = gdal.Open(str(output_folder_s / f'{city_name_l}_elevation.tif'))
         rasterBand = rasterDs.GetRasterBand(1)
         proj = osr.SpatialReference(wkt=rasterDs.GetProjection())
 
@@ -74,11 +75,14 @@ if menu['raster_processing'] and menu['elevation']:
         contourLevels = range(contourMin, contourMax + contourInt, contourInt)
         
         # Create contour shapefile
-        if not exists(output_folder / f'{city_name_l}_contour'):
-            os.mkdir(output_folder / f'{city_name_l}_contour')
-        contourPath = str(output_folder / f'{city_name_l}_contour' / f'{city_name_l}_contour.shp')
-        contourDs = ogr.GetDriverByName("ESRI Shapefile").CreateDataSource(contourPath)
+        # os.makedirs(output_folder_s / f'{city_name_l}_contour')
+        contourPath = str(output_folder_s / f'{city_name_l}_contour.gpkg')
+        contourDs = ogr.GetDriverByName("GPKG").CreateDataSource(contourPath)
         contourShp = contourDs.CreateLayer('contour', proj)
+
+        # contourPath = str(output_folder_s / f'{city_name_l}_contour' / f'{city_name_l}_contour.shp')
+        # contourDs = ogr.GetDriverByName("ESRI Shapefile").CreateDataSource(contourPath)
+        # contourShp = contourDs.CreateLayer('contour', proj)
 
         # Define fields for ID and elevation
         fieldDef = ogr.FieldDefn("ID", ogr.OFTInteger)
@@ -110,7 +114,7 @@ if menu['raster_processing'] and menu['elevation']:
         hist, _ = np.histogram(elevArray, bins = bin_edges)
         
         # Write bins and hist to a CSV file
-        with open(output_folder / f'{city_name_l}_elevation.csv', 'w', newline='') as csvfile:
+        with open(output_folder_t / f'{city_name_l}_elevation.csv', 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Bin', 'Count'])
             for i, count in enumerate(hist):

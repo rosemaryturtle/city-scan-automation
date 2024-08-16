@@ -19,7 +19,7 @@ if menu['erosion']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -30,14 +30,14 @@ if menu['erosion']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
+    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder = output_folder_parent / 'spatial'
 
-    if not exists(output_folder):
-        os.mkdir(output_folder)
+    os.makedirs(output_folder, exist_ok=True)
 
 
     # PROCESS DATA ##################################
-    if not exists(output_folder / f'{city_name_l}_erosion_accretion' / f'{city_name_l}_erosion_accretion.shp'):
+    if not exists(output_folder / f'{city_name_l}_erosion_accretion.gpkg'):
         # Buffer AOI ------------------
         xmin, ymin, xmax, ymax = aoi_file.total_bounds
         aoi_buff = aoi_file.buffer(max(xmax-xmin, ymax-ymin))
@@ -50,6 +50,4 @@ if menu['erosion']:
         real_aoi = real_nodes[real_nodes.geometry.intersects(features.unary_union)]
 
         # Save nodes to shapefile ----------------
-        if not os.path.exists(output_folder / f'{city_name_l}_erosion_accretion'):
-            os.mkdir(output_folder / f'{city_name_l}_erosion_accretion')
-        real_aoi.to_file(output_folder / f'{city_name_l}_erosion_accretion' / f'{city_name_l}_erosion_accretion.shp')
+        real_aoi.to_file(output_folder / f'{city_name_l}_erosion_accretion.gpkg', driver = 'GPKG')

@@ -22,6 +22,7 @@ temperature_source: "D:/World Bank/CRP/data/CRU/tmp"
 erosion_source: "D:/World Bank/CRP/data/Riverbank Erosion and Accretion from Landsat/REAL_nodes.csv"
 lightning_source: "D:/World Bank/CRP/data/Gridded Lightning Climatology/VHRFC_LIS_FRD.tif"
 water_salinity_source: "D:/World Bank/CRP/data/Water salinity"
+soil_salinity_source: 'D:/World Bank/CRP/data/Global Soil Salinity'
 
 # non-data sources
 gostnets_path: 'C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/GOSTnets'
