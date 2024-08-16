@@ -30,7 +30,7 @@ if menu['ndmi']:
         global_inputs = yaml.safe_load(f)
 
     # set output folder
-    output_folder = Path('../mnt/city-directories/02-process-output/tabular')
+    output_folder = Path(f'../mnt/city-directories/02-process-output/{city_name_l}/tabular')
     os.makedirs(output_folder, exist_ok=True)
 
     # Initialize Earth Engine

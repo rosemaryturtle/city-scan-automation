@@ -4,11 +4,11 @@ import numpy as np
 from pathlib import Path
 
 cities = ['Cumilla', 'Chattogram', 'Gazipur', 'Narayanganj', 'Khulna', 'Rajshahi',
-          'Barishal', 'Mymensingh', 'Rangpur', 'Sylhet']
+          'Barishal', 'Mymensingh', 'Rangpur', 'Sylhet', 'Singra']
 
 def avg_l(city):
     city_nospace = city.replace(" ", "_").replace("'", '').lower()
-    temp_file = Path('../mnt/city-directories/02-process-output') / (city_nospace + '_lightning.tif')
+    temp_file = Path(f'../mnt/city-directories/02-process-output/{city_nospace}/tabular') / (city_nospace + '_lightning.tif')
     temp = rasterio.open(temp_file)
     temp_array = temp.read(1)
     temp_array = temp_array[temp_array >= 0]

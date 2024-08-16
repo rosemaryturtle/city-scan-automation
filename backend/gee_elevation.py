@@ -24,9 +24,6 @@ if menu['elevation']:
     with open("global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
-    # set output folder
-    output_folder = Path('output')
-
     # Initialize Earth Engine
     ee.Initialize()
 

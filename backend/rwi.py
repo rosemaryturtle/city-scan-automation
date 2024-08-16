@@ -34,7 +34,7 @@ if menu['rwi']:
     features = aoi_file.geometry
 
     # Define output folder ---------
-    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder_parent = Path(f'../mnt/city-directories/02-process-output/{city_name_l}')
     output_folder = output_folder_parent / 'spatial'
     os.makedirs(output_folder, exist_ok=True)
 

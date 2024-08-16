@@ -30,7 +30,7 @@ if menu['erosion']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Define output folder ---------
-    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder_parent = Path(f'../mnt/city-directories/02-process-output/{city_name_l}')
     output_folder = output_folder_parent / 'spatial'
 
     os.makedirs(output_folder, exist_ok=True)

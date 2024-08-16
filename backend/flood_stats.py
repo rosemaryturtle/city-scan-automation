@@ -38,7 +38,7 @@ if menu['flood_stats']:
     aoi_bounds = aoi_file.bounds
 
     # Define output folder ---------
-    output_folder_parent = Path('../mnt/city-directories/02-process-output')
+    output_folder_parent = Path(f'../mnt/city-directories/02-process-output/{city_name_l}')
     output_folder_s = output_folder_parent / 'spatial'
     output_folder_t = output_folder_parent / 'tabular'
     os.makedirs(output_folder_s, exist_ok=True)
