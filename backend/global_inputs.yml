@@ -47,7 +47,7 @@ flood:
     - 1
     - 10
 
-# accessibility analysis parameters
+# OSM POI parameters
 osm_query:
   schools:
     amenity:
@@ -66,15 +66,15 @@ osm_query:
   fire:
     amenity:
       - fire_station
-isochrone:  # unit: m
-  schools:
-    - 800
-    - 1600
-    - 2400
-  health:
-    - 1000
-    - 2000
-    - 3000
+# isochrone:  # unit: m
+#   schools:
+#     - 800
+#     - 1600
+#     - 2400
+#   health:
+#     - 1000
+#     - 2000
+#     - 3000
 
 # FWI date range
 fwi_first_year: 2016
