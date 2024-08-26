@@ -10,7 +10,7 @@ read_csv(file.path(tabular_dir, "avg_lightning.csv")) %>%
   ggplot() +
   geom_col(aes(x = location, y = avg, fill = group)) +
   scale_fill_manual(values = c(focus = "black", other = "darkgrey")) +
-  labs(y = "Daily flash rate") +
+  labs(y = "Annual flash rate") +
   theme_minimal() +
   theme(legend.position = "none", axis.title.x = element_blank())
 ggsave(file.path(charts_dir, "lightning-bar.png"), width = 9, height = 4)

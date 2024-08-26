@@ -24,28 +24,48 @@ changefactor <- list.files("source-data/rx5day-extremes", full.names = T) %>%
         center = 2000,
         base_return_period = c(5, 10, 20),
         new_return_period = c(5, 10, 20)),
-      tibble(center = 2000, ssp = levels(changefactor$ssp)))) 
-
-# annotations <- tibble(
-#   center = 2000, 
-#   new_return_period = c(5, 10, 20),
-#   text = "Return period of a 5-")
+      tibble(center = 2000, ssp = levels(.$ssp)),
+      by = "center"))
 
 changefactor %>%
   ggplot(aes(x = center, y = new_return_period, color = ssp)) +
-  geom_point() +
+  geom_point(size = 0.5) +
   geom_line(aes(group = interaction(base_return_period, ssp))) +
   scale_x_continuous(
     breaks = unique(changefactor$center),
     labels = unique(changefactor$period)) +
   scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, NA), expand = expansion(c(0, 0.05))) +
-  labs(x = "Time period", y = "Return period (years)", color = "Scenario") +
+  labs(
+    title = "Projected frequencies of extreme 5-day precipitation",
+    x = "Time period", y = "Return period (years)", color = "Scenario") +
   theme_minimal() +
   theme(
     axis.line = element_line(color = "black"),
     legend.position = "bottom",
     panel.grid.minor = element_blank(),
+    plot.background = element_rect(color = NA, fill = "white"))
 ggsave(file.path(charts_dir, "rx5day.png"), width = 6, height = 4)
+
+changefactor %>%
+  filter(ssp == "SSP3-7.0") %>%
+  ggplot(aes(x = center, y = new_return_period, color = ssp)) +
+  geom_point(size = 0.5) +
+  geom_line(aes(group = interaction(base_return_period, ssp))) +
+  scale_x_continuous(
+    breaks = unique(changefactor$center),
+    labels = unique(changefactor$period)) +
+  scale_y_continuous(breaks = seq(0, 100, 5), limits = c(0, NA), expand = expansion(c(0, 0.05))) +
+  labs(
+    title = "Projected frequencies of extreme 5-day precipitation in SSP3-7.0",
+    x = "Time period", y = "Return period (years)", color = "Scenario") +
+  theme_minimal() +
+  theme(
+    axis.line = element_line(color = "black"),
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    # panel.border = element_rect(color = "black", fill = NA),
+    plot.background = element_rect(color = NA, fill = "white"))
+ggsave(file.path(charts_dir, "rx5day-ssp3.png"), width = 6, height = 4)
 
 # rx5day_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "rx5day")))
 

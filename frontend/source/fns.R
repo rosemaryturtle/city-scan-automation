@@ -233,6 +233,7 @@ theme_custom <- function(...) {
   legend.justification = c("left", "bottom"),
   legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
   legend.margin = margin(4,0,4,0, unit = "pt"),
+  axis.title = element_blank(),
   axis.text = element_blank(),
   axis.ticks = element_blank(),
   axis.ticks.length = unit(0, "pt"),
@@ -365,9 +366,13 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif,
   return(pretty_breaks)
 }
 
+break_lines <- function(x, width = 20, newline = "<br>") {
+  str_replace_all(x, paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline))
+}
+
 format_title <- function(title, subtitle, width = 20) {
-  title_broken <- str_replace_all(title, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
-  subtitle_broken <- str_replace_all(subtitle, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
-  formatted_title <- paste0(title_broken, "<br><br><em>", subtitle_broken, "</em>")
+  title_broken <- break_lines(title, width = width, newline = "<br>")
+  subtitle_broken <- break_lines(subtitle, width = width, newline = "<br>")
+  formatted_title <- paste0(title_broken, "<br><br><br><em>", subtitle_broken, "</em><br>")
   return(formatted_title)
 }

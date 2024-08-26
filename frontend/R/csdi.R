@@ -26,7 +26,7 @@ csdi_projections <- csdi_all_df %>%
 
 # One plot, overlapping scenarios, smoothed projections with historical
 ggplot(data = csdi_projections, aes(x = date)) +
-  geom_ribbon(aes(ymin = p10, ymax = p90, fill = ssp), alpha = 0.33) +
+  # geom_ribbon(aes(ymin = p10, ymax = p90, fill = ssp), alpha = 0.33) +
   geom_line(aes(y = median, color = ssp)) +
   geom_line(data = csdi_observed, aes(y = value), color = "#969696") +
   geom_vline(xintercept = as.Date("2023-07-01"), linetype = "dotted") +
@@ -35,6 +35,7 @@ ggplot(data = csdi_projections, aes(x = date)) +
     labels = seq(1950, 2100, by = 10)) +
   scale_y_continuous(expand = c(0, NA)) +
   labs(
+    title = "Projected duration of cold spells",
     x = "Year",
     y = "Cold Spell Duration Index (days)",
     fill = "Scenario", color = "Scenario"
@@ -48,6 +49,44 @@ ggplot(data = csdi_projections, aes(x = date)) +
     label = "Projected →",
     hjust = 0) +
   theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = rel(0.7)), legend.text = element_text(size = rel(0.7)),
+    axis.line = element_line(color = "black"),
+    plot.background = element_rect(color = NA, fill = "white"))
+ggsave(file.path(charts_dir, "csdi.png"), width = 6, height = 4)
+
+ggplot(data = csdi_projections %>% filter(ssp == "SSP3-7.0"), aes(x = date)) +
+  geom_ribbon(aes(ymin = p10, ymax = p90, fill = ssp), alpha = 0.33) +
+  geom_line(aes(y = median, color = ssp)) +
+  geom_line(data = csdi_observed, aes(y = value), color = "#969696") +
+  geom_vline(xintercept = as.Date("2023-07-01"), linetype = "dotted") +
+  scale_x_date(
+    breaks = seq.Date(as.Date("1950-01-01"), as.Date("2100-01-01"), by = "10 years"),
+    labels = seq(1950, 2100, by = 10)) +
+  scale_y_continuous(expand = c(0, NA)) +
+  labs(
+    title = "Projected duration of cold spells under SSP3-7.0",
+    x = "Year",
+    y = "Cold Spell Duration Index (days)",
+    fill = "Scenario", color = "Scenario",
+    caption = "Shaded area shows 10th to 90th percentile cases"
+  ) +
+  annotate("text",
+    x = as.Date("2022-07-01"), y = .95*max(c(csdi_observed$value, csdi_projections$p90), na.rm = T),
+    label = "← Observed",
+    hjust = 1) +
+  annotate("text",
+    x = as.Date("2024-07-01"), y = .95*max(c(csdi_observed$value, csdi_projections$p90), na.rm = T),
+    label = "Projected →",
+    hjust = 0) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    legend.title = element_text(size = rel(0.7)), legend.text = element_text(size = rel(0.7)),
+    axis.line = element_line(color = "black"),
+    plot.caption = element_text(color = "grey30", size = rel(0.7), hjust = 0),
+    plot.background = element_rect(color = NA, fill = "white"))
 ggsave(file.path(charts_dir, "csdi-ssp3.png"), width = 6, height = 4)
 
 # Alternatives ----

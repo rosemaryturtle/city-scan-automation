@@ -72,6 +72,8 @@ pop_growth_plot <- ggplot(pop_growth, aes(x = Year, y = Population, group = Loca
     axis.line = element_line(linewidth = .5, color = "black"),
     panel.grid.major = element_line(linewidth = .125, color = "grey"),
     panel.grid.minor = element_line(linewidth = .125, linetype = 2, color = "grey"),
+    plot.caption = element_text(color = "grey30", size = rel(0.7)),
+    plot.background = element_rect(color = NA, fill = "white"))
 ggsave(file.path(charts_dir, "oxford-pop-growth.png"), plot = pop_growth_plot, device = "png",
        width = 8, height = 5, units = "in", dpi = "print")
 
@@ -96,9 +98,13 @@ uba_plot <- wsf %>%
     minor_breaks = seq(1985, 2021, 1)) + 
   scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = c(0, NA)) +
   theme_minimal() +
-  labs(title = "",#paste(city, "Urban Built-up Area, 1985-2015"),
+  labs(title = paste(city, "Urban Built-up Area, 1985-2015"),
         y = bquote('Urban built-up area,'~km^2)) +
+  theme(axis.line = element_line(linewidth = .5, color = "black"),
+    axis.title.x = element_blank(),
+    plot.background = element_rect(color = NA, fill = "white"))
 ggsave(file.path(charts_dir, "wsf-built-up-area-plot.png"), plot = uba_plot, device = "png",
+        width = 6, height = 4, units = "in", dpi = "print")
 
 # Flood plots
 flood_types <- c("fluvial", "pluvial", "coastal", "combined")
@@ -266,25 +272,24 @@ pv_plot <- monthly_pv %>%
   theme(
     axis.title.x = element_blank(), 
     axis.line = element_line(linewidth = .5, color = "black"),
-    panel.grid.minor.x = element_blank())
-
+    panel.grid.minor.x = element_blank(),
+    plot.background = element_rect(color = NA, fill = "white"))
 ggsave(file.path(charts_dir, "monthly-pv.png"), plot = pv_plot, device = "png",
-       width = 4, height = 3.5, units = "in", dpi = "print")
+       width = 6, height = 4, units = "in", dpi = "print")
 
 # FWI
-month_labels <- cumsum(c("Jan" = 31, "Feb" = 28, "Mar"= 31, "Apr" = 30, "May" = 31, "Jun" = 30,
+month_starts <- cumsum(c("Jan" = 31, "Feb" = 28, "Mar"= 31, "Apr" = 30, "May" = 31, "Jun" = 30,
   "Jul" = 31, "Aug" = 31, "Sep"= 30, "Oct" = 31, "Nov" = 30, "Dec" = 31)/7) - 31/7
 
-fwi_file <- fuzzy_read(file.path(process_output_dir, "spatial"), "fwi.csv", paste)
+fwi_file <- fuzzy_read(tabular_dir, "fwi.csv", paste)
 fwi <- read_csv(fwi_file, col_types = "dd")
 
-ggplot(fwi, aes(x = week, y = pctile_95)) +
+ggplot(fwi, aes(x = week - 1, y = pctile_95)) +
   geom_line() +
   scale_x_continuous(
-    breaks = month_labels, labels = names(month_labels),
-    minor_breaks = NULL,
-    expand = c(0,0)) +
-  scale_y_continuous(expand = expansion(c(0, .1))) +    
+    breaks = month_starts + 31/7/2, labels = names(month_starts),
+    minor_breaks = month_starts, expand = c(0,0)) +
+  scale_y_continuous(limits = c(0, NA), expand = expansion(c(0, .1))) +
   #   scale_color_manual(values = hues) +
   theme_minimal() +
   labs(
@@ -292,9 +297,10 @@ ggplot(fwi, aes(x = week, y = pctile_95)) +
     y = "95th percentile FWI") +
   theme(
     axis.line = element_line(linewidth = .5, color = "black"),
-    panel.grid.major = element_line(linewidth = .125, color = "dark gray"),
-    panel.grid.minor = element_line(linewidth = .125, linetype = 2, color = "dark gray"),
-    axis.title.x = element_blank())
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_line(linewidth = .125, color = "dark gray"),
+    axis.title.x = element_blank(),
+    plot.background = element_rect(color = NA, fill = "white"))
 ggsave(
   file.path(charts_dir, "nasa-fwi.png"), device = "png",
   width = 4, height = 3.5, units = "in", dpi = "print")

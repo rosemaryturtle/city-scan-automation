@@ -23,6 +23,33 @@ hdtr_projections <- hdtr_all_df %>%
 
 # Radial bar, 3 col
 hdtr_projections %>%
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = median, fill = ssp), position = "dodge") +
+  facet_wrap(vars(ssp), ncol = 3) +
+  labs(
+    title = "Hot Days with Tropical Nights",
+    x = "Month",
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none",
+    axis.line = element_line(color = "black"),
+    axis.title.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    plot.background = element_rect(color = NA, fill = "white")) +
+  scale_x_continuous(
+    breaks = seq.Date(from = as.Date("2040-01-16"), length.out = 12, by = "month"),
+    minor_breaks = seq.Date(from = as.Date("2040-01-01"), length.out = 12, by = "month"),
+    labels = month.abb) +
+  scale_y_continuous(
+    breaks = 0:4, labels = c("Low Risk", "Moderate Risk", "Moderate High Risk", "High Risk", "Extreme Risk"),
+    limits = c(0, 4.5)) +
+  coord_radial(expand = F,
+    inner.radius = .4)
+ggsave(file.path(charts_dir, "hdtr.png"), width = 9, height = 4)
+
+# Radial bar, 3 col
+hdtr_projections %>%
+  filter(ssp == "SSP3-7.0") %>%
   # mutate(across(c(median, p10, p90), \(x) x + as.numeric(str_extract(ssp, "(?<=SSP)\\d"))/20)) %>%
   # filter(ssp == "SSP1-2.6") %>%
   ggplot(aes(x = date)) +
@@ -33,14 +60,18 @@ hdtr_projections %>%
   # pammtools::geom_stepribbon(aes(ymin = p10, ymax = p90, color = ssp), fill = NA, linetype = "dashed", direction = "mid") +
   facet_wrap(vars(ssp), ncol = 3) +
   labs(
-    # title = "Hot Days with Tropical Nights (error bar shows 10th and 90th percentile case)",
+    title = "Hot Days with Tropical Nights under SSP3-7.0",
     x = "Month",
-    y = "Category of Risk (4 is Extreme Risk)"
+    # y = "Category of Risk",
+    caption = "Dashed line shows 10th and 90th percentile cases"
   ) +
   theme_minimal() +
   theme(legend.position = "none",
     axis.line = element_line(color = "black"),
-    panel.grid.major.x = element_blank()) +
+    axis.title.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    plot.caption = element_text(color = "grey30", size = rel(0.7), hjust = 0),
+    plot.background = element_rect(color = NA, fill = "white")) +
   scale_x_continuous(
     breaks = seq.Date(from = as.Date("2040-01-16"), length.out = 12, by = "month"),
     minor_breaks = seq.Date(from = as.Date("2040-01-01"), length.out = 12, by = "month"),
@@ -51,7 +82,7 @@ hdtr_projections %>%
   coord_radial(expand = F,
     # r.axis.inside = T,
     inner.radius = .4)
-ggsave(file.path(charts_dir, "hdtr.png"), width = 6, height = 4)
+ggsave(file.path(charts_dir, "hdtr-ssp3.png"), width = 6, height = 4)
  
 # # Line chart (Bar chart would be better?), 3 cols
 # hdtr_projections %>%
