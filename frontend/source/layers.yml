@@ -9,7 +9,7 @@ rwi:
   fuzzy_string: rwi
   data_variable: rwi
   title: 'Relative Wealth Index'
-  palette: ['#ED431B', '#FF9169', '#FFFFBA', '#70C5AD', '#009E7A']
+  palette: ['#009E7A', '#70C5AD', '#FFFFBA', '#FF9169', '#ED431B']
   labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
 economic_activity:
@@ -120,7 +120,7 @@ combined_flooding: # This will require pre-processing
   title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
 elevation:
-  fuzzy_string: contour.shp$
+  fuzzy_string: contour.gpkg$
   palette: ['#f5c4c0', '#762175']
   bins: 5
   stroke: 
@@ -157,7 +157,7 @@ roads:
   stroke:
     title: Road network segment criticality
     subtitle: 'Criticality %'
-    variable: edge_centr
+    variable: edge_centrality
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
     title: Road type
