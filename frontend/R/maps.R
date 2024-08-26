@@ -22,9 +22,34 @@ tiles <- annotation_map_tile(type = "cartolight", zoom = zoom, progress = "none"
 # Initiate plots list ----------------------------------------------------------
 plots <- list()
 
-# Plot AOI ---------------------------------------------------------------------
-plots$aoi <- plot_layer(aoi_only = T)
+# Plot AOI & wards -------------------------------------------------------------
+ward_labels <- site_labels(wards)
+plots$aoi <- plot_layer(aoi_only = T, plot_aoi = F) +
+  geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
 save_plot(plot = plots$aoi, filename = "aoi.png",
+          directory = styled_maps_dir)
+
+# Plot landmarks
+landmarks <- fuzzy_read(user_input_dir, "Landmark") %>% project("epsg:4326") %>% select(Name)
+landmarks_df <- mutate(landmarks, x = geom(landmarks)[,"x"], y = geom(landmarks)[,"y"])
+landmarks_and_points_to_avoid <-
+  rbind(
+    mutate(landmarks, label = Name, type = "landmark", fface = "italic", fsize = 1.5),
+    mutate(ward_labels, label = WARD_NO, type = "ward", fface = "bold", fsize = 2),
+    mutate(as.points(wards) %>% .[rep(c(T, F, F), nrow(.))], label = "", type = "perimeter")
+    ) %>%
+  mutate(x = geom(.)[,"x"], y = geom(.)[,"y"])
+plots$landmarks <- plot_layer(aoi_only = T, plot_aoi = F) +
+  geom_spatial_point(data = landmarks_df, crs = "epsg:4326", aes(x = x, y = y), size = 0.25) +
+  geom_spatial_text_repel(data = landmarks_and_points_to_avoid, crs = "epsg:4326",
+    aes(
+      x = x, y = y, fontface = fface, size = fsize,
+      label = break_lines(label, width = 12, newline = "\n")),
+    segment.size = 0.1, box.padding = 0.1, min.segment.length = 0.2, max.time = 2,
+    force_pull = 0.1, max.overlaps = 10,
+    lineheight = 0.9) +
+  scale_size(range = c(1.5, 2), guide = "none")
+save_plot(plot = plots$landmarks, filename = "landmarks.png",
           directory = styled_maps_dir)
 
 # Most plots -------------------------------------------------------------------

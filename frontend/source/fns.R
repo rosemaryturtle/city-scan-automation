@@ -117,7 +117,7 @@ plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only =
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
-  if (plot_aoi) p <- p + geom_sf(data = aoi, fill = NA, linetype = "dashed", linewidth = .5) #+ 
+  if (plot_aoi) p <- p + geom_spatvector(data = aoi, fill = NA, linetype = "dashed", linewidth = .25)
   p <- p + coord_3857_bounds()
   return(p)
 }
@@ -405,3 +405,25 @@ aggregate_if_too_fine <- function(data, threshold = 1e5, fun = "modal") {
   return(data)
 }
 
+center_max_circle <- \(x, simplify = T, tolerance = 0.0001) {
+  if (simplify) s <- simplifyGeom(x, tolerance = tolerance) else s <- x
+  p <- as.points(s)
+  v <- voronoi(p)
+  vp <- as.points(v)
+  vp <- vp[is.related(vp, s, "within")]
+  # Using vp[which.max(nearest(vp, p)$distance)] is 60x slower
+  vppd <- distance(vp, p)
+
+  center <- vp[which.max(apply(vppd, 1, min))]
+  radius <- vppd[which.max(apply(vppd, 1, min))]
+  return(list(center = center, radius = radius))
+}
+
+site_labels <- function(x) {
+  sites <- list()
+  for (i in 1:nrow(x)) {
+    sites[i] <- center_max_circle(x[i], simplify = F)["center"]
+  }
+  label_sites <- Reduce(rbind, unlist(sites))
+  return(label_sites)
+}

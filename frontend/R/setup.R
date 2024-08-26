@@ -60,9 +60,9 @@ city <- city_params$city_name
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
 country <- city_params$country_name
 
-# Read AOI
-aoi <- fuzzy_read(user_input_dir, "AOI")
-
+# Read AOI & wards
+aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
+wards <- fuzzy_read(user_input_dir, "wards") %>% project("epsg:4326")
 # SSP numbers
 scenario_numbers <- c(126, 245, 370)
 
