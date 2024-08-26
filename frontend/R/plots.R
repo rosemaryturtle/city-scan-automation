@@ -103,103 +103,47 @@ uba_plot <- wsf %>%
 ggsave("plots/wsf-uba-plot.png", plot = uba_plot, device = "png",
         width = 4, height = 3.5, units = "in", dpi = "print")
 
-# Fluvial
-fu <- fuzzy_read(process_output_dir, "flood_stats/.*fluvial_wsf.csv", read_csv) %>%
-  rename(Year = VALUE, ">0.1%" = VALUE_1, ">1%" = VALUE_2, ">10%" = VALUE_3) %>%
-  pivot_longer(cols = -Year, names_to = "Annual Probability", values_to = "Area_m2") %>%
-  .[nrow(.):1,] %>%
-  arrange(Year) %>%
-  mutate(.by = Year, Area_m2 = cumsum(Area_m2)) %>%
-  mutate(.by = `Annual Probability`,
-    Area_m2 = cumsum(Area_m2),
-    Area_km2 = Area_m2/1e6)
-fu_plot <- fu %>%
-  ggplot(aes(x = Year, y = Area_km2, color = `Annual Probability`)) +
-  geom_line() +
-  geom_text(
-    data = slice_max(fu, Year), aes(label = `Annual Probability`),
-    hjust = 0, vjust = 0.5, nudge_x = .5, size = rel(2.5)) +
-  scale_x_continuous(
-    expand = expansion(c(0,.1)),
-    breaks = seq(1985, 2020, 5),
-    minor_breaks = seq(1985, 2021, 1)) + 
-  scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = expansion(c(0, 0.05))) +
-  scale_color_manual(values = c(">0.1%" = "black", ">1%" = "darkgrey", ">10%" = "darkgrey")) +
-  theme_minimal() +
-  labs(title = "",#paste(city, "Built-Up Area Exposed to River Flooding Historical Growth, 1985-2015"),
-        y = bquote('Exposed'~km^2)) +
-  theme(axis.line = element_line(linewidth = .5, color = "black"),
-        axis.title.x = element_blank(),
-        legend.position = "none")
-ggsave("plots/wsf-fu-plot.png", plot = fu_plot, device = "png",
-        width = 4, height = 3.5, units = "in", dpi = "print")
+# Flood plots
+flood_types <- c("fluvial", "pluvial", "coastal", "combined")
+flood_exposure <- fuzzy_read(tabular_dir, "flood_exposure", read_csv)
+flood_exposure <- flood_exposure %>% 
+  select(-ends_with("pct")) %>%
+  pivot_longer(cols = any_of(c("fluvial", "pluvial", "coastal", "combined")), names_to = "type", values_to = "area")
 
-# Pluvial
-pu <- fuzzy_read(process_output_dir, "flood_stats/.*pluvial_wsf.csv", read_csv) %>%
-  rename(Year = VALUE, ">0.1%" = VALUE_1, ">1%" = VALUE_2, ">10%" = VALUE_3) %>%
-  pivot_longer(cols = -Year, names_to = "Annual Probability", values_to = "Area_m2") %>%
-  .[nrow(.):1,] %>%
-  arrange(Year) %>%
-  mutate(.by = Year, Area_m2 = cumsum(Area_m2)) %>%
-  mutate(.by = `Annual Probability`,
-    Area_m2 = cumsum(Area_m2),
-    Area_km2 = Area_m2/1e6)
-pu_plot <- pu %>%
-  ggplot(aes(x = Year, y = Area_km2, color = `Annual Probability`)) +
-  geom_line() +
-  geom_text(
-    data = slice_max(pu, Year), aes(label = `Annual Probability`),
-    hjust = 0, vjust = 0.5, nudge_x = .5, size = rel(2.5)) +
-  scale_x_continuous(
-    expand = expansion(c(0,.1)),
-    breaks = seq(1985, 2020, 5),
-    minor_breaks = seq(1985, 2021, 1)) + 
-  scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = expansion(c(0, 0.05))) +
-  scale_color_manual(values = c(">0.1%" = "black", ">1%" = "darkgrey", ">10%" = "darkgrey")) +
-  theme_minimal() +
-  labs(title = "",#paste(city, "Built-Up Area Exposed to Rainwater Flooding Historical Growth, 1985-2015"),
-        y = bquote('Exposed'~km^2)) +
-  theme(axis.line = element_line(linewidth = .5, color = "black"),
-        axis.title.x = element_blank(),
-        legend.position = "none")
-ggsave("plots/wsf-pu-plot.png", plot = pu_plot, device = "png",
-        width = 4, height = 3.5, units = "in", dpi = "print")
+plot_flood_exposure <- function(flood_type) {
+  if (flood_type %ni% c("fluvial", "pluvial", "coastal", "combined")) stop(paste("Flood type must be one of", paste(flood_types, collapse = ", "), "not", flood_type))
+  if (flood_type != "combined") flood_exposure <- flood_exposure %>% filter(type == flood_type)
+  exposure_plot <- flood_exposure %>%
+    ggplot(aes(x = year, y = area, color = type, linetype = type)) +
+    geom_line(data = \(d) filter(d, type == "combined")) +
+    geom_point(data = \(d) filter(d, type != "combined")) +
+    scale_x_continuous(
+      expand = expansion(c(0,.05)),
+      breaks = seq(1985, 2020, 5),
+      minor_breaks = seq(1985, 2021, 1)) + 
+    scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = expansion(c(0, 0.05))) +
+    scale_color_manual(values = c(fluvial = "#F8766D", pluvial = "#619CFF", coastal = "#00BA38", combined = "black")) +
+    scale_linetype_manual(values = c(fluvial = "dashed", pluvial = "dashed", coastal = "dashed", combined = "solid")) +
+    scale_size_manual(values = c(fluvial = .5, pluvial = .5, coastal = .5, combined = 0.5)) +
+    theme_minimal() +
+    labs(
+      title = paste0("Exposure of ", city, "'s built-up area to ", flood_type, " flooding"),
+      x = "Year",
+      y = bquote('Exposed'~km^2),
+      color = "Flood type", linetype = "Flood type") +
+    theme(
+      axis.line = element_line(linewidth = .5, color = "black"),
+      axis.title.x = element_blank(),
+      legend.position = if (flood_type == "combined") "bottom" else "none",
+      plot.background = element_rect(color = NA, fill = "white"))
+  ggsave(file.path("plots", paste0("wsf-", flood_type, "-plot.png")), plot = exposure_plot, device = "png",
+          width = 6, height = 4, units = "in", dpi = "print")
+}
 
-# Add in coastal
-
-# Combined fluvial, pluvial (add in coastal)
-comb <- fuzzy_read(process_output_dir, "flood_stats/.*comb_wsf.csv", read_csv) %>%
-  rename(Year = VALUE, ">0.1%" = VALUE_1, ">1%" = VALUE_2, ">10%" = VALUE_3) %>%
-  pivot_longer(cols = -Year, names_to = "Annual Probability", values_to = "Area_m2") %>%
-  .[nrow(.):1,] %>%
-  arrange(Year) %>%
-  mutate(.by = Year, Area_m2 = cumsum(Area_m2)) %>%
-  mutate(.by = `Annual Probability`,
-    Area_m2 = cumsum(Area_m2),
-    Area_km2 = Area_m2/1e6)
-all_flooding <- bind_rows(
-  mutate(comb, type = "Combined"), 
-  mutate(fu, type = "River"), 
-  mutate(pu, type = "Rainwater")) %>%
-  filter(`Annual Probability` == ">0.1%")
-all_flooding_plot <- all_flooding %>%
-ggplot(aes(x = Year, y = Area_km2, color = type)) +
-  geom_line() +
-  scale_x_continuous(
-    expand = expansion(c(0, 0.05)),
-    breaks = seq(1985, 2020, 5),
-    minor_breaks = seq(1985, 2021, 1)) + 
-  scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = c(0, NA)) +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  labs(title = "",#paste(city, "Built-Up Area Exposed to River & Rainwater Flooding, 1985-2015"),
-        y = bquote('Exposed'~km^2), color = "") +
-  theme(axis.line = element_line(linewidth = .5, color = "black"),
-        axis.title.x = element_blank())
-ggsave("plots/wsf-all-flooding-plot.png", plot = all_flooding_plot, device = "png",
-         width = 4, height = 3.5, units = "in", dpi = "print")
-  
-
+plot_flood_exposure("fluvial")
+plot_flood_exposure("pluvial")
+plot_flood_exposure("coastal")
+plot_flood_exposure("combined")
 
 # Land cover pie chart
 landcover <- fuzzy_read(process_output_dir, "lc.csv", read_csv, col_types = "cd") %>%
