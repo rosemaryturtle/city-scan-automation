@@ -48,10 +48,7 @@ ggplot(data = csdi_projections, aes(x = date)) +
     label = "Projected →",
     hjust = 0) +
   theme_minimal() +
-  theme(legend.position = "bottom",
-        legend.title = element_text(size = rel(0.7)), legend.text = element_text(size = rel(0.7)),
-        axis.line = element_line(color = "black"))
-ggsave("plots/csdi.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "csdi-ssp3.png"), width = 6, height = 4)
 
 # Alternatives ----
 

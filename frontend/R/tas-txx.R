@@ -132,6 +132,4 @@ ggplot(mapping = aes(x = date)) +
     label = "Projected →",
     hjust = 0) +
     theme_minimal() +
-    theme(legend.position = "bottom",
-    axis.line = element_line(color = "black"))
-ggsave("plots/tas-txx.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "tas-txx.png"), width = 6, height = 4)

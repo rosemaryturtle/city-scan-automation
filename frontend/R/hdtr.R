@@ -51,8 +51,8 @@ hdtr_projections %>%
   coord_radial(expand = F,
     # r.axis.inside = T,
     inner.radius = .4)
-ggsave("plots/hdtr.png", width = 9, height = 4)
-
+ggsave(file.path(charts_dir, "hdtr.png"), width = 6, height = 4)
+ 
 # # Line chart (Bar chart would be better?), 3 cols
 # hdtr_projections %>%
 #   ggplot(aes(x = date)) +

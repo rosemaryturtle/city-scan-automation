@@ -1,7 +1,7 @@
 # lightning.R
 
 # Lightning
-read_csv(file.path(spatial_dir, "avg_lightning.csv")) %>%
+read_csv(file.path(tabular_dir, "avg_lightning.csv")) %>%
   arrange(-avg) %>%
   rename(location = city) %>%
   mutate(
@@ -13,4 +13,4 @@ read_csv(file.path(spatial_dir, "avg_lightning.csv")) %>%
   labs(y = "Daily flash rate") +
   theme_minimal() +
   theme(legend.position = "none", axis.title.x = element_blank())
-ggsave("plots/lightning-bar.png", width = 9, height = 4)
+ggsave(file.path(charts_dir, "lightning-bar.png"), width = 9, height = 4)

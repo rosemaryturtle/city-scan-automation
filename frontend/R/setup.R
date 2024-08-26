@@ -48,9 +48,10 @@ city_dir <- file.path("mnt/", readLines("city-dir.txt"))
 user_input_dir <- file.path(city_dir, "01-user-input/")
 process_output_dir <- file.path(city_dir, "02-process-output/")
 spatial_dir <- file.path(process_output_dir, "spatial/")
+tabular_dir <- file.path(process_output_dir, "tabular/")
 output_dir <- file.path(city_dir, "03-render-output/")
-# styled_maps_dir <- file.path(output_dir, "styled-maps/")
-styled_maps_dir <- file.path("maps")
+styled_maps_dir <- file.path(output_dir, "styled-maps/")
+charts_dir <- file.path(output_dir, "charts/")
 
 # Load city parameters
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))

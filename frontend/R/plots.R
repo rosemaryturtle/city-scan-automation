@@ -72,8 +72,7 @@ pop_growth_plot <- ggplot(pop_growth, aes(x = Year, y = Population, group = Loca
     axis.line = element_line(linewidth = .5, color = "black"),
     panel.grid.major = element_line(linewidth = .125, color = "grey"),
     panel.grid.minor = element_line(linewidth = .125, linetype = 2, color = "grey"),
-    plot.caption = element_text(color = "grey30", size = rel(0.7)))
-ggsave("plots/oxford-pop-growth.png", plot = pop_growth_plot, device = "png",
+ggsave(file.path(charts_dir, "oxford-pop-growth.png"), plot = pop_growth_plot, device = "png",
        width = 8, height = 5, units = "in", dpi = "print")
 
 # # Do we want to plot all paurashavas? Do we want to plot with nearby ones? Or similarly sized ones?
@@ -87,7 +86,7 @@ ggsave("plots/oxford-pop-growth.png", plot = pop_growth_plot, device = "png",
 #     color = "grey")
 
 # WSF built-up area time series plot
-wsf <- fuzzy_read(process_output_dir, "wsf_stats", read_csv) %>%
+wsf <- fuzzy_read(tabular_dir, "wsf_stats", read_csv) %>%
   rename(Year = year, uba_km2 = "cumulative sq km")
 uba_plot <- wsf %>%
   ggplot +
@@ -99,9 +98,7 @@ uba_plot <- wsf %>%
   theme_minimal() +
   labs(title = "",#paste(city, "Urban Built-up Area, 1985-2015"),
         y = bquote('Urban built-up area,'~km^2)) +
-  theme(axis.line = element_line(linewidth = .5, color = "black"))
-ggsave("plots/wsf-uba-plot.png", plot = uba_plot, device = "png",
-        width = 4, height = 3.5, units = "in", dpi = "print")
+ggsave(file.path(charts_dir, "wsf-built-up-area-plot.png"), plot = uba_plot, device = "png",
 
 # Flood plots
 flood_types <- c("fluvial", "pluvial", "coastal", "combined")
@@ -136,7 +133,7 @@ plot_flood_exposure <- function(flood_type) {
       axis.title.x = element_blank(),
       legend.position = if (flood_type == "combined") "bottom" else "none",
       plot.background = element_rect(color = NA, fill = "white"))
-  ggsave(file.path("plots", paste0("wsf-", flood_type, "-plot.png")), plot = exposure_plot, device = "png",
+  ggsave(file.path(charts_dir, paste0("wsf-", flood_type, "-plot.png")), plot = exposure_plot, device = "png",
           width = 6, height = 4, units = "in", dpi = "print")
 }
 
@@ -146,7 +143,7 @@ plot_flood_exposure("coastal")
 plot_flood_exposure("combined")
 
 # Land cover pie chart
-landcover <- fuzzy_read(process_output_dir, "lc.csv", read_csv, col_types = "cd") %>%
+landcover <- fuzzy_read(tabular_dir, "lc.csv", read_csv, col_types = "cd") %>%
   rename(`Land Cover` = `Land Cover Type`, Count = `Pixel Count`) %>%
   filter(!is.na(`Land Cover`)) %>%
   mutate(Decimal = Count/sum(Count)) %>%
@@ -168,15 +165,15 @@ lc_colors <- c(
 lc_plot <- ggdonut(landcover, "Land Cover", "Count", lc_colors, "Land Cover")
 
 lc_plot_legend <- lc_plot + theme(axis.text.x = element_blank())
-ggsave("plots/wsf-landcover-legend.png", plot = lc_plot_legend, device = "png",
+ggsave(file.path(charts_dir, "wsf-landcover-legend.png"), plot = lc_plot_legend, device = "png",
        width = 8, height = 5, units = "in", dpi = "print")
 
 lc_plot_plain <- lc_plot_legend + theme(legend.position = "none")
-ggsave("plots/wsf-landcover-plain.png", plot = lc_plot_plain, device = "png",
+ggsave(file.path(charts_dir, "wsf-landcover-plain.png"), plot = lc_plot_plain, device = "png",
        width = 5, height = 5, units = "in", dpi = "print")
 
 lc_plot_labels <- lc_plot + theme(legend.position = "none")
-ggsave("plots/wsf-landcover-labels.png", plot = lc_plot_labels, device = "png",
+ggsave(file.path(charts_dir, "wsf-landcover-labels.png"), plot = lc_plot_labels, device = "png",
        width = 5, height = 5, units = "in", dpi = "print")
 
 # Elevation pie chart
@@ -198,15 +195,15 @@ elevation_plot <- ggdonut(elevation, "Elevation", "Count", elevation_colors, "El
 # elevation_plot + labs(fill = "Elevation (MASL)")
 
 elevation_plot_legend <- elevation_plot + theme(axis.text.x = element_blank())
-ggsave("plots/wsf-elevation-legend.png", plot = elevation_plot_legend, device = "png",
+ggsave(file.path(charts_dir, "wsf-elevation-legend.png"), plot = elevation_plot_legend, device = "png",
        width = 8, height = 5, units = "in", dpi = "print")
 
 elevation_plot_plain <- elevation_plot_legend + theme(legend.position = "none")
-ggsave("plots/wsf-elevation-plain.png", plot = elevation_plot_plain, device = "png",
+ggsave(file.path(charts_dir, "wsf-elevation-plain.png"), plot = elevation_plot_plain, device = "png",
        width = 5, height = 5, units = "in", dpi = "print")
 
 elevation_plot_labels <- elevation_plot + theme(legend.position = "none")
-ggsave("plots/wsf-elevation-labels.png", plot = elevation_plot_labels, device = "png",
+ggsave(file.path(charts_dir, "wsf-elevation-labels.png"), plot = elevation_plot_labels, device = "png",
        width = 5, height = 5, units = "in", dpi = "print")
 
 # Slope pie chart
@@ -225,23 +222,23 @@ slope_colors <- c(
 slope_plot <- ggdonut(slope, "Slope", "Count", slope_colors, "Slope")
 
 slope_plot_legend <- slope_plot + theme(axis.text.x = element_blank())
-ggsave("plots/wsf-slope-legend.png", plot = slope_plot_legend, device = "png",
+ggsave(file.path(charts_dir, "wsf-slope-legend.png"), plot = slope_plot_legend, device = "png",
        width = 8, height = 5, units = "in", dpi = "print")
 
 slope_plot_plain <- slope_plot_legend + theme(legend.position = "none")
-ggsave("plots/wsf-slope-plain.png", plot = slope_plot_plain, device = "png",
+ggsave(file.path(charts_dir, "wsf-slope-plain.png"), plot = slope_plot_plain, device = "png",
        width = 5, height = 5, units = "in", dpi = "print")
 
 slope_plot_labels <- slope_plot + theme(legend.position = "none")
-ggsave("plots/wsf-slope-labels.png", plot = slope_plot_labels, device = "png",
+ggsave(file.path(charts_dir, "wsf-slope-labels.png"), plot = slope_plot_labels, device = "png",
        width = 5, height = 5, units = "in", dpi = "print")
 
 # Solar availability seasonality chart
-pv_path <- file.path(process_output_dir, "Bangladesh_GISdata_LTAy_YearlyMonthlyTotals_GlobalSolarAtlas-v2_AAIGRID/monthly")
+pv_path <- file.path(spatial_dir, "Bangladesh_GISdata_LTAy_YearlyMonthlyTotals_GlobalSolarAtlas-v2_AAIGRID/monthly")
 
 files <- list.files(pv_path) %>% 
   subset(stringr::str_detect(., ".tif$|.asc$"))
-
+if (length(files) == 0) stop("No PV files found")
 monthly_pv <- lapply(files, function(f) {
   m <- f %>% substr(7, 8) %>% as.numeric()
   month_country <- terra::rast(file.path(pv_path, f))
@@ -271,7 +268,7 @@ pv_plot <- monthly_pv %>%
     axis.line = element_line(linewidth = .5, color = "black"),
     panel.grid.minor.x = element_blank())
 
-ggsave("plots/monthly-pv.png", plot = pv_plot, device = "png",
+ggsave(file.path(charts_dir, "monthly-pv.png"), plot = pv_plot, device = "png",
        width = 4, height = 3.5, units = "in", dpi = "print")
 
 # FWI
@@ -299,5 +296,5 @@ ggplot(fwi, aes(x = week, y = pctile_95)) +
     panel.grid.minor = element_line(linewidth = .125, linetype = 2, color = "dark gray"),
     axis.title.x = element_blank())
 ggsave(
-  file.path("plots/nasa-fwi.png"), device = "png",
+  file.path(charts_dir, "nasa-fwi.png"), device = "png",
   width = 4, height = 3.5, units = "in", dpi = "print")

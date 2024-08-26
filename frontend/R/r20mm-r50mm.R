@@ -102,8 +102,7 @@ ggplot(mapping = aes(x = date)) +
   theme(
     legend.position = "bottom",
     legend.title = element_text(size = rel(0.7)), legend.text = element_text(size = rel(0.7)),
-    axis.line = element_line(color = "black"))
-ggsave("plots/r20mm-r50mm.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "r20mm-r50mm.png"), width = 6, height = 4)
 
 # # Overlap, no observed
 # ggplot(mapping = aes(x = date)) +

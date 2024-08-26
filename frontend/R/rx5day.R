@@ -45,9 +45,7 @@ changefactor %>%
     axis.line = element_line(color = "black"),
     legend.position = "bottom",
     panel.grid.minor = element_blank(),
-    panel.border = element_rect(color = "black", fill = NA)) +
-  geom_text_repel(data = )
-ggsave("plots/rx5day.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "rx5day.png"), width = 6, height = 4)
 
 # rx5day_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "rx5day")))
 
