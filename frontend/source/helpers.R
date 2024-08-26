@@ -42,7 +42,7 @@ ggdonut <- function(data, category_column, quantities_column, colors, title) {
   data$max <- cumsum(data$decimal) 
   data$min <- lag(data$max)
   data$min[1] <- 0
-  data$label <- scales::label_percent(0.1)(data$decimal)
+  data$label <- paste(scales::label_percent(0.1)(data$decimal))
   data$label[data$decimal < .02] <- "" 
   data$label_position <- (data$max + data$min) / 2
   data[,category_column] <- factor(data[,category_column], levels = data[,category_column])

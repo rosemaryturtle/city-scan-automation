@@ -14,13 +14,9 @@ map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height
 
-# Define the AOI
-aoi <- st_zm(st_read(file.path(user_input_dir, "AOI")))
-aoi_bounds <- st_bbox(aoi)
+# Define map extent and zoom level
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
-
-# Create basemaps
-zoom <- round(14.6 + -0.00015 * units::drop_units(sqrt(st_area(aoi))))
+zoom <- round(14.6 + -0.00015 * (sqrt(expanse(aoi)))) + 1
 tiles <- annotation_map_tile(type = "cartolight", zoom = zoom, progress = "none")
 
 # Initiate plots list ----------------------------------------------------------
@@ -37,12 +33,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   # .[14] %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch({
-      data <- fuzzy_read(spatial_dir, fuzzy_string)
-      if (class(data)[1] == "SpatRaster") {
-        # Vectorize only if resolution is coarse (7000 is based off Cumilla population)
-        cell_count <- (units::drop_units(st_area(aoi)) / cellSize(data)[1,1])[[1]]
-        if (cell_count < 7000) data <- rast_as_vect(data)
-      }
+      data <- fuzzy_read(spatial_dir, fuzzy_string) %>% vectorize_if_coarse()
       plot <- plot_layer(data = data, yaml_key = yaml_key)
       plots[[yaml_key]] <<- plot
       message(paste("Success:", yaml_key))
@@ -50,7 +41,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     error = \(e) {
       warning(glue("Error on {yaml_key}: {e}"))
     })
-  }) %>% unlist() -> log
+  }) %>% unlist() -> plot_log
 
 # Elevation --------------------------------------------------------------------
 # elevation_params <- prepare_parameters("elevation")
@@ -84,7 +75,7 @@ plot_flooding <- function(flood_type) {
   # browser()
   file <- fuzzy_read(spatial_dir, glue("{flood_type}_2020.tif$"), paste)
   if (is.na(file)) return(NULL)
-  flood_data <- terra::crop(rast(file), static_map_bounds)
+  flood_data <- terra::crop(rast(file), vect(static_map_bounds))
   # Temporary fix for if layer is all NAs
   if (all(is.na(values(flood_data)))) values(flood_data)[1] <- 0
   plots[[flood_type]] <<- plot_layer(flood_data, yaml_key = flood_type)
@@ -124,17 +115,10 @@ plots$burnt_area <- ggplot() +
     guide = "legend",
     na.value = "transparent") +
   geom_spatvector(data = historical_fire_data_3857, shape = 1, color = "black") +
+  geom_spatvector(data = aoi, color = "black", fill = NA, linetype = "solid") +
   annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
   annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
-  theme(
-    legend.justification = c("left", "bottom"),
-    legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
-    legend.margin = margin(4,0,4,0, unit = "pt"),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.ticks.length = unit(0, "pt"),
-    plot.margin = margin(0,0,0,0)) + 
-    geom_sf(data = aoi, fill = NA, linetype = "dashed", linewidth = .5) + 
+  theme_custom() +
   coord_sf(
     crs = "epsg:3857",
     xlim = range(historical_fire_data_3857$x),
@@ -153,6 +137,6 @@ plots$burnt_area_smooth <- plots$burnt_area +
     na.value = "transparent")
 
 # Save plots -------------------------------------------------------------------
-walk2(plots, names(plots), \(plot, name) {
+plots %>% walk2(names(.), \(plot, name) {
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir)
 })

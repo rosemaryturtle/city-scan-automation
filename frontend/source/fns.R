@@ -97,6 +97,7 @@ plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only =
         method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
     }
     geom <- create_geom(data, params)
+    data_type <- type_data(data)
     scales <- list(
       fill_scale(data_type, params),
       color_scale(data_type, params),
@@ -190,7 +191,7 @@ fill_scale <- function(data_type, params) {
 
 color_scale <- function(data_type, params) {
   if (data_type == "points") {
-    scale_color_manual(values = params$palette, name = title)
+    scale_color_manual(values = params$palette, name = format_title(params$title, params$subtitle))
   } else if (length(params$stroke) < 2 || is.null(params$stroke$palette)) {
     NULL
   } else {
@@ -296,8 +297,9 @@ breaks_midpoints <- \(breaks, rescaler = scales::rescale, ...) {
 }
 
 aspect_buffer <- function(x, aspect_ratio, buffer_percent = 0) {
-  bounds_proj <- st_transform(st_as_sfc(st_bbox(x)), crs = 
-    "EPSG:3857")
+  # I should fully refactor to use terra
+  if (class(x)[1] %in% "SpatVector") x <- st_zm(as_sf(x))
+  bounds_proj <- st_transform(st_as_sfc(st_bbox(x)), crs = "EPSG:3857")
   center_proj <- st_coordinates(st_centroid(bounds_proj))
 
   long_distance <-max(c(
@@ -376,3 +378,30 @@ format_title <- function(title, subtitle, width = 20) {
   formatted_title <- paste0(title_broken, "<br><br><br><em>", subtitle_broken, "</em><br>")
   return(formatted_title)
 }
+
+count_aoi_cells <- function(data, aoi) {
+  aoi_area <- if ("sf" %in% class(aoi)) {
+    units::drop_units(st_area(aoi))
+  } else if ("SpatVector" %in% class(aoi)) {
+    expanse(aoi)
+  }
+  cell_count <- (aoi_area / cellSize(data)[1,1])[[1]]
+}
+
+vectorize_if_coarse <- function(data, threshold = 7000) {
+  if (class(data)[1] %in% c("sf", "SpatVector")) return(data)
+  cell_count <- count_aoi_cells(data, aoi)
+  if (cell_count < threshold) data <- rast_as_vect(data)
+  return(data)
+}
+
+aggregate_if_too_fine <- function(data, threshold = 1e5, fun = "modal") {
+  if (class(data)[1] %in% c("sf", "SpatVector")) return(data)
+  cell_count <- count_aoi_cells(data, aoi)
+  if (cell_count > threshold) {
+    factor <- round(sqrt(cell_count / threshold))
+    data <- terra::aggregate(data, fact = factor, fun = fun)
+  }
+  return(data)
+}
+
