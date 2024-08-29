@@ -176,14 +176,11 @@ if menu['rwi']:
     import rwi
     rwi.rwi(global_inputs['rwi_blob'], city_inputs['country_iso3'], data_bucket, local_data_dir, aoi_file, local_output_dir, city_name_l, cloud_bucket, output_dir)
 
-if menu['slope']:
-    raster_pro.slope(f'{local_output_dir}/{city_name_l}_elevation.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
+if menu['slope']:  # processing time: 20s
+    import raster_pro
+    raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
     raster_pro.get_raster_histogram(f'{local_output_dir}/{city_name_l}_slope.tif', [0, 2, 5, 10, 20, 90], f'{local_output_dir}/{city_name_l}_slope.csv')
-    try:
-        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.tif', f'{output_dir}/{city_name_l}_slope.tif')
-        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.csv', f'{output_dir}/{city_name_l}_slope.csv')
-    except:
-        pass
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.csv', f'{output_dir}/{city_name_l}_slope.csv')
 
 if menu['wsf']:  # processing time: 30s
     import wsf

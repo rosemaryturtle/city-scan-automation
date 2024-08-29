@@ -206,12 +206,14 @@ def calculate_raster_area(input_raster, value_list):
 
         return value_dict
 
-def slope(elev_raster, cloud_bucket, output_dir, city_name_l, local_output_dir):
+def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_output_dir):
     print('run slope')
 
     import os
     import utils
-    import richdem as rd
+    import rasterio
+    import numpy as np
+    # import richdem as rd
     from google.api_core.exceptions import NotFound
 
     if not os.path.exists(elev_raster):
@@ -220,17 +222,40 @@ def slope(elev_raster, cloud_bucket, output_dir, city_name_l, local_output_dir):
         except NotFound:
             print('no elevation raster file exists')
             return
-
+    
     # Reproject elevation raster to a projected coordinate system
     reproject_raster(elev_raster, 'EPSG:3857', f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
 
-    # Calculate slope
-    elev = rd.LoadGDAL(f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
-    slope = rd.TerrainAttribute(elev, attrib = 'slope_degrees')
-    rd.SaveGDAL(f'{local_output_dir}/{city_name_l}_slope_3857.tif', slope)
+    with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation_3857.tif') as src:
+        elevation = src.read(1)
+        transform = src.transform
+        crs = src.crs
+        profile = src.profile
+
+    # Define pixel size (assumed square pixels for simplicity)
+    pixel_size_x = transform[0]
+    pixel_size_y = -transform[4]
+
+    # Calculate the gradient (difference) in the x and y directions
+    dy, dx = np.gradient(elevation, pixel_size_y, pixel_size_x)
+
+    # Calculate the slope in degrees
+    slope = np.arctan(np.sqrt(dx**2 + dy**2)) * (180 / np.pi)
+
+    # Update the profile for the output slope raster
+    profile.update(dtype=rasterio.float32, count=1, compress='lzw')
+
+    # Save the slope array to a new raster file
+    with rasterio.open(f'{local_output_dir}/{city_name_l}_slope_3857.tif', 'w', **profile) as dst:
+        dst.write(slope.astype(np.float32), 1)
 
     # Reproject slope raster to WGS84
     reproject_raster(f'{local_output_dir}/{city_name_l}_slope_3857.tif', 'EPSG:4326', f'{local_output_dir}/{city_name_l}_slope.tif')
+
+    # Mask slope raster with AOI
+    out_image, out_meta = raster_mask_file(f'{local_output_dir}/{city_name_l}_slope.tif', aoi_file.geometry)
+    with rasterio.open(f'{local_output_dir}/{city_name_l}_slope.tif', 'w', **out_meta) as dest:
+        dest.write(out_image)
 
     # Remove intermediate outputs
     try:
@@ -238,6 +263,13 @@ def slope(elev_raster, cloud_bucket, output_dir, city_name_l, local_output_dir):
         os.remove(f'{local_output_dir}/{city_name_l}_slope_3857.tif')
     except:
         pass
+
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.tif', f'{output_dir}/{city_name_l}_slope.tif')
+    
+    # Calculate slope: unused due to richdem containerization issue ###############
+    # elev = rd.LoadGDAL(f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
+    # slope = rd.TerrainAttribute(elev, attrib = 'slope_degrees')
+    # rd.SaveGDAL(f'{local_output_dir}/{city_name_l}_slope_3857.tif', slope)
 
 # def contour(elev_raster, local_output_dir, city_name_l):
 #     print('run contour')

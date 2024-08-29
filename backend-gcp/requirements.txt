@@ -9,7 +9,6 @@ pandas
 numpy
 shapely
 matplotlib
-# richdem
 google-api-core
 requests
 boto3
