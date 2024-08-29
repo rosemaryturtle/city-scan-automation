@@ -138,8 +138,8 @@ if menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:
                                     raster_file_name = f"{year}/1in{rp}/1in{rp}-{flood_type_folder_dict[ft].replace('_', '-')}-{year}_{lat.lower()}{lon.lower()}.tif"
                                     aws_raster_file_name = f"FATHOM/v2023/GLOBAL-1ARCSEC-NW_OFFSET-1in{rp}-{flood_type_folder_dict[ft].replace('_', '-')}-DEPTH-{year}-PERCENTILE50-v3.0/{lat.lower()}{lon.lower()}.tif"
                                     if not exists(flood_folder / raster_file_name):
-                                        rasters_download.append(raster_file_name)
-                                        aws_rasters_download.append(aws_raster_file_name)
+                                        # rasters_download.append(raster_file_name)
+                                        # aws_rasters_download.append(aws_raster_file_name)
                                         aws_dict[aws_raster_file_name]=raster_file_name
                     elif year > 2020:
                         for ssp in flood_ssps:
@@ -149,8 +149,8 @@ if menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:
                                         raster_file_name = f"{year}/SSP{flood_ssp_labels[ssp]}/1in{rp}/1in{rp}-{flood_type_folder_dict[ft].replace('_', '-')}-{year}-SSP{flood_ssp_labels[ssp]}_{lat.lower()}{lon.lower()}.tif"
                                         aws_raster_file_name = f"FATHOM/v2023/GLOBAL-1ARCSEC-NW_OFFSET-1in{rp}-{flood_type_folder_dict[ft].replace('_', '-')}-DEPTH-{year}-SSP{flood_ssp_labels[ssp]}-PERCENTILE50-v3.0/{lat.lower()}{lon.lower()}.tif"
                                         if not exists(flood_folder / raster_file_name):
-                                            rasters_download.append(raster_file_name)
-                                            aws_rasters_download.append(aws_raster_file_name)
+                                            # rasters_download.append(raster_file_name)
+                                            # aws_rasters_download.append(aws_raster_file_name)
                                             aws_dict[aws_raster_file_name]=raster_file_name
     
     # insert aws credentials 
