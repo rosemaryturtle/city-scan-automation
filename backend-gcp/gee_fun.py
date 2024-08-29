@@ -318,7 +318,7 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
     # PROCESSING #########################################
     no_data_val = -9999
     
-    s2a_Season = ee.ImageCollection('COPERNICUS/S2').filterBounds(AOI).filter(rangefilter).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
+    s2a_Season = ee.ImageCollection('COPERNICUS/S2_HARMONIZED').filterBounds(AOI).filter(rangefilter).filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10)).map(maskS2clouds)
     s2a_med_Season = s2a_Season.median().clip(AOI).unmask(value = no_data_val, sameFootprint = False)
 
     if index_type == 'ndmi':
