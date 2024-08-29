@@ -1,0 +1,19 @@
+PyYAML
+rasterio
+google-cloud-storage
+geopandas
+earthengine-api
+osmnx
+networkx
+pandas
+numpy
+shapely
+matplotlib
+# gdal==3.7.2
+# richdem
+google-api-core
+requests
+boto3
+# pyquadkey2
+scipy
+xarray
