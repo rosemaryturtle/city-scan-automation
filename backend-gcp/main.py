@@ -102,7 +102,7 @@ if menu['demographics']:  # processing time: 19m
     
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_demographics.csv', f'{output_dir}/{city_name_l}_demographics.csv')
 
-if menu['elevation']:
+if menu['elevation']:  # processing time: 6m
     import elevation
     elevation.elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cloud_bucket, output_dir)
 

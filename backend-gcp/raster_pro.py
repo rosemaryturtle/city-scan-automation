@@ -206,62 +206,6 @@ def calculate_raster_area(input_raster, value_list):
 
         return value_dict
 
-def contour(elev_raster, local_output_dir, city_name_l):
-    print('run contour')
-
-    from osgeo import osr, ogr, gdal
-    import math
-
-    # Open the elevation raster
-    rasterDs = gdal.Open(str(elev_raster))
-    rasterBand = rasterDs.GetRasterBand(1)
-    proj = osr.SpatialReference(wkt=rasterDs.GetProjection())
-
-    # Get elevation data as a numpy array
-    elevArray = rasterBand.ReadAsArray()
-
-    # Define no-data value
-    demNan = -9999
-
-    # Get min and max elevation values
-    demMax = elevArray.max()
-    demMin = elevArray[elevArray != demNan].min()
-    demDiff = demMax - demMin
-
-    # Determine contour intervals
-    contourInt = 1
-    if demDiff > 250:
-        contourInt = math.ceil(demDiff / 500) * 10
-    elif demDiff > 100:
-        contourInt = 5
-    elif demDiff > 50:
-        contourInt = 2
-    
-    contourMin = math.floor(demMin / contourInt) * contourInt
-    contourMax = math.ceil(demMax / contourInt) * contourInt
-    contourLevels = range(contourMin, contourMax + contourInt, contourInt)
-    
-    # Create contour shapefile
-    contourPath = f'{local_output_dir}/{city_name_l}_contour.gpkg'
-    contourDs = ogr.GetDriverByName("GPKG").CreateDataSource(contourPath)
-    contourShp = contourDs.CreateLayer('contour', proj)
-
-    # Define fields for ID and elevation
-    fieldDef = ogr.FieldDefn("ID", ogr.OFTInteger)
-    contourShp.CreateField(fieldDef)
-    fieldDef = ogr.FieldDefn("elev", ogr.OFTReal)
-    contourShp.CreateField(fieldDef)
-
-    # Generate contours
-    for level in contourLevels:
-        gdal.ContourGenerate(rasterBand, level, level, [], 1, demNan, contourShp, 0, 1)
-
-    # Clean up
-    contourDs.Destroy()
-
-    # Return contour levels for elevation_stats
-    return contourLevels
-
 def slope(elev_raster, cloud_bucket, output_dir, city_name_l, local_output_dir):
     print('run slope')
 
@@ -294,4 +238,59 @@ def slope(elev_raster, cloud_bucket, output_dir, city_name_l, local_output_dir):
         os.remove(f'{local_output_dir}/{city_name_l}_slope_3857.tif')
     except:
         pass
+
+# def contour(elev_raster, local_output_dir, city_name_l):
+#     print('run contour')
+
+#     from osgeo import osr, ogr, gdal
+#     import math
+
+#     # Open the elevation raster
+#     rasterDs = gdal.Open(str(elev_raster))
+#     rasterBand = rasterDs.GetRasterBand(1)
+#     proj = osr.SpatialReference(wkt=rasterDs.GetProjection())
+
+#     # Get elevation data as a numpy array
+#     elevArray = rasterBand.ReadAsArray()
+
+#     # Define no-data value
+#     demNan = -9999
+
+#     # Get min and max elevation values
+#     demMax = elevArray.max()
+#     demMin = elevArray[elevArray != demNan].min()
+#     demDiff = demMax - demMin
+
+#     # Determine contour intervals
+#     contourInt = 1
+#     if demDiff > 250:
+#         contourInt = math.ceil(demDiff / 500) * 10
+#     elif demDiff > 100:
+#         contourInt = 5
+#     elif demDiff > 50:
+#         contourInt = 2
     
+#     contourMin = math.floor(demMin / contourInt) * contourInt
+#     contourMax = math.ceil(demMax / contourInt) * contourInt
+#     contourLevels = range(contourMin, contourMax + contourInt, contourInt)
+    
+#     # Create contour shapefile
+#     contourPath = f'{local_output_dir}/{city_name_l}_contour.gpkg'
+#     contourDs = ogr.GetDriverByName("GPKG").CreateDataSource(contourPath)
+#     contourShp = contourDs.CreateLayer('contour', proj)
+
+#     # Define fields for ID and elevation
+#     fieldDef = ogr.FieldDefn("ID", ogr.OFTInteger)
+#     contourShp.CreateField(fieldDef)
+#     fieldDef = ogr.FieldDefn("elev", ogr.OFTReal)
+#     contourShp.CreateField(fieldDef)
+
+#     # Generate contours
+#     for level in contourLevels:
+#         gdal.ContourGenerate(rasterBand, level, level, [], 1, demNan, contourShp, 0, 1)
+
+#     # Clean up
+#     contourDs.Destroy()
+
+#     # Return contour levels for elevation_stats
+#     return contourLevels

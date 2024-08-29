@@ -9,7 +9,6 @@ pandas
 numpy
 shapely
 matplotlib
-# gdal==3.7.2
 # richdem
 google-api-core
 requests

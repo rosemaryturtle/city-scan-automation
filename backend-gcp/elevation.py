@@ -35,7 +35,7 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
             try:
                 with zipfile.ZipFile(f'{local_elev_folder}/{elev_download_dict[fn]}', 'r') as z:
                     z.extract(fn, local_elev_folder)
-                    mosaic_list.append(fn)
+                    mosaic_list.append(f'{local_elev_folder}/{fn}')
             except:
                 pass
     
@@ -55,9 +55,99 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
             f.write('NASA SRTM Digital Elevation 30m')
     
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/elevation_source.txt", f"{output_dir}/elevation_source.txt")
+
+    contour_levels = contour(city_name_l, local_output_dir, cloud_bucket, output_dir)
+    elevation_stats(city_name_l, local_output_dir, cloud_bucket, output_dir, contour_levels)
+
+def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
+    import matplotlib.pyplot as plt
+    from shapely.geometry import Polygon
+    import fiona
+    import math
+    import rasterio
+    from affine import Affine
+    import utils
+
+    with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif') as src:
+        elevation_data = src.read(1)
+        bounds = src.bounds
+        transform = src.transform
+        width = src.width
+        height = src.height
     
-    contour_levels = raster_pro.contour(f'{local_output_dir}/{city_name_l}_elevation.tif', local_output_dir, city_name_l)
-    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_contour.gpkg', f'{output_dir}/{city_name_l}_contour.gpkg')
+    # Use the rasterio transform to map pixel coordinates to geographic coordinates
+    # Get the bounding box
+    min_x, min_y, max_x, max_y = bounds
+    transform = Affine.from_gdal(min_x, (max_x - min_x) / width, 0, max_y, 0, (min_y - max_y) / height)
+
+    # Define no-data value
+    demNan = -9999
+
+    # Get min and max elevation values
+    demMax = elevation_data.max()
+    demMin = elevation_data[elevation_data != demNan].min()
+    demDiff = demMax - demMin
+
+    # Generate contour lines
+    # Determine contour intervals
+    contourInt = 1
+    if demDiff > 250:
+        contourInt = math.ceil(demDiff / 500) * 10
+    elif demDiff > 100:
+        contourInt = 5
+    elif demDiff > 50:
+        contourInt = 2
+    
+    contourMin = math.floor(demMin / contourInt) * contourInt
+    contourMax = math.ceil(demMax / contourInt) * contourInt
+    if contourMin < demMin:
+        contour_levels = range(contourMin + contourInt, contourMax + contourInt, contourInt)
+    else:
+        contour_levels = range(contourMin, contourMax + contourInt, contourInt)
+
+    contours = plt.contourf(elevation_data, levels=contour_levels)
+
+    # Create a list to hold all the contour polygons as shapely geometries
+    contour_polygons = []
+
+    # Iterate over all contour levels and their corresponding paths
+    for collection, level in zip(contours.collections, contour_levels):
+        for path in collection.get_paths():
+            for polygon in path.to_polygons():
+                if len(polygon) > 0:
+                    # Convert polygon coordinates from pixel space to geographic coordinates
+                    geographic_polygon = [
+                        (transform * (x, y)) for x, y in polygon
+                    ]
+                    poly = Polygon(geographic_polygon)
+                    contour_polygons.append((poly, level))
+
+    # Optionally save to a shapefile using Fiona
+    schema = {
+        'geometry': 'Polygon',
+        'properties': {'elevation': 'float'},
+    }
+
+    with fiona.open(f'{local_output_dir}/{city_name_l}_contours.gpkg', 'w', driver='GPKG', schema=schema, crs='EPSG:4326', layer='contours') as shpfile:
+        for poly, elevation in contour_polygons:
+            shpfile.write({
+                'geometry': {
+                    'type': 'Polygon',
+                    'coordinates': [list(poly.exterior.coords)],
+                },
+                'properties': {'elevation': elevation},
+            })
+
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_contours.gpkg', f"{output_dir}/{city_name_l}_contours.gpkg")
+    return range(contourMin, contourMax + contourInt, contourInt)
+
+    # unused due to gdal containerization issue ########################################
+    # contour_levels = raster_pro.contour(f'{local_output_dir}/{city_name_l}_elevation.tif', local_output_dir, city_name_l)
+    # utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_contour.gpkg', f'{output_dir}/{city_name_l}_contour.gpkg')
+
+def elevation_stats(city_name_l, local_output_dir, cloud_bucket, output_dir, contour_levels):
+    import raster_pro
+    import utils
 
     contour_levels = list(contour_levels)
     contour_bins = [contour_levels[int(((len(contour_levels) - 6) / 5 + 1) * i)] for i in range(6)]
