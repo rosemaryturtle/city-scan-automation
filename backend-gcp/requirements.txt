@@ -12,6 +12,6 @@ matplotlib
 google-api-core
 requests
 boto3
-# pyquadkey2
+pyquadkey2
 scipy
 xarray

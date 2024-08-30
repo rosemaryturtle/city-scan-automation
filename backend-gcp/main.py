@@ -172,7 +172,7 @@ if menu['population']:  # processing time: 20s
         dest.write(out_image)
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_population.tif', f'{output_dir}/{city_name_l}_population.tif')
 
-if menu['rwi']:
+if menu['rwi']:  # processing time: 50s
     import rwi
     rwi.rwi(global_inputs['rwi_blob'], city_inputs['country_iso3'], data_bucket, local_data_dir, aoi_file, local_output_dir, city_name_l, cloud_bucket, output_dir)
 
