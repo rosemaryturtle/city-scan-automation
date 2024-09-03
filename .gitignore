@@ -190,3 +190,11 @@ multi-scan-materials/.DS_Store
 output/*_road_network/*
 data/flood/*
 backend/temp.ipynb
+backend/temp.py
+backend/cover_image.py
+backend/desertification/*
+backend/vulnerability_mapping/*
+mnt/city-directories/02-process-output/*
+
+# GitHub Wiki
+city-scan-automation.wiki.git

@@ -1,16 +1,25 @@
 # Packages ----
-library(terra)
-library(sf)
-library(leaflet)
-library(yaml)
-library(stringr)
-# library(mapview)
-library(dplyr)
-library(plotly)
-library(ggspatial)
-library(tidyterra)
-library(cowplot)
-library(glue)
+# Install packages from CRAN using librarian
+if (!"librarian" %in% installed.packages()) install.packages("librarian")
+librarian::shelf(
+  terra, 
+  sf, 
+  leaflet, 
+  yaml, 
+  stringr, 
+  dplyr, 
+  ggplot2, # 3.5 or higher
+  plotly, 
+  ggspatial, 
+  tidyterra, 
+  cowplot, 
+  glue, 
+  purrr, 
+  readr)
+
+librarian::stock(
+  ggnewscale # 4.10 or higher
+)
 
 # Map Functions ----
 # Function for reading rasters with fuzzy names
@@ -21,11 +30,18 @@ fuzzy_read <- function(spatial_dir, fuzzy_string, FUN = rast_as_vect, path = T, 
   if (length(file) > 1) warning(paste("Too many", fuzzy_string, "files in", spatial_dir))
   if (length(file) < 1) warning(paste("No", fuzzy_string, "file in", spatial_dir))
   if (length(file) == 1) {
+    if (is.null(FUN)) {
+      # print(tolower(str_sub(file, -4, -1)) == ".tif")
+      FUN <- if (tolower(str_sub(file, -4, -1)) == ".tif") rast else vect
+    }
     if (!path) {
-      content <- suppressMessages(FUN(spatial_dir, file, ...))
+      content <- suppressMessages(FUN(dir, file, ...))
     } else {
-      file_path <- paste_path(spatial_dir, file)
+      file_path <- file.path(dir, file)
       content <- suppressMessages(FUN(file_path, ...))
+    }
+    if (convert_to_vect && class(content)[1] %in% c("SpatRaster", "RasterLayer")) {
+      content <- rast_as_vect(content)
     }
     return(content)
   } else {
@@ -148,6 +164,8 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   if (is.null(params)) {
     params <- prepare_parameters(yaml_key, ...)
   }
+
+  if (!is.null(params$data_variable)) data <- data[params$data_variable]
 
   if (!is.null(params$factor) && params$factor) {
     data <-
@@ -279,6 +297,9 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
   if (is.null(params)) {
     params <- prepare_parameters(yaml_key, ...)
   }
+
+  if (!is.null(params$data_variable)) data <- data[params$data_variable]
+
   if (!is.null(params$factor) && params$factor) {
     data <-
       set_layer_values(
@@ -292,16 +313,31 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
   }
   layer_values <- get_layer_values(data)
   palette <- params$palette
+  stroke_variable <- if (length(params$stroke) > 1) params$stroke$variable else NULL
+  weight_variable <- if (length(params$weight) > 1) params$weight$variable else NULL
 
-  layer <-
+  geom <-
     if (class(data)[1] == "SpatVector") {
       if (geomtype(data) == "points") {
         geom_spatvector(data = data, color = palette, size = 1)
       } else if (geomtype(data) == "polygons") {
         geom_spatvector(data = data, aes(fill = layer_values), color = params$stroke)
+      } else if (geomtype(data) == "lines") {
+        # I could use aes_list in a safer way
+        # aes_list2 <- c(
+        #   aes(color = .data[[stroke_variable]]))
+        #   aes(linewidth = (.data[[weight_variable]])))
+        aes_list <- aes(color = .data[[stroke_variable]], linewidth = (.data[[weight_variable]]))
+        if (is.null(weight_variable)) aes_list <- aes_list[-2]
+        if (is.null(stroke_variable)) aes_list <- aes_list[-1]
+        geom_spatvector(data = data, aes_list)
+      } else {
+        stop(paste(yaml_key, "data is a SpatVector but not of type 'points' or 'polygons'"))
       }
     } else if (class(data)[1] == "SpatRaster") {
       geom_spatraster(data = data)
+    } else {
+      stop(paste(yaml_key, "data is neither SpatVector nor SpatRaster"))
     }
 
   title_broken <- str_replace_all(params$title, "(.{20}[^\\s]*)\\s", "\\1<br>")
@@ -363,14 +399,19 @@ create_static_layer <- function(data, yaml_key = NULL, params = NULL, ...) {
     legend.text.align = legend_text_alignment
   )
 
-  return(list(layer = layer, scale = fill_scale, theme = theme))
+  return(list(geom = geom, scale = scales, theme = theme))
 }
 
-plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, ...) {
+plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
+  if (aoi_only) {
+    layer <- NULL
+  } else { 
   params <- prepare_parameters(yaml_key = yaml_key, ...)
   layer <- create_static_layer(data, params = params)
+  }
   # baseplot <- if (is.null(baseplot)) ggplot() + tiles else baseplot + ggnewscale::new_scale_fill()
   # This  method sets the plot CRS to 4326, but this requires reprojecting the tiles
+  ## I am now returning the CRS to 3857. I don't think this is a global fix, because it causes reprojections of the rasters
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
       geom_sf(data = static_map_bounds, fill = NA, color = NA) +
@@ -404,10 +445,11 @@ plot_static <- function(data, yaml_key, filename = NULL, baseplot = NULL, ...) {
 
 save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
   # Saves plots with set legend widths
-
   plot_layout <- plot_grid(
     plot + theme(legend.position = "none"),
-    get_legend(plot),
+    # Before ggplot2 3.5 was get_legend(plot); still works but with warning;
+    # there are now multiple guide-boxes
+    get_plot_component(plot, "guide-box-right"),
     rel_widths = rel_widths,
     nrow = 1
   )
@@ -575,6 +617,10 @@ read_md <- function(file) {
   return(text_list)
 }
 
+double_space <- function(x) {
+  str_replace(x, "\\n", "\n\n")
+}
+
 # merge_text_lists <- function(...) {
 #   lists <- c(...)
 #   keys <- unique(names(lists))
@@ -709,3 +755,5 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif, digits
 
   return(pretty_breaks)
 }
+
+include_html_chart <- \(file) cat(str_replace_all(readLines(file), "\\s+", " "), sep="\n")
