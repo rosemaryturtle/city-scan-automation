@@ -12,9 +12,7 @@ def rwi(rwi_source, country_iso3, data_bucket, local_data_dir, aoi_file, local_o
     # PROCESS RWI DATA ################################
     rwi_data = f"{country_iso3}_relative_wealth_index.csv"
     
-    if utils.blob_exists(data_bucket, f'{rwi_source}/{rwi_data}'):
-        utils.download_blob(data_bucket, f'{rwi_source}/{rwi_data}', f'{local_data_dir}/{rwi_data}')
-        
+    if utils.download_blob(data_bucket, f'{rwi_source}/{rwi_data}', f'{local_data_dir}/{rwi_data}'):
         FB_QKdata = pd.read_csv(f'{local_data_dir}/{rwi_data}')
         # change quadkey format to str
         FB_QKdata["quadkey1"] = FB_QKdata["quadkey"].astype('str')

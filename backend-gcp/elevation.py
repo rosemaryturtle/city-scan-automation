@@ -45,16 +45,16 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
         with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif', "w", **out_meta) as dest:
             dest.write(out_image)
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_elevation.tif', f'{output_dir}/{city_name_l}_elevation.tif')
-        with open(f"{local_output_dir}/elevation_source.txt", 'w') as f:
+        with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
             f.write('FABDEM')
     else:
         import gee_fun
         gee_fun.gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir)
         utils.download_blob(cloud_bucket, f"{output_dir}/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif')
-        with open(f"{local_output_dir}/elevation_source.txt", 'w') as f:
+        with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
             f.write('NASA SRTM Digital Elevation 30m')
     
-    utils.upload_blob(cloud_bucket, f"{local_output_dir}/elevation_source.txt", f"{output_dir}/elevation_source.txt")
+    utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_elevation_source.txt", f"{output_dir}/{city_name_l}_elevation_source.txt")
 
     contour_levels = contour(city_name_l, local_output_dir, cloud_bucket, output_dir)
     elevation_stats(city_name_l, local_output_dir, cloud_bucket, output_dir, contour_levels)

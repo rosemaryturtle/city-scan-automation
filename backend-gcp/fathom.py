@@ -24,8 +24,7 @@ def download_fathom_from_aws(download_list, aws_access_key_id, aws_secret_access
 
     for f in download_list:
         os.makedirs(os.path.dirname(f'{local_flood_folder}/{f[7:]}'), exist_ok=True)
-        if utils.blob_exists(data_bucket, f'{data_bucket_dir}/{f[7:]}'):
-            utils.download_blob(data_bucket, f'{data_bucket_dir}/{f[7:]}', f'{local_flood_folder}/{f[7:]}')
+        if utils.download_blob(data_bucket, f'{data_bucket_dir}/{f[7:]}', f'{local_flood_folder}/{f[7:]}'):
             downloaded_list.append(f'{local_flood_folder}/{f[7:]}')
         else:
             try:

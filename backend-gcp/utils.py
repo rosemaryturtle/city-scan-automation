@@ -7,21 +7,28 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(source_blob_name)
-    blob.download_to_filename(destination_file_name)
-    print(f"Blob {source_blob_name} downloaded to {destination_file_name}.")
+    if blob.exists():
+        blob.download_to_filename(destination_file_name)
+        print(f"Blob {source_blob_name} downloaded to {destination_file_name}.")
+        return True
+    print(f"Blob {source_blob_name} does not exist.")
+    return False
 
-def upload_blob(bucket_name, source_file_name, destination_blob_name):
+def upload_blob(bucket_name, source_file_name, destination_blob_name, check_exists = False):
     """Uploads a file to the bucket."""
     if exists(source_file_name):
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
+        if check_exists:
+            if blob.exists():
+                print(f"File {destination_blob_name} already exists.")
+                return
         blob.upload_from_filename(source_file_name)
         print(f"File {source_file_name} uploaded to {destination_blob_name}.")
         return True
-    else:
-        print(f"File {source_file_name} does not exist.")
-        return False
+    print(f"File {source_file_name} does not exist.")
+    return False
 
 def read_blob_to_memory(bucket_name, blob_name):
     """Reads a blob from Google Cloud Storage directly into memory."""
@@ -35,16 +42,13 @@ def download_aoi(bucket_name, input_dir, aoi_shp_name, destination_dir):
     bucket = storage_client.bucket(bucket_name)
     blobs = bucket.list_blobs(prefix=f"{input_dir}/AOI/{aoi_shp_name}.")
     os.makedirs(destination_dir, exist_ok=True)
+    downloaded_list = []
     for blob in blobs:
-        blob.download_to_filename(f"{destination_dir}/{blob.name.split('/')[-1]}")
+        fn = f"{destination_dir}/{blob.name.split('/')[-1]}"
+        blob.download_to_filename(fn)
+        downloaded_list.append(fn)
     print(f"AOI {aoi_shp_name} downloaded to {destination_dir}.")
-
-def blob_exists(bucket_name, blob_name):
-    """Checks if a blob exists."""
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(blob_name)
-    return blob.exists()
+    return downloaded_list
 
 def find_utm(aoi_file):
     import math

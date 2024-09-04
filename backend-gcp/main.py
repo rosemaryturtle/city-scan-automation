@@ -3,6 +3,7 @@ import yaml
 import utils
 import geopandas as gpd
 from google.cloud import storage
+from datetime import datetime as dt
 
 ########################################################
 # CONFIGS ##############################################
@@ -28,16 +29,23 @@ os.makedirs(local_output_dir, exist_ok=True)
 # Download the city inputs and the menu YAML files
 print('Download the city inputs and the menu YAML files')
 utils.download_blob(cloud_bucket, f"{input_dir}/city_inputs.yml", 'city_inputs.yml')
+utils.download_blob(cloud_bucket, f"{input_dir}/global_inputs.yml", 'global_inputs.yml')
 utils.download_blob(cloud_bucket, f"{input_dir}/menu.yml", 'menu.yml')
 
 # Download the AOI and get city name
 print('Download the AOI and get city name')
 with open('city_inputs.yml', 'r') as f:
     city_inputs = yaml.safe_load(f)
-utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_shp_name'], local_aoi_dir)
+downloaded_aoi = utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_shp_name'], local_aoi_dir)
 aoi_file = gpd.read_file(f"{local_aoi_dir}/{city_inputs['AOI_shp_name']}.shp").to_crs(epsg = 4326)
 features = aoi_file.geometry
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
+country_name_l = city_inputs['country_name'].replace(' ', '_').replace("'", "").lower()
+
+# Load global inputs, such as data sources that generally remain the same across scans
+print('Load global inputs')
+with open("global_inputs.yml", 'r') as f:
+    global_inputs = yaml.safe_load(f)
 
 # Load menu
 print('Load menu')
@@ -48,11 +56,14 @@ with open('menu.yml', 'r') as f:
 print('Initialize a storage client')
 storage_client = storage.Client()
 
-# Load global inputs, such as data sources that generally remain the same across scans
-# TODO: add global_inputs.yml to the user inputs folder?
-print('Load global inputs')
-with open("global_inputs.yml", 'r') as f:
-    global_inputs = yaml.safe_load(f)
+# Update directories and make a copy of city inputs and menu in city-specific directory
+city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
+input_dir = f'{city_dir}/{input_dir}'
+output_dir = f'{city_dir}/{output_dir}'
+utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', check_exists=True)
+utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', check_exists=True)
+for f in downloaded_aoi:
+    utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", check_exists=True)
 
 
 ########################################################

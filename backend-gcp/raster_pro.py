@@ -105,8 +105,7 @@ def download_raster(download_list, local_data_dir, data_bucket, data_bucket_dir)
     for f in download_list:
         dl_file_name = f.split('/')[-1]
 
-        if utils.blob_exists(data_bucket, f'{data_bucket_dir}/{dl_file_name}'):
-            utils.download_blob(data_bucket, f'{data_bucket_dir}/{dl_file_name}', f'{local_data_dir}/{dl_file_name}')
+        if utils.download_blob(data_bucket, f'{data_bucket_dir}/{dl_file_name}', f'{local_data_dir}/{dl_file_name}'):
             downloaded_list.append(f'{local_data_dir}/{dl_file_name}')
         else:
             try:
@@ -217,10 +216,7 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
     from google.api_core.exceptions import NotFound
 
     if not os.path.exists(elev_raster):
-        try:
-            utils.download_blob(cloud_bucket, f'{output_dir}/{city_name_l}_elevation.tif', elev_raster)
-        except NotFound:
-            print('no elevation raster file exists')
+        if not utils.download_blob(cloud_bucket, f'{output_dir}/{city_name_l}_elevation.tif', elev_raster):
             return
     
     # Reproject elevation raster to a projected coordinate system
