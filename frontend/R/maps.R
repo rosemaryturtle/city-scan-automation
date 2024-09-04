@@ -8,7 +8,14 @@ source("R/pre-mapping.R")
 layer_params_file <- 'source/layers.yml' # Also used by fns.R
 layer_params <- read_yaml(layer_params_file)
 
-# Set static map visualization parameters
+# Set visualization parameters
+# Switch to using yaml file, but requires renaming all variables
+# viz <- read_yaml("source/visualization-parameters.yml")
+# Interactive Plots (Leaflet)
+basemap_opacity <- 0.3
+legend_opacity <- 0.8
+
+# Static map
 layer_alpha <- 0.8
 map_width <- 6.9
 map_height <- 5.9
@@ -153,6 +160,117 @@ plots$burnt_area_smooth <- plots$burnt_area +
     na.value = "transparent")
 
 # Save plots -------------------------------------------------------------------
-walk2(plots, names(plots), \(plot, name) {
+plots %>% walk2(names(.), \(plot, name) {
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir)
 })
+
+# HTML version of plots --------------------------------------------------------
+add_leaflet_plot <- function(yaml_key, fuzzy_string = NULL) {
+    if (is.null(fuzzy_string)) fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
+    tryCatch({
+      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
+        aggregate_if_too_fine(threshold = 1e5, fun = \(x) Mode(x, na.rm = T)) %>%
+        vectorize_if_coarse(threshold = 1e6)
+      plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
+      plots_html[[yaml_key]] <<- plot_function
+      message(paste("Success:", yaml_key))
+    },
+    error = \(e) {
+      message(paste("Failure:", yaml_key))
+      warning(glue("Error on {yaml_key}: {e}"))
+    })
+  }
+
+# Make most leaflet plots
+possible_layers <- names(keep(layer_params, \(x) !is.null(x$fuzzy_string)))
+plots_html <- list()
+possible_layers %>%
+  str_subset("luvial|flood|road|elevat", negate = T) %>%
+  lapply(add_leaflet_plot) %>%
+  unlist() -> plot_log
+
+# Non standard
+
+possible_layers %>%
+  str_subset("luvial|coastal|flood|deforest") %>%
+  lapply(\(yaml_key) {
+    fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
+    tryCatch({
+      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
+        aggregate_if_too_fine(fun = \(x) if (all(is.na(x))) NA else max(x, na.rm = T)) %>%
+        vectorize_if_coarse(threshold = 1e7)
+      plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
+      plots_html[[yaml_key]] <<- plot_function
+      message(paste("Success:", yaml_key))
+    },
+    error = \(e) {
+      message(paste("Failure:", yaml_key))
+      warning(glue("Error on {yaml_key}: {e}"))
+    })
+  }) -> plots_log
+
+elevation <- fuzzy_read(spatial_dir, layer_params$elevation$fuzzy_string)
+  # filter(elev %% 100 == 0)
+elevation_params <- prepare_parameters("elevation")
+elevation_color_scale <- create_color_scale(
+  domain = c(range(elevation[elevation_params$stroke$variable])),
+  palette = elevation_params$stroke$palette,
+  bins = elevation_params$bins,
+  breaks = elevation_params$breaks)
+
+plots_html$elevation <- \(maps, show = T) {
+  addPolylines(
+    maps,
+    data = elevation,
+    fillColor = "tranparent",
+    stroke = T,
+    weight = elevation_params$weight,
+    color = elevation_color_scale(get_layer_values(elevation)),
+    label = get_layer_values(elevation),
+    group = elevation_params$group_id
+    ) %>%
+  addLegend(
+    position = "bottomright",
+    values = break_pretty2(get_layer_values(elevation)),
+    pal = elevation_color_scale,
+    title = paste(elevation_params$stroke$title, "<br>", elevation_params$stroke$subtitle),
+    opacity = legend_opacity,
+    group = elevation_params$group_id
+  )
+}
+roads <- fuzzy_read(spatial_dir, layer_params$roads$fuzzy_string) %>%
+  filter(edge_centr > break_pretty2(edge_centr, 10)[9])
+roads_params <- prepare_parameters("roads")
+roads_color_scale <- create_color_scale(
+  domain = c(range(roads[roads_params$stroke$variable])),
+  palette = roads_params$stroke$palette,
+  bins = roads_params$bins,
+  breaks = roads_params$breaks
+    )
+plots_html$roads <- \(maps, show = T) {
+  addPolylines(
+    maps,
+    data = roads,
+    fillColor = "tranparent",
+    stroke = T,
+    weight = 1,
+    color = ~roads_color_scale(get_layer_values(roads[roads_params$stroke$variable])),
+    label = paste0(round(get_layer_values(roads[roads_params$stroke$variable]), 1), "%"),
+    group = roads_params$group_id
+    ) %>%
+  addLegend(
+    position = "bottomright",
+    values = break_pretty2(get_layer_values(roads[roads_params$stroke$variable])),
+    pal = roads_color_scale,
+    title = paste(roads_params$stroke$title, "<br>", roads_params$stroke$subtitle),
+    opacity = legend_opacity,
+    group = roads_params$group_id
+  )
+}
+
+message(paste("Following plots not made:", paste_and(which_not(possible_layers, names(plots_html)))))
+
+# Add group ids (for leaflet layer control) for all successfully created layers
+group_ids <- map(layer_params, \(x) x$group_id) %>% keep_at(names(plots_html)) %>% unlist() %>% unname()
+
+

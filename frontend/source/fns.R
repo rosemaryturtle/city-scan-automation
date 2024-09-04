@@ -171,72 +171,72 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
 ### !!! I need to pull labels out because not always numeric so can't be signif
 
   layer_function <- function(maps, show = T) {
-      if (class(data)[1] %in% c("SpatRaster", "RasterLayer")) {
-      # RASTER
-        maps <- maps %>% 
-          addRasterImage(data, opacity = 1,
-            colors = color_scale,
-            # For now the group needs to match the section id in the text-column
-            # group = params$title %>% str_replace_all("\\s", "-") %>% tolower(),
-            group = params$group_id)
-      } else if (class(data)[1] %in% c("SpatVector", "sf")) {
-        # VECTOR
-        if ( # Add circle markers if geometry type is "points"
-          (class(data)[1] == "SpatVector" && geomtype(data) == "points") |
-          (class(data)[1] == "sf" && "POINTS" %in% st_geometry_type(data))) {
-          maps <- maps %>%
-            addCircles(
-              data = data,
-              color = params$palette,
-              weight = params$weight,
-              # opacity = 0.9,
-              group = params$group_id,
-              # label = ~ signif(pull(data[[1]]), 6)) # Needs to at least be 4 
-              label = labels)
-        } else { # Otherwise, draw the geometries
-          maps <- maps %>%
-            addPolygons(
-              data = data,
-              fill = if(is.null(params$fill) || params$fill) T else F,
-              fillColor = ~color_scale(layer_values),
-              fillOpacity = 0.9,
-              stroke = if(!is.null(params$stroke) && !is.na(params$stroke) && params$stroke != F) T else F,
-              color = if(!is.null(params$stroke) && !is.na(params$stroke) && params$stroke == T) ~color_scale(layer_values) else params$stroke,
-              weight = params$weight,
-              opacity = 0.9,
-              group = params$group_id,
-              # label = ~ signif(pull(data[[1]]), 6)) # Needs to at least be 4 
-              label = labels)
-      }} else {
-        stop("Data is not spatRaster, RasterLayer, spatVector or sf")
-      }
-      # See here for formatting the legend: https://stackoverflow.com/a/35803245/5009249
-      legend_args <- list(
-        map = maps,
-        # data = data,
-        position = 'bottomright',
-        values = domain,
-        # values = if (is.null(params$breaks)) domain else params$breaks,
-        # pal = if (is.null(params$labels) | is.null(params$breaks)) color_scale else NULL,
-        pal = if (diff(lengths(list(params$labels, params$breaks))) == 1) NULL else color_scale,
-        # colors = if (is.null(params$labels) | is.null(params$breaks)) NULL else if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(head(params$breaks, -1)) else color_scale(params$breaks),
-        colors = if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(head(params$breaks, -1)) else NULL,
-        opacity = legend_opacity,
-        # bins = params$bins,
-        # bins = 3,  # legend color ramp does not render if there are too many bins
-        labels = params$labels,
-        title = params$title,
-        # labFormat = params$labFormat,
-        # labFormat = labelFormat(transform = function(x) label_maker(x = x, levels = params$breaks, labels = params$labels)),
-        # labFormat = function(type, breaks, labels) {
-        # }
-        # group = params$title %>% str_replace_all("\\s", "-") %>% tolower())
-        group = params$group_id)
-      legend_args <- Filter(Negate(is.null), legend_args)
-      # Using do.call so I can conditionally include args (i.e., pal and colors)
-      maps <- do.call(addLegend, legend_args)
-      # if (!show) maps <- hideGroup(maps, group = layer_id)
-      return(maps)
+    if (class(data)[1] %in% c("SpatRaster", "RasterLayer")) {
+    # RASTER
+      maps <- maps %>% 
+        addRasterImage(data, opacity = 1,
+          colors = color_scale,
+          # For now the group needs to match the section id in the text-column
+          # group = params$title %>% str_replace_all("\\s", "-") %>% tolower(),
+          group = params$group_id)
+    } else if (class(data)[1] %in% c("SpatVector", "sf")) {
+      # VECTOR
+      if ( # Add circle markers if geometry type is "points"
+        (class(data)[1] == "SpatVector" && geomtype(data) == "points") |
+        (class(data)[1] == "sf" && "POINTS" %in% st_geometry_type(data))) {
+        maps <- maps %>%
+          addCircles(
+            data = data,
+            color = params$palette,
+            weight = params$weight,
+            # opacity = 0.9,
+            group = params$group_id,
+            # label = ~ signif(pull(data[[1]]), 6)) # Needs to at least be 4 
+            label = labels)
+      } else { # Otherwise, draw the geometries
+        maps <- maps %>%
+          addPolygons(
+            data = data,
+            fill = if(is.null(params$fill) || params$fill) T else F,
+            fillColor = ~color_scale(layer_values),
+            fillOpacity = 0.9,
+            stroke = if(!is.null(params$stroke) && !is.na(params$stroke) && params$stroke != F) T else F,
+            color = if(!is.null(params$stroke) && !is.na(params$stroke) && params$stroke == T) ~color_scale(layer_values) else params$stroke,
+            weight = params$weight,
+            opacity = 0.9,
+            group = params$group_id,
+            # label = ~ signif(pull(data[[1]]), 6)) # Needs to at least be 4 
+            label = labels)
+    }} else {
+      stop("Data is not spatRaster, RasterLayer, spatVector or sf")
+    }
+    # See here for formatting the legend: https://stackoverflow.com/a/35803245/5009249
+    legend_args <- list(
+      map = maps,
+      # data = data,
+      position = 'bottomright',
+      values = domain,
+      # values = if (is.null(params$breaks)) domain else params$breaks,
+      # pal = if (is.null(params$labels) | is.null(params$breaks)) color_scale else NULL,
+      pal = if (diff(lengths(list(params$labels, params$breaks))) == 1) NULL else color_scale,
+      # colors = if (is.null(params$labels) | is.null(params$breaks)) NULL else if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(head(params$breaks, -1)) else color_scale(params$breaks),
+      colors = if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(head(params$breaks, -1)) else NULL,
+      opacity = legend_opacity,
+      # bins = params$bins,
+      # bins = 3,  # legend color ramp does not render if there are too many bins
+      labels = params$labels,
+      title = params$title,
+      # labFormat = params$labFormat,
+      # labFormat = labelFormat(transform = function(x) label_maker(x = x, levels = params$breaks, labels = params$labels)),
+      # labFormat = function(type, breaks, labels) {
+      # }
+      # group = params$title %>% str_replace_all("\\s", "-") %>% tolower())
+      group = params$group_id)
+    legend_args <- Filter(Negate(is.null), legend_args)
+    # Using do.call so I can conditionally include args (i.e., pal and colors)
+    maps <- do.call(addLegend, legend_args)
+    # if (!show) maps <- hideGroup(maps, group = layer_id)
+    return(maps)
   }
 
   return(layer_function)
@@ -626,8 +626,7 @@ print_slide_text <- function(slide) {
 }
 
 aspect_buffer <- function(x, aspect_ratio, buffer_percent = 0) {
-  bounds_proj <- st_transform(st_as_sfc(st_bbox(x)), crs = 
-    "EPSG:3857")
+  bounds_proj <- st_transform(st_as_sfc(st_bbox(x)), crs = "EPSG:3857")
   center_proj <- st_coordinates(st_centroid(bounds_proj))
 
   long_distance <-max(c(
@@ -704,4 +703,31 @@ format_title <- function(title, subtitle, width = 20) {
   subtitle_broken <- str_replace_all(subtitle, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
   formatted_title <- paste0(title_broken, "<br><br><em>", subtitle_broken, "</em>")
   return(formatted_title)
+}
+
+count_aoi_cells <- function(data, aoi) {
+  aoi_area <- if ("sf" %in% class(aoi)) {
+    units::drop_units(st_area(aoi))
+  } else if ("SpatVector" %in% class(aoi)) {
+    expanse(aoi)
+  }
+  cell_count <- (aoi_area / cellSize(data)[1,1])[[1]]
+  return(cell_count)
+}
+
+vectorize_if_coarse <- function(data, threshold = 7000) {
+  if (class(data)[1] %in% c("sf", "SpatVector")) return(data)
+  cell_count <- count_aoi_cells(data, aoi)
+  if (cell_count < threshold) data <- rast_as_vect(data)
+  return(data)
+}
+
+aggregate_if_too_fine <- function(data, threshold = 1e5, fun = "modal") {
+  if (class(data)[1] %in% c("sf", "SpatVector")) return(data)
+  cell_count <- count_aoi_cells(data, aoi)
+  if (cell_count > threshold) {
+    factor <- round(sqrt(cell_count / threshold))
+    data <- terra::aggregate(data, fact = factor, fun = fun)
+  }
+  return(data)
 }

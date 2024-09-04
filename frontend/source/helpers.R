@@ -50,3 +50,9 @@ yaml_as_df <- function(yaml, print = F) {
   if(print) print(as.data.frame(tib), right = F)
   return(tib)
 }
+
+Mode <- \(x, na.rm = F) {
+  if (na.rm) x <- na.omit(x)
+  unique_values <- unique(x)
+  unique_values[which.max(tabulate(match(x, unique_values)))]
+}
