@@ -111,7 +111,7 @@ prepare_parameters <- function(yaml_key, ...) {
     # If palette already has alpha, multiply
     if (nchar(p) == 9) {
       alpha_hex <- as.hexmode(substr(p, 8, 9))
-      new_alpha_hex <- as.character(alpha_hex * layer_alpha)
+      new_alpha_hex <- as.character(as.hexmode("ff") - (as.hexmode("ff") - alpha_hex) * layer_alpha)
       if (nchar(new_alpha_hex) == 1) new_alpha_hex <- paste0(0, new_alpha_hex)
       new_p <- paste0(substr(p, 1, 7), new_alpha_hex)
       return(new_p)
@@ -131,7 +131,7 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
 
   if (!is.null(params$data_variable)) data <- data[params$data_variable]
 
-  if (!is.null(params$factor) && params$factor) {
+  if (exists_and_true(params$factor)) {
     data <- 
       set_layer_values(
         data = data,
@@ -246,6 +246,7 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
    if (aoi_only) {
     layer <- NULL
   } else { 
+    # Create geom and scales
     params <- prepare_parameters(yaml_key = yaml_key, ...)
     if (!is.null(params$data_variable)) data <- data[params$data_variable]
     if (exists_and_true(params$factor)) {
@@ -263,6 +264,7 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
         method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
     }
     geom <- create_geom(data, params)
+    data_type <- type_data(data)
     scales <- list(
       fill_scale(data_type, params),
       color_scale(data_type, params),
@@ -272,10 +274,11 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
     layer <- list(geom = geom, scale = scales, theme = theme)
   }
 
+  # Plot geom and scales on baseplot
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
       geom_sf(data = static_map_bounds, fill = NA, color = NA) +
-      tiles 
+      annotation_map_tile(type = "cartolight", zoom = zoom_level)
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
     layer + 
@@ -356,7 +359,7 @@ fill_scale <- function(data_type, params) {
 
 color_scale <- function(data_type, params) {
   if (data_type == "points") {
-    scale_color_manual(values = params$palette, name = title)
+    scale_color_manual(values = params$palette, name = format_title(params$title, params$subtitle))
   } else if (length(params$stroke) < 2 || is.null(params$stroke$palette)) {
     NULL
   } else {
@@ -399,6 +402,7 @@ theme_custom <- function(...) {
   legend.justification = c("left", "bottom"),
   legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
   legend.margin = margin(4,0,4,0, unit = "pt"),
+  axis.title = element_blank(),
   axis.text = element_blank(),
   axis.ticks = element_blank(),
   axis.ticks.length = unit(0, "pt"),
