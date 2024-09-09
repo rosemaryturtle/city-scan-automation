@@ -49,10 +49,17 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
             f.write('FABDEM')
     else:
         import gee_fun
+        from datetime import datetime as dt
+        import time
+
         gee_fun.gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir)
-        utils.download_blob(cloud_bucket, f"{output_dir}/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif')
-        with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
-            f.write('NASA SRTM Digital Elevation 30m')
+        time0 = dt.now()
+        while (dt.now()-time0).total_seconds() <= 60*60:
+            if utils.download_blob(cloud_bucket, f"{output_dir}/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif'):
+                with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
+                    f.write('NASA SRTM Digital Elevation 30m')
+                break
+            time.sleep(30)
     
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_elevation_source.txt", f"{output_dir}/{city_name_l}_elevation_source.txt")
 
