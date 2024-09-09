@@ -61,4 +61,4 @@ country <- city_params$country_name
 
 # Read AOI
 aoi <- fuzzy_read(user_input_dir, "AOI")
-
+aoi_bounds <- st_bbox(aoi)

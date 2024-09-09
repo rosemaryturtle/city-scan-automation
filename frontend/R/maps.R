@@ -20,10 +20,6 @@ layer_alpha <- 0.8
 map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height
-
-# Define the AOI
-aoi <- st_zm(st_read(file.path(user_input_dir, "AOI")))
-aoi_bounds <- st_bbox(aoi)
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
 # max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
 zoom_level <- max(10, round(14.6 + -0.00015 * units::drop_units(sqrt(st_area(aoi)))))
