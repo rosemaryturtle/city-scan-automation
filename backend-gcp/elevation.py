@@ -148,10 +148,6 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_contours.gpkg', f"{output_dir}/{city_name_l}_contours.gpkg")
     return range(contourMin, contourMax + contourInt, contourInt)
 
-    # unused due to gdal containerization issue ########################################
-    # contour_levels = raster_pro.contour(f'{local_output_dir}/{city_name_l}_elevation.tif', local_output_dir, city_name_l)
-    # utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_contour.gpkg', f'{output_dir}/{city_name_l}_contour.gpkg')
-
 def elevation_stats(city_name_l, local_output_dir, cloud_bucket, output_dir, contour_levels):
     import raster_pro
     import utils

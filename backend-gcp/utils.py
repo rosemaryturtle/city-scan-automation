@@ -2,8 +2,12 @@ import os
 from google.cloud import storage
 from os.path import exists
 
-def download_blob(bucket_name, source_blob_name, destination_file_name):
+def download_blob(bucket_name, source_blob_name, destination_file_name, check_exists = False):
     """Downloads a blob from the bucket."""
+    if check_exists:
+        if exists(destination_file_name):
+            print(f"File {destination_file_name} already exists.")
+            return True
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(source_blob_name)
@@ -106,3 +110,12 @@ def list_blobs_with_prefix(bucket_name, prefix, delimiter=None):
     #     print("Prefixes:")
     #     for prefix in blobs.prefixes:
     #         print(prefix)
+
+def delete_blob(bucket_name, blob_name):
+    """Deletes a blob from the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.delete()
+
+    print(f"Blob {blob_name} deleted.")

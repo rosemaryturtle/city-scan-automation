@@ -1,4 +1,4 @@
-def burned_area(aoi_file, gf_folder, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir):
+def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir):
     print('run burned_area')
 
     import os
@@ -7,12 +7,14 @@ def burned_area(aoi_file, gf_folder, data_bucket, local_data_dir, local_output_d
     import utils
 
     # SET PARAMETERS ################################
+    task_index_range = range(1, 6)
+
     # Buffer AOI ------------------
     aoi_buff = aoi_file.buffer(1)  # 1 degree is about 111 km at the equator
     features = aoi_buff.geometry[0]
 
     # Set time period --------------
-    years = range(2011, 2021)
+    years = range(2009 + task_index * 2, 2011 + task_index * 2)
     months = range(1, 13)
 
     # Make local data folder --------------
@@ -25,8 +27,6 @@ def burned_area(aoi_file, gf_folder, data_bucket, local_data_dir, local_output_d
 
     for year in years:
         for month in months:
-            print(f'year: {year}, month: {month}')
-            
             # Filter GlobFire ----------------
             shp_names = [f'MODIS_BA_GLOBAL_1_{month}_{year}.{suf}' for suf in ['cpg', 'dbf', 'prj', 'shp', 'shx']]
             for f in shp_names:
@@ -43,6 +43,32 @@ def burned_area(aoi_file, gf_folder, data_bucket, local_data_dir, local_output_d
             for f in shp_names:
                 os.remove(f'{local_gf_folder}/{f}')
     
-    # Save centroids to geopackage ----------------
-    gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y, crs = 'EPSG:4326')).to_file(f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', driver='GPKG', layer = 'burned_area')
-    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', f'{output_dir}/{city_name_l}_globfire_centroids.gpkg')
+    # Save dataframe to csv -----------------------
+    df.to_csv(f'{local_output_dir}/{city_name_l}_globfire_centroids_{task_index}.csv')
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_globfire_centroids_{task_index}.csv', f'{output_dir}/{city_name_l}_globfire_centroids_{task_index}.csv')
+
+    # Concatenate csv ------------------------
+    if task_index == task_index_range[-1]:
+        from datetime import datetime as dt
+        import time
+
+        time0 = dt.now()
+        while (dt.now()-time0).total_seconds() <= 120*60:
+            download_gf_csv = [utils.download_blob(cloud_bucket, 
+                                                   f"{output_dir}/{city_name_l}_globfire_centroids_{ti}.csv", 
+                                                   f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv',
+                                                   check_exists=True) for ti in task_index_range]
+            if all(download_gf_csv):
+                print('all globfire centroids csv files downloaded')
+                break
+            time.sleep(60)
+        
+        concat_df = pd.concat([pd.read_csv(f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv') for ti in task_index_range])
+
+        # Save centroids to geopackage ----------------
+        gpd.GeoDataFrame(concat_df, geometry = gpd.points_from_xy(concat_df.x, concat_df.y, crs = 'EPSG:4326')).to_file(f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', driver='GPKG', layer = 'burned_area')
+        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', f'{output_dir}/{city_name_l}_globfire_centroids.gpkg')
+
+        # Delete csv files -------------------------
+        for ti in task_index_range:
+            utils.delete_blob(cloud_bucket, f'{output_dir}/{city_name_l}_globfire_centroids_{ti}.csv')
