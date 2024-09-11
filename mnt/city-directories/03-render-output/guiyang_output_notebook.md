@@ -6,10 +6,27 @@
     
 
 
+
+    
+![png](output_4_1.png)
+    
+
+
+
+
     Merged pluvial data saved as mnt/city-directories/02-process-output/guiyang_merged_pluvial_data.tif
     Merged fluvial data saved as mnt/city-directories/02-process-output/guiyang_merged_fluvial_data.tif
     Error: No fluvial files found.
     Merged combined data saved as mnt/city-directories/02-process-output/guiyang_merged_comb_data_utm.tif
+    60th Percentile of Population Data (excluding zeros): 39.820377349853516
+    6.66% of densely populated areas are located within the rainwater flood risk zone with a minimum depth of 15 cm
+    Result saved to mnt/city-directories/02-process-output/pu_pop_area.csv
+    60th Percentile of Population Data (excluding zeros): 39.820377349853516
+    0.16% of densely populated areas are located within the fluvial flood risk zone with a minimum depth of 15 cm
+    Result saved to mnt/city-directories/02-process-output/fu_pop_area.csv
+    60th Percentile of Population Data (excluding zeros): 39.820377349853516
+    40.00% of densely populated areas are located within the combined flood risk zone with a minimum depth of 15 cm
+    Result saved to mnt/city-directories/02-process-output/comb_pop_area.csv
     city name: guiyang
     country name:china
 
@@ -243,13 +260,6 @@
 
 ## Land Cover
 
-
-
-    The first highest landcover value is Tree cover with 55.16% of the total land area
-    The second highest landcover value is Grassland with 16.86% of the total land area
-    The third highest landcover value is Cropland with 12.43% of the total land area
-
-
 ## Photovoltaic Power Potential
 
     Seasonality is low to moderate, making solar energy available in only some of the months
@@ -290,15 +300,6 @@
 
 
 ## Flooding 
-
-    Tally of flood events
-    DEAD             6773
-    DISPLACED    21322670
-    BEGAN              21
-    dtype: int64
-
-
-
 
 ### Pluvial and OSM
 
@@ -343,8 +344,20 @@
 
 
 
-    In 2015, 7.62 sq.m of the city’s cumulative built-up area (1.92%) was exposed to fluvial flooding.
-    In 1985, 3.06 sq.m of the city’s cumulative built-up area (2.76%) was exposed to fluvial flooding.
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    Cell In[276], line 45
+         43 total_built_up_area_1985 = wsf['cumulative sq km'].iloc[0]
+         44 flooded_area_2015 = np.cumsum([stats_by_year[year] for year in years if year <= 2015])[-1]
+    ---> 45 if total_built_up_area != 0:
+         46     percentage_2015 = (flooded_area_2015 / total_built_up_area_2015) * 100
+         47     print(f"In 2015, {flooded_area_2015:.2f} sq.m of the city’s cumulative built-up area ({percentage_2015:.2f}%) was exposed to fluvial flooding.")
+
+
+    NameError: name 'total_built_up_area' is not defined
 
 
 ### Fluvial and Population
@@ -363,8 +376,20 @@
 
 
 
-    In 2015, 109.25 sq.km of the city’s cumulative built-up area (27.52%) was exposed to combined flooding.
-    In 1985, 30.57 sq.km of the city’s cumulative built-up area (27.55%) was exposed to combined flooding.
+
+    ---------------------------------------------------------------------------
+
+    NameError                                 Traceback (most recent call last)
+
+    Cell In[277], line 47
+         45 total_built_up_area_1985 = wsf['cumulative sq km'].iloc[0]
+         46 flooded_area_2015 = np.cumsum([stats_by_year[year] for year in years if year <= 2015])[-1]
+    ---> 47 if total_built_up_area != 0:
+         48     percentage_2015 = (flooded_area_2015 / total_built_up_area_2015) * 100
+         49     print(f"In 2015, {flooded_area_2015:.2f} sq.km of the city’s cumulative built-up area ({percentage_2015:.2f}%) was exposed to combined flooding.")
+
+
+    NameError: name 'total_built_up_area' is not defined
 
 
 ### Combined flooding and Population
@@ -401,15 +426,37 @@
     Moved guiyang-oxford-gdp-plot.png to mnt/city-directories/03-render-output/plots/png
     Moved Guiyang_pop_growth.html to mnt/city-directories/03-render-output/plots/html
     Moved guìyáng-pop-density-plotly.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_comb_wsf.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-gdp-plot.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_earthquake_timeline.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_urban_built_up_area.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_flood_timeline.html to mnt/city-directories/03-render-output/plots/html
     Moved guiyang-oxford-employment-sectors.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_pu_wsf.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_urban_built_up_area.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_PV_graph.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_pu_wsf.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-emp-plot.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_slope_treemap.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_slope_treemap.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-pop-plot.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_elevation_treemap.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_age_stats.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_landcover_treemap.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_age_stats.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-gva-sectors.html to mnt/city-directories/03-render-output/plots/html
     Moved guiyang-pop-growth.png to mnt/city-directories/03-render-output/plots/png
     Moved guìyáng-pop-density.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-pop-plot.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_elevation_treemap.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_landcover_treemap.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_fu_wsf.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-employment-sectors.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_flood_timeline.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_earthquake_timeline.html to mnt/city-directories/03-render-output/plots/html
     Moved guiyang-oxford-emp-plot.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_fu_wsf.html to mnt/city-directories/03-render-output/plots/html
+    Moved guiyang_PV_graph.png to mnt/city-directories/03-render-output/plots/png
     Moved guiyang-oxford-gva-sectors.png to mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_comb_wsf.html to mnt/city-directories/03-render-output/plots/html
 

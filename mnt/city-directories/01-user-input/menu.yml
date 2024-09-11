@@ -8,7 +8,7 @@ elevation: True
 slope: True
 solar: True
 air: True
-flood: False
+flood: True
 flood_coastal: False
 flood_fluvial: True
 flood_pluvial: True
