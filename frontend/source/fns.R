@@ -153,7 +153,7 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
                         labels = params$labels,
                         suffix = params$suffix)
 
-  if (is.null(color_scale)) {
+  if (is.null(color_scale) & length(params$palette) > 0) {
     domain <- set_domain(layer_values, domain = params$domain, center = params$center, factor = params$factor)
     color_scale <- create_color_scale(
       domain = domain,
@@ -600,15 +600,18 @@ double_space <- function(x) {
 #   return(merged)
 # }
 
-merge_lists <- function(x, y) {
-  sections <- unique(c(names(x), names(y)))
-  sapply(sections, function(sect) {
-    merged_section <- c(x[[sect]], y[[sect]])
-    slides <- unique(names(merged_section))
-    sapply(slides, function(slide) {
-      merged_slide <- c(x[[sect]][[slide]], y[[sect]][[slide]])
-    }, simplify = F)
-  }, simplify = F)
+merge_lists <- \(x, y) {
+  if (is.null(names(x)) | is.null(names(y))) return(unique(c(x, y)))
+  nameless <- c(x[names(x) == ""], y[names(y) == ""])
+  nameless <- nameless[!(nameless %in% c(names(x), names(y)))]
+  unique_nodes_x <- x[setdiff(names(x), names(y))]
+  unique_nodes_y <- y[setdiff(names(y), names(x))]
+  common_keys <- intersect(names(x), names(y)) %>% .[. != ""]
+  common_nodes <- if (length(common_keys) == 0) NULL else {
+    sapply(common_keys, \(k) merge_lists(x[[k]], y[[k]]), simplify = F)
+  }
+  merged <- unlist(list(common_nodes, unique_nodes_x, unique_nodes_y, nameless), recursive = F)
+  return(merged)
 }
 
 print_md <- function(x, div_class = NULL) {
@@ -627,6 +630,25 @@ print_slide_text <- function(slide) {
     cat("\n")
   }
   if (!is.null(slide$footnote)) print_md(slide$footnote, div_class = "footnote")
+}
+
+fill_slide_content <- function(layer, extra_layers = NULL, title = NULL, slide_text = NULL) {
+  if (!is.null(plots_html[[layer]])) {
+    mapping_layers <- paste(
+      map(c(extra_layers, layer), \(lay) layer_params[[lay]]$group_id),
+      collapse = ";")
+    if (is.null(slide_text)) slide_text <- slide_texts[[layer]]
+    if (is.null(title)) title <- slide_text$title
+    if (is.null(title)) title <- layer
+    cat(glue("### {title}"))
+    cat("\n")
+    cat(glue('<div class="map-list" data-layers="{mapping_layers}"></div>'))
+    cat("\n")
+    tryCatch(
+      include_html_chart(fuzzy_read(file.path(output_dir, "plots/html"), slide_text$plot, paste)),
+      error = \(e) return(""))
+    print_slide_text(slide_text)
+  }
 }
 
 aspect_buffer <- function(x, aspect_ratio, buffer_percent = 0) {
@@ -731,7 +753,7 @@ aggregate_if_too_fine <- function(data, threshold = 1e5, fun = "modal") {
   cell_count <- count_aoi_cells(data, aoi)
   if (cell_count > threshold) {
     factor <- round(sqrt(cell_count / threshold))
-    data <- terra::aggregate(data, fact = factor, fun = fun)
+    if (factor > 1) data <- terra::aggregate(data, fact = factor, fun = fun)
   }
   return(data)
 }
