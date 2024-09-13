@@ -23,3 +23,6 @@ index_cache
 source/custom.css*
 spatial-statistics
 index-*_cache
+alternative-index-files
+auto-index.qmd
+\#*
