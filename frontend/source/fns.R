@@ -225,7 +225,7 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
       # bins = params$bins,
       # bins = 3,  # legend color ramp does not render if there are too many bins
       labels = params$labels,
-      title = params$title,
+      title = format_title(params$title, params$subtitle),
       # labFormat = params$labFormat,
       # labFormat = labelFormat(transform = function(x) label_maker(x = x, levels = params$breaks, labels = params$labels)),
       # labFormat = function(type, breaks, labels) {
@@ -519,7 +519,7 @@ label_maker <- function(x, levels = NULL, labels = NULL, suffix = NULL) {
   return(x)
   }
 
-add_aoi <- function(map, data = aoi, color = 'black', weight = 3, fill = F, dashArray = '12', ...) {
+add_aoi <- function(map, data = aoi, color = 'black', weight = 2, fill = F, dashArray = '12', ...) {
   addPolygons(map, data = data, color = color, weight = weight, fill = fill, dashArray = dashArray, ...)
 }
 
@@ -617,7 +617,7 @@ merge_lists <- \(x, y) {
 print_md <- function(x, div_class = NULL) {
   if (!is.null(div_class)) cat(":::", div_class, "\n")
   cat(x, sep = "\n")
-  if (!is.null(div_class)) cat(":::")
+  if (!is.null(div_class)) cat(":::\n")
 }
 
 print_slide_text <- function(slide) {

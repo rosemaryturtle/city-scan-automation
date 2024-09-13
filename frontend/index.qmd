@@ -46,15 +46,28 @@ anchors <- sections %>% str_extract("^\\s*- (.*$)", group = T) %>% tolower() %>%
 
 paste0(str_replace(sections, "(^\\s*- )(.+$)", "\\1[\\2]"), anchors) %>% { cat("- <span id='dynamic-header'>City Scan</span>  &or;", ., sep = "\n") }
 ```
-
-[Inputs version](https://bennotkin.quarto.pub/gagarin-city-scan-form/)
-
-:::
 :::
 
+<div>
+by the [City Resilience Program](https://www.gfdrr.org/en/crp)
+</div>
+
+:::
+
+::: scrolly
 ::: text-column
 
 # {{< meta title >}}
+
+::: donors
+![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
+
+![World Bank](https://landportal.org/sites/default/files/2024-03/WorldBank_Logo_optimized-17.png)
+
+![Austrian Federal Ministry of Finance](https://www.bmf.gv.at/dam/jcr:b259928e-ef89-43c8-9bf3-4d2dae928bcd/BMF_Logo_srgb_EN.png)
+
+![Swiss Confederation Federal Department of Economic Affairs State Secretariat for Economic Affairs SECO](https://biotrade-asia.com/wp-content/uploads/2022/05/Logo-Swiss.png)
+:::
 
 ## Executive Summary
 ```{r}
@@ -76,6 +89,7 @@ print_slide_text(slide_texts$basic_city_info)
 
 ```{r}
 #| output: asis
+# For map layer to continue to show, all text column content must be in same cell
 fill_slide_content("population")
 print_slide_text(slide_texts$demographics$population_growth)
 plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "pop-density", paste)
@@ -371,6 +385,11 @@ print_md(slide_texts$concluding_questions)
 :::
 
 ::: maps
+
+<div id="cover-map">
+![](mnt/2024-08-china-guiyang/02-process-output/guiyang_network_plus_building_footprints-small-dither.png)
+</div>
+
 ```{r}
 #| output: true
 #| label: leaflet_maps
@@ -385,6 +404,17 @@ plots_html %>%
 # If I want to use javascript directly I could use htmlwidgets::onRender(),
 # or maybe just an observable cell
 ```
+:::
+
+:::
+
+::: foot
+Last edited September 2024. <!-- Ideally this would be programmatic so people can't forget about it -->
+
+This City Scan is a product of the City Resilience Program.
+
+The findings, interpretations, and conclusions expressed in this City Scan do not necessarily reflect the views of the World Bank, the Executive Directors of the World Bank, or the governments they represent. Given that the data included in this work are derived from global sources, the World Bank does not guarantee its accuracy.
+
 :::
 
 {{< include source/scrollytelling.qmd >}}
