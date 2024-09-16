@@ -1,6 +1,4 @@
 #!/bin/bash
-# No longer using this. Using download.R instead
-#
 # Download precipitation index change factors from World Bank Climate Change Knowledge Portal
 #
 # 2024-06-13
