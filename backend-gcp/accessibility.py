@@ -93,7 +93,8 @@ def accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bu
             def isochrone_processing(amenity_type):
                 amenity_threshold_list = isochrones.get(amenity_type)
                 if amenity_threshold_list == None:
-                    return "Amenity type not found"
+                    print(f"Amenity type {amenity_type} not found")
+                    return
                 # if no destinations for amenity type exist
                 if snapped_destinations_dict.get(amenity_type) == None:
                     print(f"no destinations for {amenity_type} exist")

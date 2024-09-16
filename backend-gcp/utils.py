@@ -119,3 +119,14 @@ def delete_blob(bucket_name, blob_name):
     blob.delete()
 
     print(f"Blob {blob_name} deleted.")
+
+def download_blob_timed(bucket_name, source_blob_name, destination_file_name, time_limit, attempt_interval, check_exists = False):
+    from datetime import datetime as dt
+    import time
+
+    # download wsf evolution raster
+    time0 = dt.now()
+    while (dt.now()-time0).total_seconds() <= time_limit:
+        if download_blob(bucket_name, source_blob_name, destination_file_name, check_exists):
+            break
+        time.sleep(attempt_interval)

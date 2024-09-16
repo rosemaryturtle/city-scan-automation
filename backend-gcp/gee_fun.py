@@ -3,11 +3,34 @@ import ee
 # Initialize Earth Engine
 ee.Initialize()
 
+def flatten_to_2d(geom):
+    import shapely
+    
+    if geom.has_z:
+        # If it's a Polygon, handle the exterior and any interiors (holes)
+        if geom.geom_type == 'Polygon':
+            # Convert to 2D by ignoring the Z coordinate
+            new_exterior = [(x, y) for x, y, _ in geom.exterior.coords]
+            new_interiors = [[(x, y) for x, y, _ in interior.coords] for interior in geom.interiors]
+            return shapely.geometry.Polygon(new_exterior, new_interiors)
+        
+        # If it's a MultiPolygon, process each Polygon within it
+        elif geom.geom_type == 'MultiPolygon':
+            new_polygons = []
+            for polygon in geom.geoms:
+                new_exterior = [(x, y) for x, y, _ in polygon.exterior.coords]
+                new_interiors = [[(x, y) for x, y, _ in interior.coords] for interior in polygon.interiors]
+                new_polygons.append(shapely.geometry.Polygon(new_exterior, new_interiors))
+            return shapely.geometry.MultiPolygon(new_polygons)
+    
+    # Return the geometry unchanged if it does not have Z coordinates or is not a Polygon/MultiPolygon
+    return geom
+
 def aoi_to_ee_geometry(aoi_file):
     import shapely
 
     # Remove Z coordinates (convert to 2D)
-    aoi_file['geometry'] = aoi_file['geometry'].apply(lambda geom: shapely.geometry.shape(shapely.geometry.mapping(geom)))
+    aoi_file['geometry'] = aoi_file['geometry'].apply(flatten_to_2d)
     
     AOI = ee.Geometry(shapely.geometry.mapping(aoi_file.unary_union))
     

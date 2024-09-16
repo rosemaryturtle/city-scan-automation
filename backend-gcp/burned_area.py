@@ -51,6 +51,7 @@ def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, lo
     if task_index == task_index_range[-1]:
         from datetime import datetime as dt
         import time
+        from os.path import exists
 
         time0 = dt.now()
         while (dt.now()-time0).total_seconds() <= 120*60:
@@ -63,7 +64,7 @@ def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, lo
                 break
             time.sleep(60)
         
-        concat_df = pd.concat([pd.read_csv(f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv') for ti in task_index_range])
+        concat_df = pd.concat([pd.read_csv(f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv') for ti in task_index_range if exists(f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv')])
 
         # Save centroids to geopackage ----------------
         gpd.GeoDataFrame(concat_df, geometry = gpd.points_from_xy(concat_df.x, concat_df.y, crs = 'EPSG:4326')).to_file(f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', driver='GPKG', layer = 'burned_area')

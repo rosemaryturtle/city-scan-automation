@@ -60,6 +60,54 @@ def composite_flood_raster(raster_arrays, out_meta, output_raster):
     with rasterio.open(output_raster, 'w', **out_meta) as dst:
         dst.write(out_image)
 
+def calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, flood_raster):
+    import utils
+    import raster_pro
+    import rasterio
+    import numpy as np
+
+    # download wsf evolution raster
+    utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_wsf_evolution_utm.tif", f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', 180*60, 60)
+
+    # reproject flood raster to match wsf raster grid
+    raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif')
+
+    # computer zonal stats
+    flood_stats = {}
+
+    with rasterio.open(f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif') as wsf:
+        wsf_array = wsf.read(1)
+        pixelSizeX, pixelSizeY = wsf.res
+
+        with rasterio.open(f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif') as fld:
+            flood_array = fld.read(1)
+            for year in range(1985, 2016):
+                exposed_sqkm = np.count_nonzero(flood_array[wsf_array == year]) * pixelSizeX * pixelSizeY / 1e6
+                flood_stats[year] = exposed_sqkm + flood_stats.get(year - 1, 0)
+    
+    return flood_stats
+
+def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, flood_raster):
+    import utils
+    import raster_pro
+    import rasterio
+    import numpy as np
+
+    # download population raster
+    utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 180*60, 60)
+
+    # reproject flood raster to match wsf raster grid
+    raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_pop.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_population.tif')
+
+    # computer dense population exposure
+    with rasterio.open(f'{local_output_dir}/{city_name_l}_population.tif') as pop:
+        pop_array = pop.read(1)
+
+        with rasterio.open(f'{local_output_dir}/{flood_raster[:-4]}_pop.tif') as fld:
+            flood_array = fld.read(1)
+        
+        # TODO: find nodata value of pop
+
 def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws_access_key_id, aws_secret_access_key, aws_bucket, data_bucket, data_bucket_dir, local_output_dir, cloud_bucket, output_dir):
     print('run process_fathom')
     
@@ -102,10 +150,14 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
             rp_multipliers[rp] = 2
         elif annual_prob > flood_prob_cutoff[1]:
             rp_multipliers[rp] = 3
-                    
+    
+    flood_wsf_stats = {}
+
     for ft in ['coastal', 'fluvial', 'pluvial']:
-        if menu[f'flood_{ft}']:                
+        if menu[f'flood_{ft}']:
+            flood_wsf_stats[ft] = {}
             for year in flood_years:
+                flood_wsf_stats[ft][year] = {}
                 if year <= 2020:
                     out_image_arrays = []
                     for rp in rps:
@@ -121,9 +173,12 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                         out_image_arrays.append(out_image)
                     if out_image_arrays:
                         composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
-                        raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', utm_crs, f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
+                        raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', dst_crs=utm_crs)
+                        flood_wsf_stats[ft][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_utm.tif')
+
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}.tif')
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
+
                         os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
                         os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
                 elif year > 2020:
@@ -142,8 +197,13 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             out_image_arrays.append(out_image)
                         if out_image_arrays:
                             composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
-                            raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', utm_crs, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
+                            raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', dst_crs=utm_crs)
+                            flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
+
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
+                            
                             os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
+
+    # save flood stats as csv and upload

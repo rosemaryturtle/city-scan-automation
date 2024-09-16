@@ -111,9 +111,12 @@ def download_raster(download_list, local_data_dir, data_bucket, data_bucket_dir)
             try:
                 print(f'downloading {dl_file_name}')
                 dl_file = requests.get(f)
-                open(f'{local_data_dir}/{dl_file_name}', 'wb').write(dl_file.content)
-                if utils.upload_blob(data_bucket, f'{local_data_dir}/{dl_file_name}', f'{data_bucket_dir}/{dl_file_name}'):
-                    downloaded_list.append(f'{local_data_dir}/{dl_file_name}')
+                if dl_file.status_code == 200:
+                    open(f'{local_data_dir}/{dl_file_name}', 'wb').write(dl_file.content)
+                    if utils.upload_blob(data_bucket, f'{local_data_dir}/{dl_file_name}', f'{data_bucket_dir}/{dl_file_name}'):
+                        downloaded_list.append(f'{local_data_dir}/{dl_file_name}')
+                else:
+                    print(f"Failed to download. HTTP status code: {dl_file.status_code}")
             except Exception as e:
                 print(f'{dl_file} download exception: {e}')
     
@@ -146,30 +149,77 @@ def mosaic_raster(mosaic_list, local_data_dir, mosaic_file):
     elif len(mosaic_list) == 1:
         os.rename(mosaic_list[0], f'{local_data_dir}/{mosaic_file}')
 
-def reproject_raster(input_raster, dst_crs, output_raster):
+def reproject_raster(src_raster_path, dst_raster_path, dst_crs=None, target_raster_path=None):
+    """
+    Reproject a raster to a new CRS, with an option to match the grid to a target raster.
+    
+    Parameters:
+        src_raster_path (str): Path to the input raster.
+        dst_raster_path (str): Path to the output raster.
+        dst_crs (str, optional): The target CRS (e.g., 'EPSG:4326'). Ignored if target_raster_path is provided.
+        target_raster_path (str, optional): Path to the target raster to match the CRS and grid.
+    
+    Raises:
+        ValueError: If neither dst_crs nor target_raster_path is provided.
+    """
+
     import rasterio
     from rasterio.warp import calculate_default_transform, reproject, Resampling
 
-    with rasterio.open(input_raster) as src:
-        transform, width, height = calculate_default_transform(src.crs, dst_crs, src.width, src.height, *src.bounds)
-        out_meta = src.meta.copy()
-        out_meta.update({
+    # Check if both dst_crs and target_raster_path are None
+    if dst_crs is None and target_raster_path is None:
+        raise ValueError("Either 'dst_crs' or 'target_raster_path' must be specified.")
+    
+    # If target_raster_path is provided, use its CRS
+    if target_raster_path:
+        with rasterio.open(target_raster_path) as target_raster:
+            dst_crs = target_raster.crs
+            target_transform = target_raster.transform
+            target_meta = target_raster.meta.copy()
+
+    # Open the source raster
+    with rasterio.open(src_raster_path) as src_raster:
+        
+        # Calculate transform and metadata for reprojection
+        transform, width, height = calculate_default_transform(
+            src_raster.crs, dst_crs, src_raster.width, src_raster.height, *src_raster.bounds)
+        
+        # Create output raster metadata
+        dst_meta = src_raster.meta.copy()
+        dst_meta.update({
             'crs': dst_crs,
             'transform': transform,
             'width': width,
             'height': height
         })
-
-        with rasterio.open(output_raster, 'w', **out_meta) as dst:
-            for i in range(1, src.count + 1):
+        
+        # Now open the destination raster for writing
+        with rasterio.open(dst_raster_path, 'w', **dst_meta) as dst_raster:
+            # Reproject and write to the new file
+            for i in range(1, src_raster.count + 1):
                 reproject(
-                    source=rasterio.band(src, i),
-                    destination=rasterio.band(dst, i),
-                    src_transform=src.transform,
-                    src_crs=src.crs,
+                    source=rasterio.band(src_raster, i),
+                    destination=rasterio.band(dst_raster, i),
+                    src_transform=src_raster.transform,
+                    src_crs=src_raster.crs,
                     dst_transform=transform,
                     dst_crs=dst_crs,
-                    resampling=Resampling.nearest)
+                    resampling=Resampling.nearest
+                )
+        
+        # If target_raster_path is specified, match the grid to the target raster
+        if target_raster_path:
+            with rasterio.open(dst_raster_path, 'w', **target_meta) as final_raster:
+                for i in range(1, dst_raster.count + 1):
+                    reproject(
+                        source=rasterio.band(dst_raster, i),
+                        destination=rasterio.band(final_raster, i),
+                        src_transform=dst_raster.transform,
+                        dst_transform=target_transform,
+                        src_crs=dst_crs,
+                        dst_crs=dst_crs,
+                        resampling=Resampling.nearest
+                    )
 
 def get_raster_histogram(input_raster, bins, output_csv):
     import rasterio
@@ -212,15 +262,13 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
     import utils
     import rasterio
     import numpy as np
-    # import richdem as rd
-    from google.api_core.exceptions import NotFound
 
     if not os.path.exists(elev_raster):
         if not utils.download_blob(cloud_bucket, f'{output_dir}/{city_name_l}_elevation.tif', elev_raster):
             return
     
     # Reproject elevation raster to a projected coordinate system
-    reproject_raster(elev_raster, 'EPSG:3857', f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
+    reproject_raster(elev_raster, f'{local_output_dir}/{city_name_l}_elevation_3857.tif', 'EPSG:3857')
 
     with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation_3857.tif') as src:
         elevation = src.read(1)
@@ -246,7 +294,7 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
         dst.write(slope.astype(np.float32), 1)
 
     # Reproject slope raster to WGS84
-    reproject_raster(f'{local_output_dir}/{city_name_l}_slope_3857.tif', 'EPSG:4326', f'{local_output_dir}/{city_name_l}_slope.tif')
+    reproject_raster(f'{local_output_dir}/{city_name_l}_slope_3857.tif', f'{local_output_dir}/{city_name_l}_slope.tif', 'EPSG:4326')
 
     # Mask slope raster with AOI
     out_image, out_meta = raster_mask_file(f'{local_output_dir}/{city_name_l}_slope.tif', aoi_file.geometry)
@@ -266,59 +314,3 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
     # elev = rd.LoadGDAL(f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
     # slope = rd.TerrainAttribute(elev, attrib = 'slope_degrees')
     # rd.SaveGDAL(f'{local_output_dir}/{city_name_l}_slope_3857.tif', slope)
-
-# def contour(elev_raster, local_output_dir, city_name_l):
-#     print('run contour')
-
-#     from osgeo import osr, ogr, gdal
-#     import math
-
-#     # Open the elevation raster
-#     rasterDs = gdal.Open(str(elev_raster))
-#     rasterBand = rasterDs.GetRasterBand(1)
-#     proj = osr.SpatialReference(wkt=rasterDs.GetProjection())
-
-#     # Get elevation data as a numpy array
-#     elevArray = rasterBand.ReadAsArray()
-
-#     # Define no-data value
-#     demNan = -9999
-
-#     # Get min and max elevation values
-#     demMax = elevArray.max()
-#     demMin = elevArray[elevArray != demNan].min()
-#     demDiff = demMax - demMin
-
-#     # Determine contour intervals
-#     contourInt = 1
-#     if demDiff > 250:
-#         contourInt = math.ceil(demDiff / 500) * 10
-#     elif demDiff > 100:
-#         contourInt = 5
-#     elif demDiff > 50:
-#         contourInt = 2
-    
-#     contourMin = math.floor(demMin / contourInt) * contourInt
-#     contourMax = math.ceil(demMax / contourInt) * contourInt
-#     contourLevels = range(contourMin, contourMax + contourInt, contourInt)
-    
-#     # Create contour shapefile
-#     contourPath = f'{local_output_dir}/{city_name_l}_contour.gpkg'
-#     contourDs = ogr.GetDriverByName("GPKG").CreateDataSource(contourPath)
-#     contourShp = contourDs.CreateLayer('contour', proj)
-
-#     # Define fields for ID and elevation
-#     fieldDef = ogr.FieldDefn("ID", ogr.OFTInteger)
-#     contourShp.CreateField(fieldDef)
-#     fieldDef = ogr.FieldDefn("elev", ogr.OFTReal)
-#     contourShp.CreateField(fieldDef)
-
-#     # Generate contours
-#     for level in contourLevels:
-#         gdal.ContourGenerate(rasterBand, level, level, [], 1, demNan, contourShp, 0, 1)
-
-#     # Clean up
-#     contourDs.Destroy()
-
-#     # Return contour levels for elevation_stats
-#     return contourLevels

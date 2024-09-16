@@ -24,7 +24,7 @@ def wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cl
     with rasterio.open(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', "w", **out_meta) as dest:
         dest.write(out_image)
 
-    raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', utils.find_utm(aoi_file), f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif')
+    raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', dst_crs=utils.find_utm(aoi_file))
     area_dict = raster_pro.calculate_raster_area(f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', range(1985, 2016))
     # Calculate the cumulative built-up area
     cumulative_area = 0
