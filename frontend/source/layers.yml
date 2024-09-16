@@ -171,7 +171,7 @@ burnable:
   fuzzy_string: lc_burn.*.tif$
   title: Burnability Factor
   palette: ['#FFFFFF', '#EFAD42', '#681A17']
-  breaks: [0, .17, .33, .5, .67, 83, 1]
+  breaks: [0, .17, .33, .5, .67, .83, 1]
 moisture:
   fuzzy_string: NDMI_Annual.*.tif$
   title: NDMI

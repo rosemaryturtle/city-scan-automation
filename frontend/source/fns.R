@@ -76,7 +76,7 @@ prepare_parameters <- function(yaml_key, ...) {
   return(params)
 }
 
-plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
+plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, ...) {
    if (aoi_only) {
     layer <- NULL
   } else { 
@@ -118,6 +118,7 @@ plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only =
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
   if (plot_aoi) p <- p + geom_spatvector(data = aoi, fill = NA, linetype = "dashed", linewidth = .25)
+  if (plot_wards) p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "dashed", linewidth = .25)
   p <- p + coord_3857_bounds()
   return(p)
 }
@@ -255,12 +256,13 @@ coord_3857_bounds <- function(...) {
 save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
   # Saves plots with set legend widths
   plot_layout <- plot_grid(
-    plot + theme(legend.position = "none"),
-    # Before ggplot2 3.5 was get_legend(plot); still works but with warning;
-    # there are now multiple guide-boxes
-    get_plot_component(plot, "guide-box-right"),
-    rel_widths = rel_widths,
-    nrow = 1)
+      plot + theme(legend.position = "none"),
+      # Before ggplot2 3.5 was get_legend(plot); still works but with warning;
+      # there are now multiple guide-boxes
+      get_plot_component(plot, "guide-box-right"),
+      rel_widths = rel_widths,
+      nrow = 1) +
+    theme(plot.background = element_rect(fill = "white", colour = NA))
   cowplot::save_plot(
     plot = plot_layout,
     filename = file.path(directory, filename),
