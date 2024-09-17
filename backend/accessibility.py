@@ -91,7 +91,7 @@ if menu['accessibility']:
                         query_results_gpd_shp = f'{city_name_l}_osm_{query[0]}_{fi}'
                         os.makedirs(output_folder / query_results_gpd_shp, exist_ok=True)
                         query_results_gpd.to_file(output_folder / query_results_gpd_shp / f'{query_results_gpd_shp}.shp')
-                except:
+                except Exception:
                     pass
             
             

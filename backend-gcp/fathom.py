@@ -106,7 +106,9 @@ def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_n
         with rasterio.open(f'{local_output_dir}/{flood_raster[:-4]}_pop.tif') as fld:
             flood_array = fld.read(1)
         
-        # TODO: find nodata value of pop
+        pop_nodata = -99999
+
+# TODO: OSM points and major roads exposure calculations
 
 def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws_access_key_id, aws_secret_access_key, aws_bucket, data_bucket, data_bucket_dir, local_output_dir, cloud_bucket, output_dir):
     print('run process_fathom')
@@ -115,6 +117,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     import numpy as np
     import utils
     import os
+    import csv
 
     # set parameters
     flood_threshold = city_inputs['flood']['threshold']
@@ -152,6 +155,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
             rp_multipliers[rp] = 3
     
     flood_wsf_stats = {}
+    flood_pop_stats = {}
 
     for ft in ['coastal', 'fluvial', 'pluvial']:
         if menu[f'flood_{ft}']:
@@ -207,3 +211,16 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
 
     # save flood stats as csv and upload
+    with open(f'{local_output_dir}/{city_name_l}_flood_wsf.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['year', 'type', 'exposed_built_up_sqkm'])
+        for ft in flood_wsf_stats:
+            for year in flood_wsf_stats[ft]:
+                if isinstance(flood_wsf_stats[ft][year].values()[0], dict):
+                    for ssp in flood_ssps:
+                        for yr in range(1985, 2016):
+                            writer.writerow([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][yr]])
+                else:
+                    for yr in range(1985, 2016):
+                        writer.writerow([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_wsf.csv', f'{output_dir}/{city_name_l}_flood_wsf.csv')

@@ -17,10 +17,9 @@ def accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bu
     features = aoi_file.geometry
 
     # COMPILE ISOCHRONE DICTIONARY #################
+    isochrones = None
     if ('isochrone' in city_inputs) and bool(city_inputs['isochrone']):
         isochrones = city_inputs['isochrone']
-    else:
-        print('No isochrone parameters found')
 
     # PROCESS BY POLYGON ###############################
     for fi in range(len(features)):
@@ -49,7 +48,7 @@ def accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bu
                         # convert to GeoDataFrame
                         query_results_gpd = gpd.GeoDataFrame(query_results, crs = "epsg:4326", geometry = 'geometry')
                         query_results_gpd.to_file(f'{local_output_dir}/{city_name_l}_osm_{query[0]}_{fi}.gpkg', driver='GPKG', layer=f'{query[0]}_{fi}')
-                except:
+                except Exception:
                     pass
             
             

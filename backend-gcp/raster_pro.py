@@ -305,7 +305,7 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
     try:
         os.remove(f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
         os.remove(f'{local_output_dir}/{city_name_l}_slope_3857.tif')
-    except:
+    except Exception:
         pass
 
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.tif', f'{output_dir}/{city_name_l}_slope.tif')

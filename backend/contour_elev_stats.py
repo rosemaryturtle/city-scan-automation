@@ -92,7 +92,7 @@ if menu['raster_processing'] and menu['elevation']:
 
         # Clean up
         contourDs.Destroy()
-    except:
+    except Exception:
         print('generate contour lines failed')
     
 
@@ -116,5 +116,5 @@ if menu['raster_processing'] and menu['elevation']:
             for i, count in enumerate(hist):
                 bin_range = f"{int(bin_edges[i])}-{int(bin_edges[i+1])}"
                 writer.writerow([bin_range, count])
-    except:
+    except Exception:
         print('calculate elevation stats failed')

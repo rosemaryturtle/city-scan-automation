@@ -66,7 +66,7 @@ if menu['soil_salinity']:
                         dest.write(out_image)
                     
                     i += 1
-                except:
+                except Exception:
                     pass
         if exists(output_folder / f'{city_name_l}_soil_salinity_{year}_0.tif'):
             if exists(output_folder / f'{city_name_l}_soil_salinity_{year}_1.tif'):

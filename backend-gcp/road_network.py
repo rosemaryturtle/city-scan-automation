@@ -136,7 +136,7 @@ def plot_radar(city_name_l, aoi_file, local_output_dir):
     try:
         if G.graph['crs'].is_projected:
             raise Exception("Graph seems to be projected, bearings will not generated if x and y are not in decimal degrees")
-    except:
+    except Exception:
         print("graph seems to be unprojected, this is ok, continue")
         
     G = ox.add_edge_bearings(G)

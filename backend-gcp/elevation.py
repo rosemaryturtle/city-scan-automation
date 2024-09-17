@@ -36,7 +36,7 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
                 with zipfile.ZipFile(f'{local_elev_folder}/{elev_download_dict[fn]}', 'r') as z:
                     z.extract(fn, local_elev_folder)
                     mosaic_list.append(f'{local_elev_folder}/{fn}')
-            except:
+            except Exception:
                 pass
     
     if mosaic_list:

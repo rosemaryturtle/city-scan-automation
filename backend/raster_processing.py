@@ -274,7 +274,7 @@ if menu['raster_processing']:
                                 with zipfile.ZipFile(global_inputs['elevation_source'] / file_name, 'r') as z:
                                     z.extract(file_name1, elev_folder)
                                     elev_downloaded_files.append(file_name1)
-                            except:
+                            except Exception:
                                 pass
 
         if len(elev_downloaded_files) > 1:
@@ -334,7 +334,7 @@ if menu['raster_processing']:
                 try:
                     demo_file = requests.get(f)
                     open(demo_folder / demo_file_name, 'wb').write(demo_file.content)
-                except:
+                except Exception:
                     err_msg = 'No demographics files available'
                     print(err_msg)
                     failed.append(err_msg)
@@ -664,7 +664,7 @@ if menu['raster_processing']:
     if menu['population']:
         try:
             clipdata(pop_folder / f"{city_inputs['country_name'].replace(' ', '_').lower()}_pop.tif", 'population')
-        except:
+        except Exception:
             failed.append('process population failed')
 
     # wsf
@@ -672,14 +672,14 @@ if menu['raster_processing']:
         # try:
         print('process wsf')
         clipdata_wsf(wsf_folder / f'{city_name_l}_wsf_evolution.tif')
-        # except:
+        # except Exception:
         #     failed.append('process wsf failed')
     
     # elevation
     if menu['elevation'] or menu['slope']:
         try:
             clipdata(elev_folder / f'{city_name_l}_elevation.tif', 'elevation')
-        except:
+        except Exception:
             failed.append('process elevation failed')
     
     # demographics
@@ -746,7 +746,7 @@ if menu['raster_processing']:
                     raster_meta.update({'nodata': 0})
                     with rasterio.open(output_folder / output_name, 'w', **raster_meta) as m:
                         m.write(sum(raster_to_add) / demo_total)
-        except:
+        except Exception:
             failed.append('process demographics failed')
     
     if menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:
@@ -887,12 +887,12 @@ if menu['raster_processing']:
             if (f'{r}_source' in city_inputs) and bool(city_inputs[f'{r}_source']):
                 try:
                     clipdata(city_inputs[f'{r}_source'], r)
-                except:
+                except Exception:
                     failed.append(f'process {r} failed')
             elif (f'{r}_source' in global_inputs) and bool(global_inputs[f'{r}_source']):
                 try:
                     clipdata(global_inputs[f'{r}_source'], r)
-                except:
+                except Exception:
                     failed.append(f'process {r} failed')
             else:
                 print(f'data source for {r} does not exist in city or global inputs yaml')

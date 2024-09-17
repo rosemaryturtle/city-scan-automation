@@ -112,7 +112,7 @@ if menu['raster_processing'] and menu['slope']:
                 for i, count in enumerate(hist):
                     bin_range = f"{bins[i]}-{bins[i+1]}"
                     writer.writerow([bin_range, count])
-    except:
+    except Exception:
         print('process slope failed')
     
     # Remove intermediate outputs
@@ -122,5 +122,5 @@ if menu['raster_processing'] and menu['slope']:
 
         if not menu['elevation']:
             os.remove(output_folder / f'{city_name_l}_elevation.tif')
-    except:
+    except Exception:
         print('remove intermediate slope outputs failed')

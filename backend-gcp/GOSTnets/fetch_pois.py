@@ -121,7 +121,7 @@ class OsmObject():
         def tryLoad(x):
             try:
                 return ([x.x, x.y])
-            except:
+            except Exception:
                 return([0,0])
             
         curDF = self.df

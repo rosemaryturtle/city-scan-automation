@@ -128,7 +128,7 @@ class OSM_to_network(object):
                                 one_way = True
                             else:
                                 one_way = False
-                        except:
+                        except Exception:
                             print(f"skipping over reading other tags of osm_id: {osm_id}")
                             one_way = False          
                         
@@ -304,7 +304,7 @@ class OSM_to_network(object):
                 try:
                     out = shapely.ops.split(line, MultiPoint(hits))
                     new_lines.append([{'geometry': LineString(x), 'osm_id':key1,'infra_type':infra_type, 'one_way':one_way} for x in out.geoms])
-                except:
+                except Exception:
                     pass
             else:
                 new_lines.append([{'geometry': line, 'osm_id':key1,
@@ -346,7 +346,7 @@ class OSM_to_network(object):
         else:
             try:
                 edges_1 = self.roadsGPD
-            except:
+            except Exception:
                 self.generateRoadsGDF()
                 edges_1 = self.roadsGPD
 

@@ -155,7 +155,7 @@ if menu['road_network']:
         try:
             if G.graph['crs'].is_projected:
                 raise Exception("Graph seems to be projected, bearings will not generated if x and y are not in decimal degrees")
-        except:
+        except Exception:
             print("graph seems to be unprojected, this is ok, continue")
             
         G = ox.add_edge_bearings(G)

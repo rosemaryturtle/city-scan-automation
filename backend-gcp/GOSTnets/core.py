@@ -341,7 +341,7 @@ def node_gdf_from_graph(G, crs = 'epsg:4326', attr_list = None, geometry_tag = '
                 'geometry': Point(data[xCol], data[yCol]),
                 'x': data[xCol],
                 'y': data[yCol]}
-            except:
+            except Exception:
                 print('Skipped due to missing geometry data:',(u, data))
         else:
             try:
@@ -350,13 +350,13 @@ def node_gdf_from_graph(G, crs = 'epsg:4326', attr_list = None, geometry_tag = '
                 'geometry': data[geometry_tag],
                 'x':data[geometry_tag].x,
                 'y':data[geometry_tag].y}
-            except:
+            except Exception:
                 print((u, data))
 
         for i in non_geom_attr_list:
             try:
                 new_column_info[i] = data[i]
-            except:
+            except Exception:
                 pass
 
         nodes.append(new_column_info)
@@ -425,7 +425,7 @@ def edge_gdf_from_graph(G, crs = 'EPSG:4326', attr_list = None, geometry_tag = '
         for i in attr_list:
             try:
                 new_column_info[i] = data[i]
-            except:
+            except Exception:
                 pass
         
         return new_column_info
@@ -599,13 +599,13 @@ def sample_raster(G, tif_path, property_name = 'RasterValue'):
         list_of_nodes = {}
         for u, data in G.nodes(data=True):
             list_of_nodes.update({u:(data['x'], data['y'])})
-    except:
+    except Exception:
         raise ValueError('loading point geometry went wrong. Ensure node data dict includes x, y values!')
 
     # load raster
     try:
         dataset = rasterio.open(os.path.join(tif_path))
-    except:
+    except Exception:
         raise ValueError('Expecting a path to a .tif file!')
 
     # create list of values, throw out nodes that don't intersect the bounds of the raster
@@ -628,7 +628,7 @@ def sample_raster(G, tif_path, property_name = 'RasterValue'):
     for u, data in G.nodes(data=True):
         try:
             data[property_name] = ref[u]
-        except:
+        except Exception:
             missedCnt += 1
             logging.info("Could not add raster value to node %s" % u)
     logging.info("Number of original nodes: %s" % len(G.nodes))
@@ -1021,7 +1021,7 @@ def convert_network_to_time(G, distance_tag, graph_type = 'drive', road_col = 'h
         # checks the first edge to see if the 'time' attribute already exists
         if list(G.edges(data = True))[0][2]['time']:
           warnings.warn('Aree you sure you want to convert length to time? This graph already has a time attribute')
-    except:
+    except Exception:
         pass
 
     G_adj = G.copy()
@@ -1148,7 +1148,7 @@ def assign_traffic_times(G, mb_token, accepted_road_types = ['trunk','trunk_link
 
         try:
             data = json.loads(r.read().decode('utf-8'))['routes'][0]['duration']
-        except:
+        except Exception:
             data = np.nan
 
         # print(data)
@@ -2175,7 +2175,7 @@ def pandana_snap(G, point_gdf, source_crs = 'epsg:4326', target_crs = 'epsg:4326
             try:
                 in_df['x'] = in_df.geometry.x
                 in_df['y'] = in_df.geometry.y
-            except:
+            except Exception:
                 in_df['x'] = in_df.geometry.apply(lambda geometry: geometry.x)
                 in_df['y'] = in_df.geometry.apply(lambda geometry: geometry.y)
 
@@ -2189,7 +2189,7 @@ def pandana_snap(G, point_gdf, source_crs = 'epsg:4326', target_crs = 'epsg:4326
         try:
             in_df['x'] = in_df.geometry.x
             in_df['y'] = in_df.geometry.y
-        except:
+        except Exception:
             in_df['x'] = in_df.geometry.apply(lambda geometry: geometry.x)
             in_df['y'] = in_df.geometry.apply(lambda geometry: geometry.y)
 
@@ -2264,7 +2264,7 @@ def pandana_snap_c(G, point_gdf, source_crs = 'epsg:4326', target_crs = 'epsg:43
             try:
                 in_df['x'] = in_df.geometry.x
                 in_df['y'] = in_df.geometry.y
-            except:
+            except Exception:
                 in_df['x'] = in_df.geometry.apply(lambda geometry: geometry.x)
                 in_df['y'] = in_df.geometry.apply(lambda geometry: geometry.y)
 
@@ -2279,7 +2279,7 @@ def pandana_snap_c(G, point_gdf, source_crs = 'epsg:4326', target_crs = 'epsg:43
         try:
             in_df['x'] = in_df.geometry.x
             in_df['y'] = in_df.geometry.y
-        except:
+        except Exception:
             in_df['x'] = in_df.geometry.apply(lambda geometry: geometry.x)
             in_df['y'] = in_df.geometry.apply(lambda geometry: geometry.y)
 
@@ -2353,7 +2353,7 @@ def pandana_snap_to_many(G, point_gdf, source_crs = 'epsg:4326', target_crs = 'e
             try:
                 in_df['x'] = in_df.geometry.x
                 in_df['y'] = in_df.geometry.y
-            except:
+            except Exception:
                 in_df['x'] = in_df.geometry.apply(lambda geometry: geometry.x)
                 in_df['y'] = in_df.geometry.apply(lambda geometry: geometry.y)
 
@@ -2369,7 +2369,7 @@ def pandana_snap_to_many(G, point_gdf, source_crs = 'epsg:4326', target_crs = 'e
         try:
             in_df['x'] = in_df.geometry.x
             in_df['y'] = in_df.geometry.y
-        except:
+        except Exception:
             in_df['x'] = in_df.geometry.apply(lambda geometry: geometry.x)
             in_df['y'] = in_df.geometry.apply(lambda geometry: geometry.y)
 
@@ -2578,12 +2578,12 @@ def clip(G, bound, source_crs = 'epsg:4326', target_crs = 'epsg:4326', geom_col 
             # define basics from data dictionary
             try:
                 infra_type = data['infra_type']
-            except:
+            except Exception:
                 infra_type = data['highway']
             #extract the geometry of the geom_col, if there is no explicit geometry, load the wkt
             try:
                 geom = data[geom_col]
-            except:
+            except Exception:
                 geom = loads(data['Wkt'])
 
             # road fully within country - do nothing
@@ -2927,7 +2927,7 @@ def advanced_snap(G, pois, u_tag = 'stnode', v_tag = 'endnode', node_key_col='os
     # try:
     #     # convert node_key_col to int if needed
     #     nodes[node_key_col] = nodes[node_key_col].astype('int64')
-    # except:
+    # except Exception:
     #     print('error, node_key_col needs to be an int or convertible to an int')
 
     edges = edge_gdf_from_graph(G, oneway_tag = oneway_tag, single_edge=True)
@@ -3118,13 +3118,13 @@ def advanced_snap(G, pois, u_tag = 'stnode', v_tag = 'endnode', node_key_col='os
         # try:
         #     # convert node_key_col to int if needed
         #     new_edges[u_tag] = new_edges[u_tag].astype('int64')
-        # except:
+        # except Exception:
         #     print('error, to nodes of new edges need to be an int or convertible to an int')
 
         # try:
         #     # convert node_key_col to int if needed
         #     new_edges[v_tag] = new_edges[v_tag].astype('int64')
-        # except:
+        # except Exception:
         #     print('error, from nodes of new edges need to be an int or convertible to an int')
 
         new_edges[edge_key_col] = ['_'.join(list(map(str, s))) for s in zip(new_edges[v_tag], new_edges[u_tag])]
@@ -3319,7 +3319,7 @@ def advanced_snap(G, pois, u_tag = 'stnode', v_tag = 'endnode', node_key_col='os
     # nodes_id_dict = {}
     # try:
     #     nodes_id_dict = dict(zip(nodes_coord, nodes_meter[node_key_col].astype('int64')))
-    # except:
+    # except Exception:
     #     print('error, nodes_id_dict nodes need to be an int or convertible to an int')
 
 
