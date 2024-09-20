@@ -166,6 +166,15 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
       levels = levels(layer_values))
   }
 
+  # if (length(params$stroke$palette) > 0) {
+  #   stroke_color_scale <- create_color_scale(
+  #     domain = range(data)[,params$stroke$variable],
+  #     palette = params$stroke$palette,
+  #     bins = params$bins,
+  #     breaks = params$breaks
+  #   )
+  # }
+
 # I have moved the formerly-present note on lessons from the CRC Workshop code to my `Week of 2023-11-26` note in Obsidian.
 
 ### !!! I need to pull labels out because not always numeric so can't be signif
@@ -438,6 +447,7 @@ save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
 get_layer_values <- function(data) {
   if (class(data)[1] %in% c("SpatRaster")) {
       values <- values(data)
+      # if (!is.null(levels(data))) values <- factor(values, levels = levels(data)[[1]]$value, labels = levels(data)[[1]]$label)
     } else if (class(data)[1] %in% c("SpatVector")) {
       values <- pull(values(data))
     } else if (class(data)[1] == "sf") {

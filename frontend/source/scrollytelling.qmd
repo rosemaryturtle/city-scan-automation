@@ -60,6 +60,17 @@ function handleStepEnter(response) {
       }
     })
   }
+
+  // Method that would use a child div with a list of map layers instead; not working
+  // var listDiv = response.element.getElementsByClassName("map-list")[0]
+  // if (typeof listDiv === 'object') {
+  //   var layerList = listDiv.firstElementChild.children
+  //   for (var i = 0; i < layerList.length; i++) {
+  //     var layerIndex = overlayLayers.indexOf(layerList[i])
+  //     if (layerIndex > -1 && !inputs[layerIndex].checked) {
+  //       inputs[layerIndex].click()
+  //     }
+  //   }
 }
 
 function handleStepExit(response) {
@@ -117,7 +128,10 @@ function initLevel2() {
 			debug: false, // display the trigger offset for testing
     })
     .onStepEnter(response => {
-      $headerAboveMap.text(response.element.firstElementChild.textContent)
+      // I would like to include the section number but I would need to use a
+      // different method for setting section numbers than CSS's counter(), which
+      // can't be read by JS
+      $headerAboveMap.text("Section: " + response.element.firstElementChild.textContent)
     })
 }
 

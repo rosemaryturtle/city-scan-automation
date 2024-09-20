@@ -18,7 +18,7 @@ librarian::shelf(
 
   # Spatial
   sf,
-  terra,
+  rstudio/terra, # Only the github version of leaflet supports terra, in place of raster, which is now required as sp (on which raster depends) is being deprecated
   tidyterra, 
   leaflet, 
   ggspatial, 
@@ -50,11 +50,10 @@ process_output_dir <- file.path(city_dir, "02-process-output/")
 spatial_dir <- file.path(process_output_dir, "spatial/")
 output_dir <- file.path(city_dir, "03-render-output/")
 # styled_maps_dir <- file.path(output_dir, "styled-maps/")
-styled_maps_dir <- file.path("maps")
+styled_maps_dir <- file.path("generated/static-maps/")
 
 # Load city parameters
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
-# cities <- list.files("cities")
 city <- city_params$city_name
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
 country <- city_params$country_name

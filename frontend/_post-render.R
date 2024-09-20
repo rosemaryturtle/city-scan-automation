@@ -8,7 +8,7 @@ file.copy("index.html", "pdf.html", overwrite = T)
 #  - Remove PNG plots
 html <- readLines("index.html") %>%
   # Delete PNG maps from web version
-  .[-str_which(., "styled-maps/")]
+  .[-str_which(., "static-maps/")]
   # When we've included PNG plots to index.qmd, remove those as well
 cat(html, sep = "\n", file = "index-web.html")
 
