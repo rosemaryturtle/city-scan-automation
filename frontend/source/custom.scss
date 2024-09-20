@@ -43,7 +43,6 @@ $page-margin-right: 0.5in;
     display: grid; // Overridden by print
     grid-template-columns: 1fr 2fr;
     grid-template-rows: var(--topbar-height) calc(100vh - var(--topbar-height)) auto auto;
-    grid-column-gap: 2ch;
   }
   @media print { display: block; }
   min-height: 90vh;
@@ -59,8 +58,7 @@ $page-margin-right: 0.5in;
     grid-column: 1/2;
     min-height: calc(100vh - var(--topbar-height));
     padding: $side-padding;
-    margin-right: -$side-padding
-    // margin-bottom: calc(var(--topbar-height)/2); // Not quite sure why this is half and not fully topbar-height
+    margin-right: -$side-padding;
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: 20px 20px;
     display: flex;
@@ -106,8 +104,6 @@ $page-margin-right: 0.5in;
     grid-column: 1 / 2;
     grid-row: 3 / 4;
     grid-column-gap: 2ch; // Set with sass variable? //Is this used / right
-    padding-left: $side-padding;
-    margin: 0 -$side-padding;
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: 20px 20px;
   }
@@ -334,12 +330,10 @@ $page-margin-right: 0.5in;
     text-align: left;
     border-bottom: 1px solid black;
     padding-top: 3px;
-    padding-left: $side-padding;
-    padding-right: $side-padding;
 
     h1 {
       // grid-column: 1/2;
-      padding: .25rem 0;
+      padding: .25rem $side-padding;
       font-size: 1.1rem;
       font-weight: 400;
       text-transform: uppercase;
@@ -350,7 +344,7 @@ $page-margin-right: 0.5in;
     div:nth-child(3) {
       grid-column: 3/4;
       text-align: right;
-      // padding-right: 1.5em;
+      padding-right: $side-padding;
     }
 
     a {
@@ -398,7 +392,7 @@ $page-margin-right: 0.5in;
     padding: .25rem 0.5rem;
     position: relative;
     text-decoration: none;
-    transition-duration: 0.5s;
+    // transition-duration: 0.5s;
   }
 
   li a {
@@ -434,7 +428,7 @@ $page-margin-right: 0.5in;
     opacity: 0;
     min-width: 5rem;
     position: relative;
-    transition: all 0.5s ease;
+    // transition: all 0.5s ease;
     margin-top: .5rem;
     display: none;
   }
