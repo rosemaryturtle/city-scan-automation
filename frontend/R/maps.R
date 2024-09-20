@@ -14,9 +14,9 @@ layer_params <- read_yaml(layer_params_file)
 # Interactive Plots (Leaflet)
 basemap_opacity <- 0.3
 legend_opacity <- 0.8
+layer_alpha <- 0.8 # Used by both interactive and static
 
 # Static map
-layer_alpha <- 0.8
 map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height

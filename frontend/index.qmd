@@ -14,11 +14,13 @@ execute:
 ```{r}
 #| include: false
 #| label: prerender
+city <- "Guiyang" # For some reason source isn't enough for adding city name to title
+country <- "China"
 source('R/maps.R')
 ```
 
 ---
-title: "`r paste(city, country, sep = ', ')`, City Scan"
+title: "`r paste(city, country, sep = ', ')`"
 ---
 
 ```{r}
@@ -54,10 +56,12 @@ by the [City Resilience Program](https://www.gfdrr.org/en/crp)
 
 :::
 
-::: scrolly
-::: text-column
+::: {#cover-page}
+# {{< meta title >}} <!-- Put "City Scan" on second line-->
 
-# {{< meta title >}}
+City Scan
+
+August 2024
 
 ::: donors
 ![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
@@ -68,6 +72,14 @@ by the [City Resilience Program](https://www.gfdrr.org/en/crp)
 
 ![Swiss Confederation Federal Department of Economic Affairs State Secretariat for Economic Affairs SECO](https://biotrade-asia.com/wp-content/uploads/2022/05/Logo-Swiss.png)
 :::
+
+:::
+
+<div id="cover-map">
+![](mnt/2024-08-china-guiyang/02-process-output/guiyang_network_plus_building_footprints-small-dither.png)
+</div>
+
+::: text-column
 
 ## Executive Summary
 ```{r}
@@ -385,11 +397,6 @@ print_md(slide_texts$concluding_questions)
 :::
 
 ::: maps
-
-<div id="cover-map">
-![](mnt/2024-08-china-guiyang/02-process-output/guiyang_network_plus_building_footprints-small-dither.png)
-</div>
-
 ```{r}
 #| output: true
 #| label: leaflet_maps
@@ -399,12 +406,12 @@ plots_html %>%
   add_aoi() %>%
   addLayersControl(
     overlayGroups = group_ids,
+    position = "topleft",
     options = layersControlOptions(collapsed = TRUE))
 
 # If I want to use javascript directly I could use htmlwidgets::onRender(),
 # or maybe just an observable cell
 ```
-:::
 
 :::
 
