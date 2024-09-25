@@ -116,8 +116,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     import raster_pro
     import numpy as np
     import utils
-    import os
-    import csv
+    import pandas as pd
 
     # set parameters
     flood_threshold = city_inputs['flood']['threshold']
@@ -170,21 +169,20 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             for lon in lon_tiles:
                                 download_list.append(f"FATHOM/v2023/GLOBAL-1ARCSEC-NW_OFFSET-1in{rp}-{flood_type_folder_dict[ft]}-DEPTH-{year}-PERCENTILE50-v3.0/{lat.lower()}{lon.lower()}.tif")
                                 downloaded_list = download_fathom_from_aws(download_list, aws_access_key_id, aws_secret_access_key, aws_bucket, local_flood_folder, data_bucket, data_bucket_dir)
-                        mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
-                        raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
-                        out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
-                        out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
-                        out_image_arrays.append(out_image)
+                        if downloaded_list:
+                            mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
+                            raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
+                            out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
+                            out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
+                            out_image_arrays.append(out_image)
                     if out_image_arrays:
                         composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
                         raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', dst_crs=utm_crs)
-                        flood_wsf_stats[ft][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_utm.tif')
+                        flood_wsf_stats[ft][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif')
 
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}.tif')
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
 
-                        os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
-                        os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
                 elif year > 2020:
                     for ssp in flood_ssps:
                         out_image_arrays = []
@@ -194,33 +192,38 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                                 for lon in lon_tiles:
                                     download_list.append(f"FATHOM/v2023/GLOBAL-1ARCSEC-NW_OFFSET-1in{rp}-{flood_type_folder_dict[ft]}-DEPTH-{year}-SSP{flood_ssp_labels[ssp]}-PERCENTILE50-v3.0/{lat.lower()}{lon.lower()}.tif")
                                     downloaded_list = download_fathom_from_aws(download_list, aws_access_key_id, aws_secret_access_key, aws_bucket, local_flood_folder, data_bucket, data_bucket_dir)
-                            mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
-                            raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
-                            out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
-                            out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
-                            out_image_arrays.append(out_image)
+                            if downloaded_list:
+                                mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
+                                raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
+                                out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
+                                out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
+                                out_image_arrays.append(out_image)
                         if out_image_arrays:
                             composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', dst_crs=utm_crs)
-                            flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
+                            flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
 
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
                             
-                            os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
-                            os.remove(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
-
     # save flood stats as csv and upload
-    with open(f'{local_output_dir}/{city_name_l}_flood_wsf.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['year', 'type', 'exposed_built_up_sqkm'])
-        for ft in flood_wsf_stats:
-            for year in flood_wsf_stats[ft]:
-                if isinstance(flood_wsf_stats[ft][year].values()[0], dict):
-                    for ssp in flood_ssps:
-                        for yr in range(1985, 2016):
-                            writer.writerow([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][yr]])
-                else:
+    # wsf
+    rows = []
+
+    for ft in flood_wsf_stats:
+        for year in flood_wsf_stats[ft]:
+            if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
+                for ssp in flood_ssps:
                     for yr in range(1985, 2016):
-                        writer.writerow([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
+                        rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
+            else:
+                for yr in range(1985, 2016):
+                    rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
+
+    df = pd.DataFrame(rows, columns=['year', 'type', 'exposed_built_up_sqkm'])
+    df_pivot = df.pivot(index='year', columns='type', values='exposed_built_up_sqkm')
+
+    df_pivot.to_csv(f'{local_output_dir}/{city_name_l}_flood_wsf.csv')
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_wsf.csv', f'{output_dir}/{city_name_l}_flood_wsf.csv')
+
+    # pop

@@ -170,20 +170,26 @@ def reproject_raster(src_raster_path, dst_raster_path, dst_crs=None, target_rast
     if dst_crs is None and target_raster_path is None:
         raise ValueError("Either 'dst_crs' or 'target_raster_path' must be specified.")
     
-    # If target_raster_path is provided, use its CRS
+    # If target_raster_path is provided, use its CRS and transform
     if target_raster_path:
         with rasterio.open(target_raster_path) as target_raster:
-            dst_crs = target_raster.crs
+            dst_crs = target_raster.crs  # Use the CRS from the target raster
             target_transform = target_raster.transform
             target_meta = target_raster.meta.copy()
 
     # Open the source raster
     with rasterio.open(src_raster_path) as src_raster:
         
-        # Calculate transform and metadata for reprojection
-        transform, width, height = calculate_default_transform(
-            src_raster.crs, dst_crs, src_raster.width, src_raster.height, *src_raster.bounds)
-        
+        # If we are not matching a target raster, calculate the default transform
+        if not target_raster_path:
+            transform, width, height = calculate_default_transform(
+                src_raster.crs, dst_crs, src_raster.width, src_raster.height, *src_raster.bounds)
+        else:
+            # Use the target raster's transform (i.e., match its grid)
+            transform = target_transform
+            width = target_meta['width']
+            height = target_meta['height']
+
         # Create output raster metadata
         dst_meta = src_raster.meta.copy()
         dst_meta.update({
@@ -192,8 +198,8 @@ def reproject_raster(src_raster_path, dst_raster_path, dst_crs=None, target_rast
             'width': width,
             'height': height
         })
-        
-        # Now open the destination raster for writing
+
+        # Open the destination raster for writing
         with rasterio.open(dst_raster_path, 'w', **dst_meta) as dst_raster:
             # Reproject and write to the new file
             for i in range(1, src_raster.count + 1):
@@ -206,20 +212,6 @@ def reproject_raster(src_raster_path, dst_raster_path, dst_crs=None, target_rast
                     dst_crs=dst_crs,
                     resampling=Resampling.nearest
                 )
-        
-        # If target_raster_path is specified, match the grid to the target raster
-        if target_raster_path:
-            with rasterio.open(dst_raster_path, 'w', **target_meta) as final_raster:
-                for i in range(1, dst_raster.count + 1):
-                    reproject(
-                        source=rasterio.band(dst_raster, i),
-                        destination=rasterio.band(final_raster, i),
-                        src_transform=dst_raster.transform,
-                        dst_transform=target_transform,
-                        src_crs=dst_crs,
-                        dst_crs=dst_crs,
-                        resampling=Resampling.nearest
-                    )
 
 def get_raster_histogram(input_raster, bins, output_csv):
     import rasterio
