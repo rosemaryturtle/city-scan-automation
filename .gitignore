@@ -189,11 +189,17 @@ multi-scan-materials/.DS_Store
 *.png
 output/*_road_network/*
 data/flood/*
+mnt/**
+
+# other
 backend/temp.ipynb
+backend/temp.py
 backend/cover_image.py
 backend/desertification/*
 backend/vulnerability_mapping/*
-mnt/**
+backend-gcp/city_inputs.yml
+backend-gcp/fathom_aws_credentials.yml
+backend-gcp/menu.yml
 
 # GitHub Wiki
 city-scan-automation.wiki.git

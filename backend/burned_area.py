@@ -19,7 +19,7 @@ if menu['burned_area']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -70,4 +70,4 @@ if menu['burned_area']:
         # Save centroids to shapefile ----------------
         if not os.path.exists(output_folder / f'{city_name_l}_globfire_centroids'):
             os.mkdir(output_folder / f'{city_name_l}_globfire_centroids')
-        gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y)).to_file(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp', crs = 'EPSG:4326')
+        gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y, crs = 'EPSG:4326')).to_file(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp')

@@ -17,7 +17,7 @@ if menu['raster_processing'] and menu['slope']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -112,7 +112,7 @@ if menu['raster_processing'] and menu['slope']:
                 for i, count in enumerate(hist):
                     bin_range = f"{bins[i]}-{bins[i+1]}"
                     writer.writerow([bin_range, count])
-    except:
+    except Exception:
         print('process slope failed')
     
     # Remove intermediate outputs
@@ -122,5 +122,5 @@ if menu['raster_processing'] and menu['slope']:
 
         if not menu['elevation']:
             os.remove(output_folder / f'{city_name_l}_elevation.tif')
-    except:
+    except Exception:
         print('remove intermediate slope outputs failed')
