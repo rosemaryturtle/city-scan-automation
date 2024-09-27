@@ -189,7 +189,7 @@ multi-scan-materials/.DS_Store
 *.png
 output/*_road_network/*
 data/flood/*
-mnt/city-directories/02-process-output/*
+mnt/**
 
 # other
 backend/temp.ipynb

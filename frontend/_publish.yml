@@ -6,6 +6,8 @@
       url: 'https://bennotkin.quarto.pub/goris'
     - id: ced834fc-90ef-40fe-86d7-1015ce131961
       url: 'https://bennotkin.quarto.pub/pdf'
+    - id: b3a5d9fc-195c-4542-8769-e8632e550bb3
+      url: 'https://wbcrp.quarto.pub/china-guiyang'
 - source: inputs-form.qmd
   quarto-pub:
     - id: aa8dfc11-858e-467e-961f-6af27d85487a

@@ -17,14 +17,6 @@ which_not <- function(v1, v2, swap = F, both = F) {
   }
 }
 
-paste_path <- compiler::cmpfun(function(...) {
-  items <- c(...)
-  if (items[1] == "") items <- items[-1]
-  path <- paste(items, collapse = "/") %>%
-    { gsub("/+", "/", .) }
-  return(path)
-})
-
 paste_and <- function(v) {
     if (length(v) == 1) {
     string <- paste(v)
@@ -57,4 +49,10 @@ yaml_as_df <- function(yaml, print = F) {
   # }))
   if(print) print(as.data.frame(tib), right = F)
   return(tib)
+}
+
+Mode <- \(x, na.rm = F) {
+  if (na.rm) x <- na.omit(x)
+  unique_values <- unique(x)
+  unique_values[which.max(tabulate(match(x, unique_values)))]
 }
