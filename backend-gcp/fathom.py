@@ -178,10 +178,11 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                     if out_image_arrays:
                         composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
                         raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', dst_crs=utm_crs)
-                        flood_wsf_stats[ft][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif')
 
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}.tif')
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
+
+                        flood_wsf_stats[ft][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif')
 
                 elif year > 2020:
                     for ssp in flood_ssps:
@@ -201,11 +202,12 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                         if out_image_arrays:
                             composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', dst_crs=utm_crs)
-                            flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
-
+                            
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
                             
+                            flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
+
     # save flood stats as csv and upload
     # wsf
     rows = []

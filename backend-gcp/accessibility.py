@@ -120,11 +120,11 @@ def accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bu
             tag_list.append(tag)
     
     for tag in tag_list:
-        gdf_concat = []
-
-        for fi in range(len(features)):
-            gdf_concat.append(gpd.read_file(f'{local_output_dir}/{city_name_l}_osm_{tag}_{fi}.gpkg', layer = f'{tag}_{fi}'))
-            os.remove(f'{local_output_dir}/{city_name_l}_osm_{tag}_{fi}.gpkg')
+        gdf_concat = [
+            gpd.read_file(f'{local_output_dir}/{city_name_l}_osm_{tag}_{fi}.gpkg', layer=f'{tag}_{fi}')
+            for fi in range(len(features))
+            if os.path.exists(f'{local_output_dir}/{city_name_l}_osm_{tag}_{fi}.gpkg')
+        ]
         
         if gdf_concat:
             gpd.GeoDataFrame(pd.concat(gdf_concat)).to_file(f'{local_output_dir}/{city_name_l}_osm_{tag}.gpkg', driver='GPKG', layer = tag)
@@ -134,14 +134,12 @@ def accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bu
         for iso in isochrones:
             if isochrones[iso]:
                 for dist in isochrones[iso]:
-                    gdf_concat = []
+                    gdf_concat = [
+                        gpd.read_file(f'{local_output_dir}/{city_name_l}_accessibility_{iso}_{dist}m_{fi}.gpkg', layer=f'{iso}_iso')
+                        for fi in range(len(features))
+                        if os.path.exists(f'{local_output_dir}/{city_name_l}_accessibility_{iso}_{dist}m_{fi}.gpkg')
+                    ]
 
-                    for fi in range(len(features)):
-                        iso_gpkg = f'{city_name_l}_accessibility_{iso}_{dist}m_{fi}.gpkg'
-                        if os.path.exists(f'{local_output_dir}/{iso_gpkg}'):
-                            gdf_concat.append(gpd.read_file(f'{local_output_dir}/{iso_gpkg}', layer = f'{iso}_iso'))
-                            os.remove(f'{local_output_dir}/{iso_gpkg}')
-                    
                     if gdf_concat:
                         gpd.GeoDataFrame(pd.concat(gdf_concat)).dissolve().to_file(f'{local_output_dir}/{city_name_l}_accessibility_{iso}_{dist}m.gpkg', driver = 'GPKG', layer = f'{iso}_iso')
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_accessibility_{iso}_{dist}m.gpkg', f'{output_dir}/{city_name_l}_accessibility_{iso}_{dist}m.gpkg')
