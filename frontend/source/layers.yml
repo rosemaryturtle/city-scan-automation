@@ -28,7 +28,7 @@ population:
   subtitle: 'Number of persons per 10,000 m^2^'
   palette: ['#ECEB72', '#8E3933']
   basemap: 'satellite'
-  group_id: 'population-density'
+  group_id: Population density
   bins: 5
 # SECTION 4 ECONOMIC ACTIVITY
 rwi:
@@ -36,26 +36,22 @@ rwi:
   data_variable: rwi
   title: 'Relative Wealth Index'
   palette: ['#ED431B', '#FF9169', '#FFFFBA', '#70C5AD', '#009E7A']
-  group_id: 'relative-wealth-index'
+  labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
+  group_id: Relative wealth index
 economic_activity:
   fuzzy_string: avg_rad_sum.*.tif$
   title: 'Average nighttime light radiance'
-  group_id: 'economic-hotspots'
+  group_id: Economic hotspots
   palette: ['#00a884', '#f0f0f0', '#e64c00']
   bins: 5
 economic_change:
   fuzzy_string: linfit.tif$
   title: 'Rate of change in nighttime radiance'
-  group_id: 'change-in-economic-hotspots'
+  group_id: Economic change
   palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
   center: 0
   bins: 0
-social_distancing:
-  title: Difficulty of Social Distancing
-  palette: ['#ffffbf', '#de8250', '#a80000', '#82003b', '#4d0073']
-  bins: 5
-  group_id: social-distancing
 # SECTION 5 BUILT FORM
 wsf:
   fuzzy_string: wsf_4326.tif$
@@ -65,7 +61,7 @@ wsf:
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
   labels: ['Before 1986', '1986-1995', '1996-2005', '2006-2015']
   palette: ['#FBF9CD', '#E3B854', '#BF4A3B', '#25110B']
-  group_id: 'urban-extent-and-change'
+  group_id: Urban extent
   # wsf_val[[city]] <- c('', 'Pre 1985', '1986-1995', '1996-2005', '2006-2015')
   # wsf_col[[city]] <- c('transparent', '#ffffbe', '#ffaa00', '#e60000', '#290800')
 impervious:
@@ -73,59 +69,66 @@ impervious:
   min: 0
   max: 100
   suffix: '%'
-  group_id: built-up-density
+  group_id: Built-up density
 land_cover:
   fuzzy_string: lc.tif$
-  title: 'Land Cover'
-  group_id: 'land-cover'
+  title: Land Cover
+  group_id: Land cover
   factor: TRUE
   palette: ['transparent', '#277242', '#DEBA59', '#79A54F', '#E88B39', '#C62421', '#9C9085', '#DDDDDD', '#2491D7', '#707CBA', '#00C86E', '#f6e8a1']
   breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
   labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
 intersections:
-  fuzzy_string: nodes
+  fuzzy_string: nodes.shp$
   title: Intersection Density
   subtitle: Number of intersections per 1 km^2^
-  palette: ['#ffffff', '#9F4830']
-  group_id: intersection-density
+  palette: ['#ffffffff', '#9F4830']
+  group_id: Intersection density
 school_zones:
+  fuzzy_string: school-journeys
   data_variable: thresh
   title: Travel distance to nearest school
   subtitle: Distance along road network in meters
-  palette: ['#B6D053', '#B6D053AA', '#B6D05366']
+  # palette: ['#B6D053', '#B6D053AA', '#B6D05366']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
   breaks: [800, 1600, 2400]
   labels: ["<800 m", "800–1,600 m", "1,600–2,400 m"]
   bins: 3
   factor: TRUE
   # How do I indicate shading?
   # suffix: ' m'
-  group_id: access-to-schools
+  group_id: School proximity
 school_points:
+  fuzzy_string: school-points
   title: School
+  data_variable: Feature # To show individual school types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
   palette: ['black']
   alpha: 1
   labels: ['School']
   factor: TRUE
-  group_id: access-to-schools
+  group_id: School proximity
 health_zones:
+  fuzzy_string: health-journeys
   data_variable: thresh
   title: Travel distance to nearest health facility
   subtitle: Distance along road network
   # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
-  palette: ['#B6D053CC', '#B6D053AA', '#B6D05366']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
   breaks: [1000, 2000, 3000]
   labels: ["<1 km", "1–2 km", "2–3 km"]
   bins: 3
   factor: TRUE
   # How do I indicate shading?
-  group_id: access-to-healthcare
+  group_id: Healthcare proximity
 health_points:
+  fuzzy_string: health-points
   title: Health Facility
+  data_variable: Feature # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
   palette: ['black']
   alpha: 1
   labels: ['Health facility']
   factor: TRUE
-  group_id: access-to-healthcare
+  group_id: Healthcare proximity
 # SECTION 6 CLIMATE CONDITIONS
 solar:
   fuzzy_string: solar.*.tif$
@@ -133,7 +136,7 @@ solar:
   subtitle: Power potential of a theoretical 1 kWp PV system (kWh)
   bins: 3
   palette: ['#ffebcc', '#f07605']
-  group_id: solar-photovoltaic-potential
+  group_id: Solar PV potential
 air_quality:
   fuzzy_string: air.*.tif$
   title: 'Concentrations of PM2.5 particles in 2019'
@@ -141,7 +144,7 @@ air_quality:
   # domain: [0,200]
   palette: ['#fff4d1', '#f5cbab', '#e6a58c', '#d48172', '#c46673', '#ba6685', '#a86595', '#9467ab']
   breaks: [0, 5, 10, 15, 20, 30, 40, 50, 100]
-  group_id: air-quality
+  group_id: Air quality
 summer_lst:
   fuzzy_string: summer.*.tif$
   # palette: 'Spectral'
@@ -150,16 +153,15 @@ summer_lst:
   title: 'Summer surface temperature<br>2017–2021'
   subtitle: 'Mean temperature (°C)'
   suffix: '°C'
-  group_id: summer-surface-temperature
+  group_id: Summer surface temperature
 vegetation:
   fuzzy_string: NDVI_Annual.*.tif$
   title: Vegetated Areas
   subtitle: 'Normalized difference vegetation index (NDVI)'
   palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
   breaks: [-1, 0.015, 0.14, 0.18, 0.27, 0.36, 1]
-  # breaks: [0.015, 0.14, 0.18, 0.27, 0.36, 1]
   labels: ['Water (-1 to 0.015)', 'Built-up (0.015 to 0.14)', 'Barren (0.14 to 0.18)', 'Shrub and Grassland (0.18 to 0.27)', 'Sparse (0.27 to 0.36)', 'Dense (0.36 to 1)']
-  group_id: vegetated-areas
+  group_id: Vegetation
 forest: # Requires preprocessing to combine forest and deforestation?
   fuzzy_string: ForestCover.*.tif$
   title: "Forest cover"
@@ -167,58 +169,81 @@ forest: # Requires preprocessing to combine forest and deforestation?
   palette: ['#8CC056']
   labels: ['Current Forest']
   factor: TRUE
-  group_id: 'forests-deforestation'
+  group_id: Forests
 deforest: # Requires preprocessing to combine forest and deforestation?
   fuzzy_string: Deforest.*.tif$
   title: Deforestation
   subtitle: Year of deforestation
   domain: [2001, 2021]
   palette: ['#EEEC00', '#D73837']
-  group_id: 'forests-deforestation'
-# SECTION 7 RISK IDENTIFICATION
-fluvial: # This will require pre-processing
+  group_id: Deforestation
+infrastructure:
+  fuzzy_string: infrastructure.gpkg$
+  title: Infrastructure and Services
+  data_variable: Feature
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 11]  
+  palette: ['green', 'red', 'blue', 'yellow']
+  labels:  ['Hospital or clinic', 'Fire station', 'Police station', 'School']
+  alpha: 1
+  group_id: Infrastructure
+fluvial:
+  fuzzy_string: fluvial_2020.tif$
+  factor: TRUE
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: fluvial-flooding
-pluvial: # This will require pre-processing
+  group_id: Riverine flooding
+pluvial:
+  fuzzy_string: pluvial_2020.tif$
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 100]
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: pluvial-flooding
+  group_id: Surface water flooding
 coastal:
+  fuzzy_string: coastal_2020.tif$
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 11]  
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: coastal-flooding
-flooding_combined: # This will require pre-processing
+  group_id: Coastal flooding
+combined_flooding: # This will require pre-processing
+  fuzzy_string: combined_flooding_2020.tif$
   factor: TRUE
-  palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 10, 100]
+  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
-  title: 'Flood probability'
+  title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: combined-fluvial-pluvial-flooding
-elevation: # how to indicate contours?
-  fuzzy_string: contour.shp$
+  group_id: Combined flooding
+elevation:
   title: Elevation
-  subtitle: "Meters above sea level (MASL)"
+  subtitle: Meters above sea level (MASL)
+  fuzzy_string: elevation.tif$
   palette: ['#f5c4c0', '#762175']
   bins: 5
-  stroke: 
-    variable: elev
-    palette: ['#f5c4c0', '#762175']
-  weight: 1
-  group_id: elevation
+  group_id: Elevation
+# elevation: # For using contour lines file
+#   fuzzy_string: contour.shp$
+#   palette: NULL
+#   bins: 5
+#   stroke: 
+#     title: Elevation
+#     subtitle: "Meters above sea level (MASL)"
+#     variable: elev
+#     palette: ['#f5c4c0', '#762175']
+#   weight: 1
+#   group_id: Elevation
 slope:
   fuzzy_string: slope.tif$
   title: Slope
@@ -228,7 +253,7 @@ slope:
   palette: ['#ffffd4', '#993404']
   bins: 5
   suffix: '°'
-  group_id: slope
+  group_id: Slope
 landslides:
   fuzzy_string: landslide.*.tif$
   title: Landslide susceptibility
@@ -236,7 +261,7 @@ landslides:
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
   breaks: [0, 1, 2, 3, 4]
-  group_id: landslides
+  group_id: Landslides
 liquefaction:
   fuzzy_string: liquefaction.tif$
   title: Liquefaction susceptibility
@@ -244,38 +269,35 @@ liquefaction:
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
   breaks: [1, 2, 3, 4, 5]
-  group_id: liquefaction
-road_network_criticality:
-  title: Road network segment criticality
-  subtitle: 'Criticality %'
+  group_id: Liquefaction
+roads:
+  fuzzy_string: edges-edit.gpkg
   palette: NULL
   stroke:
-    name: Road criticality
+    title: Road network segment criticality
+    subtitle: 'Criticality %'
     variable: edge_centr
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
-    name: Road type
-    variable: primary
+    title: Road type
+    variable: road_type
+    factor: TRUE
     range: [0.25, 1]
-  suffix: "%"
-  group_id: road-network-criticality
+    palette: [0.24, 1]
+    # breaks: [FALSE, TRUE]
+    labels: ['Secondary', 'Primary']
+  group_id: Road network criticality
 burnable:
   fuzzy_string: lc_burn.*.tif$
   title: Burnability Factor
-  palette: ['#FFFFFF', '#5C1316']
-  breaks: [0, .2, .4, .6, .8, 1]
-  group_id: burnable-area
-moisture:
+  palette: ['#FFFFFF', '#EFAD42', '#681A17']
+  breaks: [0, .17, .33, .5, .67, .83, 1]
+  group_id: Burnable area
+drought:
   fuzzy_string: NDMI_Annual.*.tif$
   title: NDMI
   palette: ['#D45A35', '#F6F7F9', '#48A787']
   center: 0
   bins: 5
-  group_id: moisture
-fwi:
-  fuzzy_string: fwi
-  title: NDMI
-  palette: ['#EEEA55', '#992C29']
-  bins: 5
-  group_id: fire-potential
+  group_id: Moisture
 # SECTION 8 LOCAL INSTITUTIONS AND PLANNING

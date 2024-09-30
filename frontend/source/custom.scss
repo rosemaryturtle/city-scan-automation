@@ -20,6 +20,7 @@ $presentation-font-size-root: 11pt;
 $font-size-root: 11pt;
 $pale-color: #5a6570;
 $topbar-height: 2rem;
+$side-padding: 1.5rem;
 
 // Print variables
 $column-gap: .25in;
@@ -28,18 +29,20 @@ $page-margin-bottom: .5in;
 $page-margin-left: 0.5in;
 $page-margin-right: 0.5in;
 
+:root {
+  --topbar-height: 2em;
+}
+
 /*-- scss:rules --*/
 
 // SCROLLYTELLING LAYOUT
 // Sets the page to full screen
 .page-columns main.content {
   @media screen {
-    grid-column: screen-start-inset / screen-end-inset; // Maybe applies to print if I keep bootstrap style sheets
+    grid-column: screen-start / screen-end; // Maybe applies to print if I keep bootstrap style sheets
     display: grid; // Overridden by print
     grid-template-columns: 1fr 2fr;
-    grid-template-rows: 2em auto auto auto;
-    grid-column-gap: 2ch;
-    align-items: start;
+    grid-template-rows: var(--topbar-height) calc(100vh - var(--topbar-height)) auto auto;
   }
   @media print { display: block; }
   min-height: 90vh;
@@ -49,28 +52,79 @@ $page-margin-right: 0.5in;
   margin-bottom: 5vh;
 }
 
+@media screen {
+  #cover-page {
+    grid-row: 2/3;
+    grid-column: 1/2;
+    min-height: calc(100vh - var(--topbar-height));
+    padding: $side-padding;
+    margin-right: -$side-padding;
+    background-image: radial-gradient(black 1px, transparent 0);
+    background-size: 20px 20px;
+    display: flex;
+
+    .donors {
+      height: 65vh; // This needs to be dynamic somehow
+      // padding: $side-padding;
+      // display: flex;
+      // flex-direction: column;
+      // justify-content: end;
+      display: grid;
+      grid-template: auto auto / 1fr 1fr;
+      align-content: end;
+      align-items: center;
+      justify-items: center;
+  
+      figure p {
+        // text-align: left; // For if using flex instead of grid
+        width: 12vw;
+        padding-bottom: 1rem;
+      }
+
+      figcaption {display: none;}
+    }
+  }
+  #cover-map {
+    grid-row: 2/3;
+    grid-column: 2/3;
+    width: 100%;
+    // height: 100vh;
+    background: #000;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit:cover
+    }
+  }
+}
+
 .text-column {
   @media screen {
     grid-column: 1 / 2;
-    grid-row: 3 / 5;
+    grid-row: 3 / 4;
     grid-column-gap: 2ch; // Set with sass variable? //Is this used / right
+    background-image: radial-gradient(black 1px, transparent 0);
+    background-size: 20px 20px;
   }
 
   @media screen {
-  h3 {
-    grid-column: 1 / 2; // Overridden by print
-    grid-row-start: 1; // Overridden by print
-    margin-top: 0; // Also set in print
+    h1 {margin: 10vh $side-padding}
+    h3 { // Where is this used? .text-column isn't a grid
+      grid-column: 1 / 2; // Overridden by print
+      grid-row-start: 1; // Overridden by print
+      margin-top: 0; // Also set in print
+    }
   }
-}
-@media print {
-  h2, h3 {
-    grid-column: 1 / 4;
-    grid-row: 1 / 2;
-    // margin-top: 0; // Already set for screen
+
+  @media print {
+    h2, h3 {
+      grid-column: 1 / 4;
+      grid-row: 1 / 2;
+      // margin-top: 0; // Already set for screen
+    }
+    h3 { align-self: start; }
   }
-  h3 { align-self: start; }
-}
 
   section {
     @media screen {
@@ -84,6 +138,13 @@ $page-margin-right: 0.5in;
       }
     }
 
+    section.level2 {
+      @media screen {
+        background-color: white;
+        padding: $side-padding;
+      }
+    }
+
     section.level3 {
       @media screen { padding-bottom: 3rem; }
       @media print {
@@ -91,7 +152,7 @@ $page-margin-right: 0.5in;
         height: 7.45in;
         // min-height: 7.5in;
         width: 100%;
-        display: grid;
+        display: grid; // I don't think this is ever actually used, overridden by flex above somehow
         grid-template-columns: 1fr 1fr 1fr;
         grid-column-gap: $column-gap;
         grid-template-rows: 1fr repeat(2, min-content) minmax(.5in, max-content);
@@ -104,7 +165,7 @@ $page-margin-right: 0.5in;
 
   @media screen {
     >section:last-child {
-      margin-bottom: 100vh;
+      margin-bottom: 50vh;
     }
   }
 
@@ -140,27 +201,42 @@ $page-margin-right: 0.5in;
   }
 }
 
+.foot {
+  grid-row: -2/-1;
+  grid-column: 1/-1;
+  // background-color: dodgerblue;
+  height: 50vh;
+  width: 60vw;
+  margin: auto;
+  margin-top: 10vh;
+}
+
 // TYPOGRAPHY
+#cover-page {
+  h1 {
+    font-size: 3rem;
+    font-weight: 600;
+    color: black;
+    // background-image: radial-gradient(black 1px, transparent 0);
+    // background-size: 10px 10px;
+    height: 10rem;
+    padding: calc(25vh - 10rem) 0 0 0;
+    // margin-left: -1.5rem;
+    // margin-right: -1.5rem;
+    margin-bottom: -20px;
+    margin-top: 0;
+  }
+  p {
+    font-size: 2.4rem; margin-bottom: 0;
+  }
+}
+
 .text-column {
   @media screen {
   // Text is grey when not in focus, black when in focus
   color: darkgrey;
   section.is-active {color: black;};
   section#executive-summary { color: black; };
-  }
-
-  h1 {
-    font-size: 3rem;
-    font-weight: 600;
-    color: #1e90ff;
-    background-image: radial-gradient(dodgerblue 1px, transparent 0);
-    background-size: 10px 10px;
-    height: 10rem;
-    padding: calc(100vh - 10rem) 1.5rem 10rem 1.5rem;
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    margin-bottom: -1px;
-    margin-top: 0;
   }
 
   h2, h3 {
@@ -171,13 +247,13 @@ $page-margin-right: 0.5in;
 
   h2 { // Previously also applied to h2::before
     font-size: 2rem;
-    color: dodgerblue;
-    background-image: radial-gradient(dodgerblue 1px, transparent 0);
+    color: black;
+    background-image: radial-gradient(black 1px, transparent 0);
     background-size: 10px 10px;
-    padding: 15vh 1.5rem 0.5rem 1.5rem;
-    @media print{ padding: 2in 1.5rem 4.5in 1.5rem }
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
+    padding: 15vh $side-padding 0.5rem $side-padding;
+    @media print{ padding: 2in $column-gap 4.5in $column-gap }
+    margin-left: -$side-padding;
+    margin-right: -$side-padding;
   }
 
   h3 { // Previously also applied to h3::before 
@@ -194,8 +270,8 @@ $page-margin-right: 0.5in;
 
   ul {
     padding-left: .25in;
-    margin-block-start: 0;
-    margin-block-end: 0;
+    margin-block-start: 1rem;
+    margin-block-end: 1rem;
   }
 }
 
@@ -203,11 +279,21 @@ $page-margin-right: 0.5in;
 @media screen {
   .maps {
     grid-column: 2 / 3;
-    grid-row: 1 / 5;
-    position: sticky;
-    top: $topbar-height;
-    height: 100vh;
+    grid-row: 3 / 4;
+    // position: sticky;
+    // top: calc($topbar-height - 100vh);
+    min-height: calc(100vh - var(--topbar-height));
+    margin-bottom: calc($topbar-height/2); // Not quite sure why this is half and not fully topbar-height
+    background-image: radial-gradient(black 1px, transparent 0);
+    background-size: 10px 10px;
   
+    div.cell {
+      position: sticky;
+      top: var(--topbar-height);
+      // background-color: coral;
+      height: calc(100vh - var(--topbar-height));
+   }
+
     // I now set image height in R, but leaving this here to remember CSS tags
     // img,
     // .leaflet.html-widget {
@@ -231,32 +317,40 @@ $page-margin-right: 0.5in;
   }
 }
 
-@media screen{
-// TOP BAR 
-.topbar {
-  width: 100%;
-  height: $topbar-height;
-  background-color: white;
-  display: grid;
-  grid-template-columns: 2fr 4fr;
-  position: fixed;
-  z-index: 1;
-  text-align: left;
-  border-bottom: 1px solid black;
-  padding-top: 3px;
+@media screen {
+  // TOP BAR 
+  .topbar {
+    width: 100%;
+    height: $topbar-height;
+    background-color: white;
+    display: grid;
+    grid-template-columns: 2fr 2.5fr 1.5fr;
+    position: fixed;
+    z-index: 1;
+    text-align: left;
+    border-bottom: 1px solid black;
+    padding-top: 3px;
 
-  h1 {
-    grid-column: 1/2;
-    padding: .25rem .5rem;
-    font-size: 1.1rem;
-    font-weight: 400;
-    text-transform: uppercase;
-    margin: 0;
-  }
+    h1 {
+      // grid-column: 1/2;
+      padding: .25rem $side-padding;
+      font-size: 1.1rem;
+      font-weight: 400;
+      text-transform: uppercase;
+      margin: 0;
+    }
 
-  a {
-    color: black;
-    padding: .25rem .5rem;
+    div:first-child {grid-column: 1/2;}
+    div:nth-child(3) {
+      grid-column: 3/4;
+      text-align: right;
+      padding-right: $side-padding;
+    }
+
+    a {
+      color: black;
+    //   padding: .25rem .5rem;
+    }
   }
 }
 
@@ -292,13 +386,13 @@ $page-margin-right: 0.5in;
 
   li {
     color: #000;
-    background: #FFF;
+    // background: #FFF;
     display: block;
     float: left;
     padding: .25rem 0.5rem;
     position: relative;
     text-decoration: none;
-    transition-duration: 0.5s;
+    // transition-duration: 0.5s;
   }
 
   li a {
@@ -313,7 +407,7 @@ $page-margin-right: 0.5in;
   // To highlight the chain of selected items
   li:focus-within,
   li:hover {
-    background: lightblue;
+    background: #fff;
   }
 
   // But I don't want to highlight the whole table of contents
@@ -334,7 +428,7 @@ $page-margin-right: 0.5in;
     opacity: 0;
     min-width: 5rem;
     position: relative;
-    transition: all 0.5s ease;
+    // transition: all 0.5s ease;
     margin-top: .5rem;
     display: none;
   }
@@ -365,7 +459,6 @@ $page-margin-right: 0.5in;
     clear: both;
     width: 100%;
   }
-}
 }
 
 // Section & Slide Counters
