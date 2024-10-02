@@ -117,8 +117,8 @@ plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only =
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
-  if (plot_aoi) p <- p + geom_spatvector(data = aoi, fill = NA, linetype = "dashed", linewidth = .25)
-  if (plot_wards) p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "dashed", linewidth = .25)
+  if (plot_aoi) p <- p + geom_spatvector(data = aoi, fill = NA, linetype = "solid", linewidth = .25)
+  if (plot_wards) p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
   p <- p + coord_3857_bounds()
   return(p)
 }
