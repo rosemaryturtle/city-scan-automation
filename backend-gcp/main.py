@@ -78,7 +78,7 @@ if task_index == 0:
         import accessibility
         accessibility.accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index in range(1, 6):
-    if menu['burned_area']:  # processing time: 5h
+    if menu['burned_area']:  # processing time: 1h
         import burned_area
         burned_area.burned_area(aoi_file, global_inputs['burned_area_blob'], task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index == 6:

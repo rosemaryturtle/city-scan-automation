@@ -69,19 +69,9 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
 
     with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif') as src:
         elevation_data = src.read(1)
-        bounds = src.bounds
         transform = src.transform
-        width = src.width
-        height = src.height
+        demNan = src.nodata if src.nodata else -9999
     
-    # Use the rasterio transform to map pixel coordinates to geographic coordinates
-    # Get the bounding box
-    min_x, min_y, max_x, max_y = bounds
-    transform = Affine.from_gdal(min_x, (max_x - min_x) / width, 0, max_y, 0, (min_y - max_y) / height)
-
-    # Define no-data value
-    demNan = -9999
-
     # Get min and max elevation values
     demMax = elevation_data.max()
     demMin = elevation_data[elevation_data != demNan].min()
@@ -103,6 +93,7 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
         contour_levels = range(contourMin + contourInt, contourMax + contourInt, contourInt)
     else:
         contour_levels = range(contourMin, contourMax + contourInt, contourInt)
+    print(list(contour_levels))
 
     contours = plt.contourf(elevation_data, levels=contour_levels)
 
@@ -111,6 +102,7 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
 
     # Iterate over all contour levels and their corresponding paths
     for collection, level in zip(contours.collections, contour_levels):
+        print(f"Processing level: {level}")
         for path in collection.get_paths():
             for polygon in path.to_polygons():
                 if len(polygon) > 0:
@@ -119,7 +111,7 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
                         (transform * (x, y)) for x, y in polygon
                     ]
                     poly = Polygon(geographic_polygon)
-                    contour_polygons.append((poly, level))
+                    contour_polygons.append((poly, float(level)))
 
     # Optionally save to a shapefile using Fiona
     schema = {
