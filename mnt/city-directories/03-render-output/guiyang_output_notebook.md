@@ -6,12 +6,81 @@
     
 
 
-    Merged pluvial data saved as ../mnt/city-directories/02-process-output/guiyang_merged_pluvial_data.tif
-    Merged fluvial data saved as ../mnt/city-directories/02-process-output/guiyang_merged_fluvial_data.tif
-    Error: No fluvial files found.
-    Merged combined data saved as ../mnt/city-directories/02-process-output/guiyang_merged_comb_data_utm.tif
-    city name: guiyang
-    country name:china
+
+      File /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43539/1374161815.py:62
+        fig.update_traces(selector=dict(name=city), line=dict(dash='solid', color='black', width=2), mode='lines',line=dict(color='black'))
+                                                                                                                  ^
+    SyntaxError: keyword argument repeated: line
+
+
+
+
+    ---------------------------------------------------------------------------
+
+    SyntaxError                               Traceback (most recent call last)
+
+    Cell In[296], line 9
+          7     global_inputs = yaml.safe_load(f)
+          8 # run scan assembly and toolbox
+    ----> 9 get_ipython().run_line_magic('run', "'scan_assembly.ipynb'")
+         10 get_ipython().run_line_magic('run', "'toolbox.ipynb'")
+         12 # load city inputs files, to be updated for each city scan
+
+
+    File ~/mambaforge/envs/geo/lib/python3.11/site-packages/IPython/core/interactiveshell.py:2417, in InteractiveShell.run_line_magic(self, magic_name, line, _stack_depth)
+       2415     kwargs['local_ns'] = self.get_local_scope(stack_depth)
+       2416 with self.builtin_trap:
+    -> 2417     result = fn(*args, **kwargs)
+       2419 # The code below prevents the output from being displayed
+       2420 # when using magics with decodator @output_can_be_silenced
+       2421 # when the last Python token in the expression is a ';'.
+       2422 if getattr(fn, magic.MAGIC_OUTPUT_CAN_BE_SILENCED, False):
+
+
+    File ~/mambaforge/envs/geo/lib/python3.11/site-packages/IPython/core/magics/execution.py:722, in ExecutionMagics.run(self, parameter_s, runner, file_finder)
+        720     with preserve_keys(self.shell.user_ns, '__file__'):
+        721         self.shell.user_ns['__file__'] = filename
+    --> 722         self.shell.safe_execfile_ipy(filename, raise_exceptions=True)
+        723     return
+        725 # Control the response to exit() calls made by the script being run
+
+
+    File ~/mambaforge/envs/geo/lib/python3.11/site-packages/IPython/core/interactiveshell.py:2939, in InteractiveShell.safe_execfile_ipy(self, fname, shell_futures, raise_exceptions)
+       2937 result = self.run_cell(cell, silent=True, shell_futures=shell_futures)
+       2938 if raise_exceptions:
+    -> 2939     result.raise_error()
+       2940 elif not result.success:
+       2941     break
+
+
+    File ~/mambaforge/envs/geo/lib/python3.11/site-packages/IPython/core/interactiveshell.py:266, in ExecutionResult.raise_error(self)
+        264 """Reraises error if `success` is `False`, otherwise does nothing"""
+        265 if self.error_before_exec is not None:
+    --> 266     raise self.error_before_exec
+        267 if self.error_in_exec is not None:
+        268     raise self.error_in_exec
+
+
+    File ~/mambaforge/envs/geo/lib/python3.11/site-packages/IPython/core/interactiveshell.py:3446, in InteractiveShell.run_ast_nodes(self, nodelist, cell_name, interactivity, compiler, result)
+       3440     mod = ast.Interactive([node])  # type: ignore
+       3441 with compiler.extra_flags(
+       3442     getattr(ast, "PyCF_ALLOW_TOP_LEVEL_AWAIT", 0x0)
+       3443     if self.autoawait
+       3444     else 0x0
+       3445 ):
+    -> 3446     code = compiler(mod, cell_name, mode)
+       3447     asy = compare(code)
+       3448 if await self.run_code(code, result, async_=asy):
+
+
+    File ~/mambaforge/envs/geo/lib/python3.11/codeop.py:118, in Compile.__call__(self, source, filename, symbol)
+        117 def __call__(self, source, filename, symbol):
+    --> 118     codeob = compile(source, filename, symbol, self.flags, True)
+        119     for feature in _features:
+        120         if codeob.co_flags & feature.compiler_flag:
+
+
+    SyntaxError: keyword argument repeated: line (1374161815.py, line 62)
 
 
 ## City Subdistricts available?
@@ -69,71 +138,9 @@
 
 ## Population from citypopulation.de
 
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Location</th>
-      <th>Year</th>
-      <th>Population</th>
-      <th>Area_km</th>
-      <th>Source</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Guìyáng [Guiyang]</td>
-      <td>1990</td>
-      <td>1079652</td>
-      <td>0.0</td>
-      <td>citypopulation.de</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Guìyáng [Guiyang]</td>
-      <td>2000</td>
-      <td>1894344</td>
-      <td>0.0</td>
-      <td>citypopulation.de</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Guìyáng [Guiyang]</td>
-      <td>2010</td>
-      <td>2520061</td>
-      <td>0.0</td>
-      <td>citypopulation.de</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Guìyáng [Guiyang]</td>
-      <td>2020</td>
-      <td>4021275</td>
-      <td>0.0</td>
-      <td>citypopulation.de</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
+    'NoneType' object has no attribute 'find'
+    Guiyang population data could not be retrieved from CityPopulation.de. Try manual entry instead.
+    'NoneType' object has no attribute 'find'
 
 
 ### City Population Growth
@@ -146,7 +153,7 @@
     
 
 
-    Guiyang's population increased by 272.5% from 1,079,652 in 1990 to 4,021,275 in 2020, at an average annual growth rate of 4.5% according to CityPopulaton.de
+    An error occurred while calculating growth text: 'NoneType' object has no attribute 'iloc', try manual method instead
 
 
 ## Benchmark cities 
@@ -248,6 +255,13 @@
 
 ## Land Cover
 
+
+
+    The first highest landcover value is Tree cover with 55.16% of the total land area
+    The second highest landcover value is Grassland with 16.86% of the total land area
+    The third highest landcover value is Cropland with 12.43% of the total land area
+
+
 ## Photovoltaic Power Potential
 
     Seasonality is low to moderate, making solar energy available in only some of the months
@@ -336,7 +350,7 @@
 ### Fluvial and WSF
 
     810.354708629123
-    PNG saved to ../mnt/city-directories/03-render-output/guiyang_fu_wsf.png
+    PNG saved to ../mnt/city-directories/03-render-output/Guiyang_fu_wsf.png
 
 
 
@@ -391,43 +405,11 @@
 
 
 
-    Base directory for organizing files: mnt/city-directories/03-render-output
+    Base directory for organizing files: ../mnt/city-directories/03-render-output
     Creating folders:
-    - mnt/city-directories/03-render-output/plots
-    - mnt/city-directories/03-render-output/plots/html
-    - mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-gdp-plot.png to mnt/city-directories/03-render-output/plots/png
-    Moved Guiyang_pop_growth.html to mnt/city-directories/03-render-output/plots/html
-    Moved guìyáng-pop-density-plotly.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_comb_wsf.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-gdp-plot.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_earthquake_timeline.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_urban_built_up_area.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_flood_timeline.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang-oxford-employment-sectors.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_pu_wsf.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_urban_built_up_area.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_PV_graph.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_pu_wsf.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-emp-plot.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_slope_treemap.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_slope_treemap.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-pop-plot.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_elevation_treemap.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_age_stats.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_age_stats.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-gva-sectors.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang-pop-growth.png to mnt/city-directories/03-render-output/plots/png
-    Moved guìyáng-pop-density.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-pop-plot.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_elevation_treemap.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_fu_wsf.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-employment-sectors.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_flood_timeline.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_earthquake_timeline.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang-oxford-emp-plot.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_fu_wsf.html to mnt/city-directories/03-render-output/plots/html
-    Moved guiyang_PV_graph.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang-oxford-gva-sectors.png to mnt/city-directories/03-render-output/plots/png
-    Moved guiyang_comb_wsf.html to mnt/city-directories/03-render-output/plots/html
+    - ../mnt/city-directories/03-render-output/plots
+    - ../mnt/city-directories/03-render-output/plots/html
+    - ../mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_urban_built_up_area.png to ../mnt/city-directories/03-render-output/plots/png
+    Moved guiyang_urban_built_up_area.html to ../mnt/city-directories/03-render-output/plots/html
 

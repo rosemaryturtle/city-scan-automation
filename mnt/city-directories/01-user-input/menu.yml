@@ -21,7 +21,7 @@ lightning: True
 amenities: True
 
 # GEE
-landcover: False
+landcover: True
 summer_lst: True
 winter_lst: False
 nightlight: True
