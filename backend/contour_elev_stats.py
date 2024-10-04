@@ -17,7 +17,7 @@ if menu['raster_processing'] and menu['elevation']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -92,7 +92,7 @@ if menu['raster_processing'] and menu['elevation']:
 
         # Clean up
         contourDs.Destroy()
-    except:
+    except Exception:
         print('generate contour lines failed')
     
 
@@ -116,5 +116,5 @@ if menu['raster_processing'] and menu['elevation']:
             for i, count in enumerate(hist):
                 bin_range = f"{int(bin_edges[i])}-{int(bin_edges[i+1])}"
                 writer.writerow([bin_range, count])
-    except:
+    except Exception:
         print('calculate elevation stats failed')

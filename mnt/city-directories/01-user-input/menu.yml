@@ -1,5 +1,3 @@
-# for all sections below, if the first item is False, all other items in the section will be skipped
-
 # raster processing
 raster_processing: True
 population: True
@@ -9,6 +7,7 @@ slope: True
 solar: True
 air: True
 flood: True
+flood_coastal: True
 flood_coastal: False
 flood_fluvial: True
 flood_pluvial: True
@@ -17,30 +16,28 @@ liquefaction: True
 demographics: True
 impervious: False
 slr: False
-lightning: True
-amenities: True
+lightning: False
+amenities: False
 
 # GEE
+landcover: True
 landcover: True
 summer_lst: True
 winter_lst: False
 nightlight: True
 green: True
-forest: False
+forest: True
 ndmi: True
 
 # accessibility
-accessibility: False
+accessibility: True
 
 # RWI
 rwi: True
 
-# historical burned area
-burned_area: False
-
 # wildfire
-burned_area: False
-fwi: False
+burned_area: True
+fwi: True
 landcover_burn: True
 
 # road network

@@ -34,7 +34,7 @@ if menu['landcover_burn']:
     # SET UP ##############################################
     city_inputs = yaml.safe_load(bucket.blob(f'{input_dir}/city_inputs.yml').download_as_string())
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:

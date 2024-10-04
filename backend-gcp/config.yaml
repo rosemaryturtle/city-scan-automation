@@ -1,0 +1,12 @@
+# cloud inputs and outputs
+cloud:
+  data_bucket: 'city-scan-global-data'
+  bucket: 'crp-city-scan'
+  input_dir: '01-user-input'
+  output_dir: '02-process-output'
+
+# container directories
+local:
+  aoi_dir: 'AOI'
+  data_dir: 'data'
+  output_dir: 'output'

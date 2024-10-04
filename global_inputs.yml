@@ -1,4 +1,7 @@
 # data sources
+data_bucket: 'city-scan-global-data'
+lc_burn_blob: 'ESACCI.tif'
+
 solar_source: "D:/World Bank/CRP/data/Global Solar Atlas/World_PVOUT_GISdata_LTAy_AvgDailyTotals_GlobalSolarAtlas-v2_GEOTIFF/PVOUT.tif"
 solar_graph_source: "/Users/ipshitakarmakar/Dropbox (Personal)/WB/China/China_GISdata_LTAy_YearlyMonthlyTotals_GlobalSolarAtlas-v2_GEOTIFF/monthly"
 air_source: "D:/World Bank/CRP/data/Global Annual PM2.5 Grids 1998-2019/sdei-global-annual-gwr-pm2-5-modis-misr-seawifs-aod-v4-gl-03-2019.tif"
@@ -28,9 +31,8 @@ cloud_bucket: 'gee-test-20231019'
 flood:
   threshold: 15  # unit: cm
   year:
-    - 2020
+    - 2050
   ssp:
-    - 1
     - 2
     - 3
   prob_cutoff:  # unit: %

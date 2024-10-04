@@ -10,7 +10,6 @@ if menu['raster_processing']:
     
     import os
     import math
-    import csv
     import geopandas as gpd
     import numpy as np
     import rasterio.mask
@@ -29,7 +28,7 @@ if menu['raster_processing']:
     with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
-    city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
+    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
     with open("global_inputs.yml", 'r') as f:
@@ -178,35 +177,32 @@ if menu['raster_processing']:
 
         wsf_folder = data_folder / 'wsf'
 
-        if not exists(wsf_folder):
-            os.mkdir(wsf_folder)
+        os.makedirs(wsf_folder, exist_ok=True)
 
+        wsf_downloaded_files = []
         for i in range(len(aoi_bounds)):
             for x in range(math.floor(aoi_bounds.minx[i] - aoi_bounds.minx[i] % 2), math.ceil(aoi_bounds.maxx[i]), 2):
                 for y in range(math.floor(aoi_bounds.miny[i] - aoi_bounds.miny[i] % 2), math.ceil(aoi_bounds.maxy[i]), 2):
                     file_name = f'WSFevolution_v1_{x}_{y}'
-                    if not exists(wsf_folder / f'{file_name}.tif'):
-                        file = requests.get(f'https://download.geoservice.dlr.de/WSF_EVO/files/{file_name}/{file_name}.tif')
-                        open(wsf_folder / f'{file_name}.tif', 'wb').write(file.content)
+                    if exists(wsf_folder / f'{file_name}.tif'):
+                        wsf_downloaded_files.append(file_name)
+                    else:
+                        try:
+                            file = requests.get(f'https://download.geoservice.dlr.de/WSF_EVO/files/{file_name}/{file_name}.tif')
+                            open(wsf_folder / f'{file_name}.tif', 'wb').write(file.content)
+                            wsf_downloaded_files.append(file_name)
+                        except Exception as e:
+                            print(f'WSF download exception: {e}')
 
-        # TODO: instead of merging all tifs in the folder, only merge the relevant ones
-        # count how many raster files have been downloaded
-        def tif_counter(list):
-            if list.endswith('.tif'):
-                return True
-            return False
-
-        if len(list(filter(tif_counter, os.listdir(wsf_folder)))) > 1:
+        if len(wsf_downloaded_files) > 1:
             try:
                 raster_to_mosaic = []
                 mosaic_file = f'{city_name_l}_wsf_evolution.tif'
 
                 if not exists(wsf_folder / mosaic_file):
-                    mosaic_list = os.listdir(wsf_folder)
-                    for p in mosaic_list:
-                        if p.endswith('.tif'):
-                            raster = rasterio.open(wsf_folder / p)
-                            raster_to_mosaic.append(raster)
+                    for p in wsf_downloaded_files:
+                        raster = rasterio.open(wsf_folder / f'{p}.tif')
+                        raster_to_mosaic.append(raster)
 
                     mosaic, output = merge(raster_to_mosaic)
                     output_meta = raster.meta.copy()
@@ -225,8 +221,8 @@ if menu['raster_processing']:
                 print(err_msg) 
                 print('Try GIS instead for merging.')
                 failed.append(err_msg)
-        elif len(list(filter(tif_counter, os.listdir(wsf_folder)))) == 1:
-            os.rename(wsf_folder / (list(filter(tif_counter, os.listdir(wsf_folder)))[0]), wsf_folder / f'{city_name_l}_wsf_evolution.tif')
+        elif len(wsf_downloaded_files) == 1:
+            os.rename(wsf_folder / f'{wsf_downloaded_files[0]}.tif', wsf_folder / f'{city_name_l}_wsf_evolution.tif')
         else:
             err_msg = 'No WSF evolution file available'
             print(err_msg)
@@ -238,8 +234,7 @@ if menu['raster_processing']:
 
         elev_folder = data_folder / 'elev'
 
-        if not exists(elev_folder):
-            os.mkdir(elev_folder)
+        os.makedirs(elev_folder, exist_ok=True)
 
         aoi_bounds = aoi_file.bounds
 
@@ -261,13 +256,14 @@ if menu['raster_processing']:
                 print('tile_end_matcher function error')
                 print('Invalid input. How did this happen?')
 
+        elev_downloaded_files = []
         for lat in lat_tiles_big:
             for lon in lon_tiles_big:
                 file_name = f'{lat}{lon}-{tile_end_matcher(lat)}{tile_end_matcher(lon)}_FABDEM_V1-2.zip'
-                if not exists(elev_folder / file_name):
+                if not exists(global_inputs['elevation_source'] / file_name):
                     print(f'download elevation file: {file_name}')
                     file = requests.get(f'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/{file_name}')
-                    open(elev_folder / file_name, 'wb').write(file.content)
+                    open(global_inputs['elevation_source'] / file_name, 'wb').write(file.content)
 
                 # unzip downloads
                 for lat1 in lat_tiles_small:
@@ -275,28 +271,21 @@ if menu['raster_processing']:
                         file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
                         if not exists(elev_folder / file_name1):
                             try:
-                                with zipfile.ZipFile(elev_folder / file_name, 'r') as z:
+                                with zipfile.ZipFile(global_inputs['elevation_source'] / file_name, 'r') as z:
                                     z.extract(file_name1, elev_folder)
-                            except:
+                                    elev_downloaded_files.append(file_name1)
+                            except Exception:
                                 pass
 
-        # count how many raster files have been unzipped
-        def tif_counter(list):
-            if list.endswith('.tif'):
-                return True
-            return False
-
-        if len(list(filter(tif_counter, os.listdir(elev_folder)))) > 1:
+        if len(elev_downloaded_files) > 1:
             try:
                 raster_to_mosaic = []
                 mosaic_file = f'{city_name_l}_elevation.tif'
 
                 if not exists(elev_folder / mosaic_file):
-                    mosaic_list = os.listdir(elev_folder)
-                    for p in mosaic_list:
-                        if p.endswith('.tif'):
-                            raster = rasterio.open(elev_folder / p)
-                            raster_to_mosaic.append(raster)
+                    for p in elev_downloaded_files:
+                        raster = rasterio.open(elev_folder / p)
+                        raster_to_mosaic.append(raster)
 
                     mosaic, output = merge(raster_to_mosaic)
                     output_meta = raster.meta.copy()
@@ -315,8 +304,8 @@ if menu['raster_processing']:
                 print(err_msg)
                 print('Try GIS instead for merging.')
                 failed.append(err_msg)
-        elif len(list(filter(tif_counter, os.listdir(elev_folder)))) == 1:
-            os.rename(elev_folder / (list(filter(tif_counter, os.listdir(elev_folder)))[0]), elev_folder / f'{city_name_l}_elevation.tif')
+        elif len(elev_downloaded_files) == 1:
+            os.rename(elev_folder / elev_downloaded_files[0], elev_folder / f'{city_name_l}_elevation.tif')
         else:
             err_msg = 'No elevation file available; use SRTM instead for elevation'
             print(err_msg)
@@ -345,7 +334,7 @@ if menu['raster_processing']:
                 try:
                     demo_file = requests.get(f)
                     open(demo_folder / demo_file_name, 'wb').write(demo_file.content)
-                except:
+                except Exception:
                     err_msg = 'No demographics files available'
                     print(err_msg)
                     failed.append(err_msg)
@@ -392,11 +381,8 @@ if menu['raster_processing']:
 
             # function to check output flood raster validity
             def flood_raster_check(raster):
-                print('checking', raster)
                 with rasterio.open(raster) as src:
                     max_value = np.nanmax(src.read(1))
-                    print('max value:', max_value)
-                    print('return value:', max_value > 1)
                     return (max_value > 1)
 
             def flood_processing0(flood_type):
@@ -406,7 +392,7 @@ if menu['raster_processing']:
                 flood_type_folder_dict = {'coastal': 'COASTAL_UNDEFENDED',
                                         'fluvial': 'FLUVIAL_UNDEFENDED',
                                         'pluvial': 'PLUVIAL_DEFENDED'}
-                raw_flood_folder = Path(global_inputs['flood_source']) / city_inputs['country_name'] / flood_type_folder_dict[flood_type]
+                raw_flood_folder = Path(global_inputs['flood_source']) / flood_type_folder_dict[flood_type]
                 
                 # prepare flood raster files (everything before clipping)
                 for year in flood_years:
@@ -648,11 +634,8 @@ if menu['raster_processing']:
                         dest.write(out_image, 1)
 
                 def wsf_raster_check(raster):
-                    print('checking', raster)
                     with rasterio.open(raster) as src:
                         max_value = np.nanmax(src.read(1))
-                        print('max value:', max_value)
-                        print('return value:', max_value > 4)
                         return (max_value > 4)
                 
                 wsf_reclassify()
@@ -681,7 +664,7 @@ if menu['raster_processing']:
     if menu['population']:
         try:
             clipdata(pop_folder / f"{city_inputs['country_name'].replace(' ', '_').lower()}_pop.tif", 'population')
-        except:
+        except Exception:
             failed.append('process population failed')
 
     # wsf
@@ -689,14 +672,14 @@ if menu['raster_processing']:
         # try:
         print('process wsf')
         clipdata_wsf(wsf_folder / f'{city_name_l}_wsf_evolution.tif')
-        # except:
+        # except Exception:
         #     failed.append('process wsf failed')
     
     # elevation
     if menu['elevation'] or menu['slope']:
         try:
             clipdata(elev_folder / f'{city_name_l}_elevation.tif', 'elevation')
-        except:
+        except Exception:
             failed.append('process elevation failed')
     
     # demographics
@@ -763,7 +746,7 @@ if menu['raster_processing']:
                     raster_meta.update({'nodata': 0})
                     with rasterio.open(output_folder / output_name, 'w', **raster_meta) as m:
                         m.write(sum(raster_to_add) / demo_total)
-        except:
+        except Exception:
             failed.append('process demographics failed')
     
     if menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:
@@ -794,16 +777,16 @@ if menu['raster_processing']:
                             raster_arrays.append(out_image)
                         
                         if raster_arrays:
-                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint16)
+                            out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
                             composite_raster_arrays.append(out_image * (i+1))
-                            out_meta.update(dtype = rasterio.uint16)
+                            out_meta.update(dtype = rasterio.uint8)
                             
                             with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_{list(flood_rp_bins.keys())[i]}.tif', 'w', **out_meta) as dst:
                                 dst.write(out_image)
                     
                     if composite_raster_arrays:
-                        out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint16)
-                        out_meta.update(dtype = rasterio.uint16)
+                        out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint8)
+                        out_meta.update(dtype = rasterio.uint8)
                             
                         with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}.tif', 'w', **out_meta) as dst:
                             dst.write(out_image)
@@ -833,7 +816,7 @@ if menu['raster_processing']:
                     for ssp in flood_ssps:
                         composite_raster_arrays = []
                         for i in range(len(flood_rp_bins)):
-                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_1in{rp}_con.tif' for rp in flood_rp_bins[list(flood_rp_bins.keys())[i]] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
+                            raster_to_merge = [f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif' for rp in flood_rp_bins[list(flood_rp_bins.keys())[i]] if exists(flood_folder / (f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_1in{rp}_con.tif'))]
                             raster_arrays = []
 
                             for r in raster_to_merge:
@@ -851,16 +834,16 @@ if menu['raster_processing']:
                                 raster_arrays.append(out_image)
                             
                             if raster_arrays:
-                                out_image = np.logical_or.reduce(raster_arrays).astype(np.uint16)
+                                out_image = np.logical_or.reduce(raster_arrays).astype(np.uint8)
                                 composite_raster_arrays.append(out_image * (i+1))
-                                out_meta.update(dtype = rasterio.uint16)
+                                out_meta.update(dtype = rasterio.uint8)
                                 
                                 with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}_{list(flood_rp_bins.keys())[i]}.tif', 'w', **out_meta) as dst:
                                     dst.write(out_image)
                         
                         if composite_raster_arrays:
-                            out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint16)
-                            out_meta.update(dtype = rasterio.uint16)
+                            out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint8)
+                            out_meta.update(dtype = rasterio.uint8)
                                 
                             with rasterio.open(output_folder / f'{city_name_l}_{flood_type}_{year}_ssp{ssp}.tif', 'w', **out_meta) as dst:
                                 dst.write(out_image)
@@ -904,12 +887,12 @@ if menu['raster_processing']:
             if (f'{r}_source' in city_inputs) and bool(city_inputs[f'{r}_source']):
                 try:
                     clipdata(city_inputs[f'{r}_source'], r)
-                except:
+                except Exception:
                     failed.append(f'process {r} failed')
             elif (f'{r}_source' in global_inputs) and bool(global_inputs[f'{r}_source']):
                 try:
                     clipdata(global_inputs[f'{r}_source'], r)
-                except:
+                except Exception:
                     failed.append(f'process {r} failed')
             else:
                 print(f'data source for {r} does not exist in city or global inputs yaml')
