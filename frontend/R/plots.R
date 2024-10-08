@@ -1,14 +1,24 @@
 # Plots for LGCRRP
-# 1. CCKP plots
-# 2. City scan plots
+# 1. Standard City Scan Plots
+# 2. Climate Projection Charts
+# 3. Other Plots
 
-# setwd("frontend")
 source("R/setup.R")
 
-# Climate Projection Charts
+# 1. Standard City Scan Plots --------------------------------------------------
+source("R/population-growth.R")
+source("R/urban-extent.R")
+source("R/flooding.R")
+source("R/landcover.R")
+source("R/elevation.R")
+source("R/slope.R")
+source("R/solar-pv.R")
+source("R/fwi.R")
+
+# 2. Climate Projection Charts -------------------------------------------------
 # Data from Climate Change Knowledge Portal
 # https://climateknowledgeportal.worldbank.org
-# To download, could do following, but that we send a cropped multi-band raster
+# Files are already on Google Cloud, but to download from source use
 # source("R/download.R")
 
 source("R/csdi.R")
@@ -19,288 +29,6 @@ source("R/r20mm-r50mm.R")
 source("R/rx5day.R") # Needs fixing
 source("R/tas-txx.R")
 
+# 3. Other Plots ---------------------------------------------------------------
 # Lightning
 source("R/lightning.R")
-
-# Standard city scan plots
-
-# Population growth
-# Get population data once and for all (don't need to share, but include in metadata)
-if (!file.exists("source-data/paurashava-populations.csv")) {
-  url <- paste0("https://www.citypopulation.de/en/bangladesh/cities/")
-  paurashava_populations <- read_html(url) %>%
-    html_node("section#citysection") %>%
-      html_node("table") %>%
-      html_table(na.strings = "...") %>%
-      select(
-        Location = Name, Location_bn = Native, Status, Administration = "Adm.",
-        contains("Population"), Area = starts_with("Area")) %>%
-    # filter(str_detect(tolatin(Location), tolatin(city))) %>%
-    pivot_longer(cols = contains("Population"), values_to = "Population", names_to = "Year") %>%
-    mutate(
-      Location = Location,
-      Year = str_extract(Year, "\\d{4}") %>% as.numeric(),
-      Population = str_replace_all(Population, ",", "") %>% as.numeric(),
-      Area_km = as.numeric(Area)/100,
-      .keep = "unused") %>%
-    arrange(Location, Year)
-  paurashava_populations[paurashava_populations$Year != 2022, "Area_km"] <- NA
-  write_csv(paurashava_populations, "source-data/paurashava-populations.csv")
-}
-
-# Make plot
-paurashava_populations <- read_csv("source-data/paurashava-populations.csv", col_types = "ccccddd")
-
-pop_growth <- paurashava_populations %>%
-  # Beware that city names may be spelled differently
-  filter(str_detect(Location, city))
-
-pop_growth_plot <- ggplot(pop_growth, aes(x = Year, y = Population, group = Location)) + #, color = Source))
-  geom_line() +
-  geom_point() +
-  scale_x_continuous(
-    expand = expansion(c(0, 0)),
-    breaks = seq(1990,2025, by = 5), minor_breaks = 1990:2025) +
-  expand_limits(x = c(1990, 2023)) +
-  scale_y_continuous(
-    limits = c(0, max(pop_growth$Population)), labels = scales::comma, expand = expansion(c(0, .1))) +    
-  theme_minimal() +
-  labs(
-    title = paste0(city, " Population Growth, ", min(pop_growth$Year), "-", max(pop_growth$Year)),
-    caption = "Census data aggregated by Thomas Brinkhoff, City Population") +
-  theme(
-    axis.line = element_line(linewidth = .5, color = "black"),
-    panel.grid.major = element_line(linewidth = .125, color = "grey"),
-    panel.grid.minor = element_line(linewidth = .125, linetype = 2, color = "grey"),
-    plot.caption = element_text(color = "grey30", size = rel(0.7)),
-    plot.background = element_rect(color = NA, fill = "white"))
-ggsave(file.path(charts_dir, "oxford-pop-growth.png"), plot = pop_growth_plot, device = "png",
-       width = 8, height = 5, units = "in", dpi = "print")
-
-# # Do we want to plot all paurashavas? Do we want to plot with nearby ones? Or similarly sized ones?
-# ggplot(paurashava_populations) +
-#   geom_line(
-#     data = ~ filter(.x, str_detect(Location, city)),
-#     aes(x = Year, y = Population, group = Location)) +
-#   geom_line(
-#     data = ~ filter(.x, !str_detect(Location, city)),
-#     aes(x = Year, y = Population, group = Location),
-#     color = "grey")
-
-# WSF built-up area time series plot
-wsf <- fuzzy_read(tabular_dir, "wsf_stats", read_csv) %>%
-  rename(Year = year, uba_km2 = "cumulative sq km")
-uba_plot <- wsf %>%
-  ggplot +
-  geom_line(aes(x = Year, y = uba_km2)) +
-  scale_x_continuous(
-    breaks = seq(1985, 2020, 5),
-    minor_breaks = seq(1985, 2021, 1)) + 
-  scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = c(0, NA)) +
-  theme_minimal() +
-  labs(title = paste(city, "Urban Built-up Area, 1985-2015"),
-        y = bquote('Urban built-up area,'~km^2)) +
-  theme(axis.line = element_line(linewidth = .5, color = "black"),
-    axis.title.x = element_blank(),
-    plot.background = element_rect(color = NA, fill = "white"))
-ggsave(file.path(charts_dir, "wsf-built-up-area-plot.png"), plot = uba_plot, device = "png",
-        width = 6, height = 4, units = "in", dpi = "print")
-
-# Flood plots
-flood_types <- c("fluvial", "pluvial", "coastal", "combined")
-flood_exposure <- fuzzy_read(tabular_dir, "flood_exposure", read_csv)
-flood_exposure <- flood_exposure %>% 
-  select(-ends_with("pct")) %>%
-  pivot_longer(cols = any_of(c("fluvial", "pluvial", "coastal", "combined")), names_to = "type", values_to = "area")
-
-plot_flood_exposure <- function(flood_type) {
-  if (flood_type %ni% c("fluvial", "pluvial", "coastal", "combined")) stop(paste("Flood type must be one of", paste(flood_types, collapse = ", "), "not", flood_type))
-  if (flood_type != "combined") flood_exposure <- flood_exposure %>% filter(type == flood_type)
-  exposure_plot <- flood_exposure %>%
-    ggplot(aes(x = year, y = area, color = type, linetype = type)) +
-    geom_line(data = \(d) filter(d, type == "combined")) +
-    geom_point(data = \(d) filter(d, type != "combined")) +
-    scale_x_continuous(
-      expand = expansion(c(0,.05)),
-      breaks = seq(1985, 2020, 5),
-      minor_breaks = seq(1985, 2021, 1)) + 
-    scale_y_continuous(labels = scales::comma, limits = c(0, NA), expand = expansion(c(0, 0.05))) +
-    scale_color_manual(values = c(fluvial = "#F8766D", pluvial = "#619CFF", coastal = "#00BA38", combined = "black")) +
-    scale_linetype_manual(values = c(fluvial = "dashed", pluvial = "dashed", coastal = "dashed", combined = "solid")) +
-    scale_size_manual(values = c(fluvial = .5, pluvial = .5, coastal = .5, combined = 0.5)) +
-    theme_minimal() +
-    labs(
-      title = paste0("Exposure of ", city, "'s built-up area to ", flood_type, " flooding"),
-      x = "Year",
-      y = bquote('Exposed'~km^2),
-      color = "Flood type", linetype = "Flood type") +
-    theme(
-      axis.line = element_line(linewidth = .5, color = "black"),
-      axis.title.x = element_blank(),
-      legend.position = if (flood_type == "combined") "bottom" else "none",
-      plot.background = element_rect(color = NA, fill = "white"))
-  ggsave(file.path(charts_dir, paste0("wsf-", flood_type, "-plot.png")), plot = exposure_plot, device = "png",
-          width = 6, height = 4, units = "in", dpi = "print")
-}
-
-plot_flood_exposure("fluvial")
-plot_flood_exposure("pluvial")
-plot_flood_exposure("coastal")
-plot_flood_exposure("combined")
-
-# Land cover pie chart
-landcover <- fuzzy_read(tabular_dir, "lc.csv", read_csv, col_types = "cd") %>%
-  rename(`Land Cover` = `Land Cover Type`, Count = `Pixel Count`) %>%
-  filter(!is.na(`Land Cover`)) %>%
-  mutate(Decimal = Count/sum(Count)) %>%
-  arrange(desc(Decimal))  %>% 
-  mutate(`Land Cover` = factor(`Land Cover`, levels = `Land Cover`)) %>%
-  mutate(Decimal = round(Decimal, 4))
-
-lc_colors <- c(
-  "Tree cover" = "#397e48",
-  "Built-up" = "#c4281b",
-  "Grassland" = "#88af52",
-  "Bare / sparse vegetation" = "#a59b8f",
-  "Cropland" = "#e49634",
-  "Permanent water bodies" = "#429bdf",
-  "Shrubland" = "#dfc25a",
-  "Herbaceous wetland" = "#7d87c4",
-  "Mangroves" = "#00cf75")
-
-lc_plot <- ggdonut(landcover, "Land Cover", "Count", lc_colors, "Land Cover")
-
-lc_plot_legend <- lc_plot + theme(axis.text.x = element_blank())
-ggsave(file.path(charts_dir, "wsf-landcover-legend.png"), plot = lc_plot_legend, device = "png",
-       width = 8, height = 5, units = "in", dpi = "print")
-
-lc_plot_plain <- lc_plot_legend + theme(legend.position = "none")
-ggsave(file.path(charts_dir, "wsf-landcover-plain.png"), plot = lc_plot_plain, device = "png",
-       width = 5, height = 5, units = "in", dpi = "print")
-
-lc_plot_labels <- lc_plot + theme(legend.position = "none")
-ggsave(file.path(charts_dir, "wsf-landcover-labels.png"), plot = lc_plot_labels, device = "png",
-       width = 5, height = 5, units = "in", dpi = "print")
-
-# Elevation pie chart
-elevation <- fuzzy_read(process_output_dir, "elevation.csv", read_csv, col_types = "cd") %>%
-  subset(!is.na(Bin)) %>%
-  mutate(base_elevation = as.numeric(str_replace(Bin, "-.*", "")),
-         Elevation = factor(Bin, levels = Bin),
-         Decimal = Count/sum(Count))
-elevation_names <- elevation$Elevation
-elevation_colors <- c(
-  "#f5c4c0",
-  "#f19bb4",
-  "#ec5fa1",
-  "#c20b8a",
-  "#762175") %>%
-  setNames(elevation_names)
-
-elevation_plot <- ggdonut(elevation, "Elevation", "Count", elevation_colors, "Elevation")
-# elevation_plot + labs(fill = "Elevation (MASL)")
-
-elevation_plot_legend <- elevation_plot + theme(axis.text.x = element_blank())
-ggsave(file.path(charts_dir, "wsf-elevation-legend.png"), plot = elevation_plot_legend, device = "png",
-       width = 8, height = 5, units = "in", dpi = "print")
-
-elevation_plot_plain <- elevation_plot_legend + theme(legend.position = "none")
-ggsave(file.path(charts_dir, "wsf-elevation-plain.png"), plot = elevation_plot_plain, device = "png",
-       width = 5, height = 5, units = "in", dpi = "print")
-
-elevation_plot_labels <- elevation_plot + theme(legend.position = "none")
-ggsave(file.path(charts_dir, "wsf-elevation-labels.png"), plot = elevation_plot_labels, device = "png",
-       width = 5, height = 5, units = "in", dpi = "print")
-
-# Slope pie chart
-slope <- fuzzy_read(process_output_dir, "slope.csv", read_csv, col_types = "cd") %>%
-  subset(!is.na(Bin)) %>%
-  mutate(Slope = factor(Bin, levels = Bin), Decimal = Count/sum(Count))
-slope_names <- arrange(slope, Slope)$Slope
-slope_colors <- c(
-  "#ffffd4",
-  "#fed98e",
-  "#fe9929",
-  "#d95f0e",
-  "#993404") %>%
-  setNames(slope_names)
-
-slope_plot <- ggdonut(slope, "Slope", "Count", slope_colors, "Slope")
-
-slope_plot_legend <- slope_plot + theme(axis.text.x = element_blank())
-ggsave(file.path(charts_dir, "wsf-slope-legend.png"), plot = slope_plot_legend, device = "png",
-       width = 8, height = 5, units = "in", dpi = "print")
-
-slope_plot_plain <- slope_plot_legend + theme(legend.position = "none")
-ggsave(file.path(charts_dir, "wsf-slope-plain.png"), plot = slope_plot_plain, device = "png",
-       width = 5, height = 5, units = "in", dpi = "print")
-
-slope_plot_labels <- slope_plot + theme(legend.position = "none")
-ggsave(file.path(charts_dir, "wsf-slope-labels.png"), plot = slope_plot_labels, device = "png",
-       width = 5, height = 5, units = "in", dpi = "print")
-
-# Solar availability seasonality chart
-pv_path <- file.path(spatial_dir, "Bangladesh_GISdata_LTAy_YearlyMonthlyTotals_GlobalSolarAtlas-v2_AAIGRID/monthly")
-
-files <- list.files(pv_path) %>% 
-  subset(stringr::str_detect(., ".tif$|.asc$"))
-if (length(files) == 0) stop("No PV files found")
-monthly_pv <- lapply(files, function(f) {
-  m <- f %>% substr(7, 8) %>% as.numeric()
-  month_country <- terra::rast(file.path(pv_path, f))
-  month <- terra::extract(month_country, aoi, include_area = T) %>% .[[2]]
-  max <- max(month, na.rm = T)
-  min <- min(month, na.rm = T)
-  mean <- mean(month, na.rm = T)
-  sum <- sum(month, na.rm = T)
-  return(c(month = m, max = max, min = min, mean = mean, sum = sum))
-}) %>% bind_rows()
-
-pv_plot <- monthly_pv %>%
-  mutate(daily = mean/lubridate::days_in_month(month)) %>%
-  ggplot(aes(x = month, y = daily)) +
-  annotate("text", x = 1, y = 4.6, label = "Excellent Conditions", vjust = 0, hjust = 0, color = "dark grey") +
-  annotate("text", x = 1, y = 3.6, label = "Favorable Conditions", vjust = 0, hjust = 0, color = "dark grey") +
-  geom_line() +
-  geom_point() +
-  scale_x_continuous(breaks = 1:12, labels = lubridate::month(1:12, label = T) %>% as.character) +
-  scale_y_continuous(labels = scales::label_comma(), limits = c(0, NA), expand = expansion(mult = c(0,.05))) +
-  labs(title = "Seasonal availability of solar energy",
-       x = "Month", y = "Daily PV energy yield (kWh/kWp") +
-  geom_hline(yintercept = c(3.5, 4.5), linetype = "dotted") +
-  theme_minimal() +
-  theme(
-    axis.title.x = element_blank(), 
-    axis.line = element_line(linewidth = .5, color = "black"),
-    panel.grid.minor.x = element_blank(),
-    plot.background = element_rect(color = NA, fill = "white"))
-ggsave(file.path(charts_dir, "monthly-pv.png"), plot = pv_plot, device = "png",
-       width = 6, height = 4, units = "in", dpi = "print")
-
-# FWI
-month_starts <- cumsum(c("Jan" = 31, "Feb" = 28, "Mar"= 31, "Apr" = 30, "May" = 31, "Jun" = 30,
-  "Jul" = 31, "Aug" = 31, "Sep"= 30, "Oct" = 31, "Nov" = 30, "Dec" = 31)/7) - 31/7
-
-fwi_file <- fuzzy_read(tabular_dir, "fwi.csv", paste)
-fwi <- read_csv(fwi_file, col_types = "dd")
-
-ggplot(fwi, aes(x = week - 1, y = pctile_95)) +
-  geom_line() +
-  scale_x_continuous(
-    breaks = month_starts + 31/7/2, labels = names(month_starts),
-    minor_breaks = month_starts, expand = c(0,0)) +
-  scale_y_continuous(limits = c(0, NA), expand = expansion(c(0, .1))) +
-  #   scale_color_manual(values = hues) +
-  theme_minimal() +
-  labs(
-    title = paste("FWI in", city, "2016-2021"),
-    y = "95th percentile FWI") +
-  theme(
-    axis.line = element_line(linewidth = .5, color = "black"),
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor = element_line(linewidth = .125, color = "dark gray"),
-    axis.title.x = element_blank(),
-    plot.background = element_rect(color = NA, fill = "white"))
-ggsave(
-  file.path(charts_dir, "nasa-fwi.png"), device = "png",
-  width = 4, height = 3.5, units = "in", dpi = "print")
