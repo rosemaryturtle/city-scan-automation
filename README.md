@@ -112,11 +112,11 @@ flowchart LR
 		rastering{{Data Processing}}
 		rastering --> data_outputs[Data Outputs]
 		rastering --> Stats
-		data_outputs --> Plots
-		Stats --> Plots
-		data_outputs --> auto_text[Automated Text]
-		Stats --> auto_text
-		Plots --> quarto{{Quarto}}
+		rastering --> Plots
+		rastering --> auto_text[Automated Text]
+		data_outputs --> quarto{{Quarto}}
+		Stats --> quarto
+		Plots --> quarto
 		auto_text --> quarto
 		quarto --> html_internal[HTML Site]
 	end
