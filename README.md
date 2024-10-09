@@ -108,15 +108,13 @@ flowchart LR
 		other[...]
 	end
 	data --> rastering
-	subgraph gcce[Google Cloud Compute Engine]
-		rastering{{Raster Processing}}
-		rastering --> TIFs
-		TIFs --> mapping{{Mapmaking}}
-		mapping --> PNGs
+	subgraph gcce[Google Cloud Run & Cloud Storage]
+		rastering{{Data Processing}}
+		rastering --> data_outputs[Data Outputs]
 		rastering --> Stats
-		PNGs --> jekyll{{Jekyll/Eleventy}}
-		Stats --> jekyll
-		jekyll --> html_internal[HTML Site]
+		data_outputs --> quarto{{Quarto}}
+		Stats --> quarto
+		quarto --> html_internal[HTML Site]
 	end
 	html_internal[HTML Site] -.- html_external[HTML Site]
 	writing{{Writing}} --- html_external[HTML Site]

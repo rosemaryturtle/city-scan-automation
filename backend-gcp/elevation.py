@@ -64,7 +64,6 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
     import fiona
     import math
     import rasterio
-    from affine import Affine
     import utils
 
     with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif') as src:
@@ -93,7 +92,6 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
         contour_levels = range(contourMin + contourInt, contourMax + contourInt, contourInt)
     else:
         contour_levels = range(contourMin, contourMax + contourInt, contourInt)
-    print(list(contour_levels))
 
     contours = plt.contourf(elevation_data, levels=contour_levels)
 
@@ -102,7 +100,6 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
 
     # Iterate over all contour levels and their corresponding paths
     for collection, level in zip(contours.collections, contour_levels):
-        print(f"Processing level: {level}")
         for path in collection.get_paths():
             for polygon in path.to_polygons():
                 if len(polygon) > 0:
