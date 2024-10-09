@@ -10,10 +10,11 @@
     - [Build and Push the Docker Image to Artifact Registry](#build-and-push-the-docker-image-to-artifact-registry)
     - [Deploy the Docker Image to Cloud Run Job](#deploy-the-docker-image-to-cloud-run-job)
     - [Execute the Cloud Run Job](#execute-the-cloud-run-job)
-5. [Modify the Container](#modify-the-container)
-6. [Simultaneous Data Processing for Multiple Cities](#simultaneous-data-processing)
-7. [Environment Variables](#environment-variables)
-8. [Troubleshooting](#troubleshooting)
+5. [Access the Data Outputs](#access-the-data-outputs)
+6. [Modify the Container](#modify-the-container)
+7. [Simultaneous Data Processing for Multiple Cities](#simultaneous-data-processing)
+8. [Environment Variables](#environment-variables)
+9. [Troubleshooting](#troubleshooting)
 
 ## Overview
 
