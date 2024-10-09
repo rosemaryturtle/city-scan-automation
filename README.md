@@ -108,12 +108,16 @@ flowchart LR
 		other[...]
 	end
 	data --> rastering
-	subgraph gcce[Google Cloud Run & Cloud Storage]
+	subgraph gcce[Google Cloud]
 		rastering{{Data Processing}}
 		rastering --> data_outputs[Data Outputs]
 		rastering --> Stats
-		data_outputs --> quarto{{Quarto}}
-		Stats --> quarto
+		data_outputs --> Plots
+		Stats --> Plots
+		data_outputs --> auto_text[Automated Text]
+		Stats --> auto_text
+		Plots --> quarto{{Quarto}}
+		auto_text --> quarto
 		quarto --> html_internal[HTML Site]
 	end
 	html_internal[HTML Site] -.- html_external[HTML Site]
