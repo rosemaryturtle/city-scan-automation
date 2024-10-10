@@ -9,21 +9,15 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
     local_elev_folder = f'{local_data_dir}/elev'
     os.makedirs(local_elev_folder, exist_ok=True)
 
-    lat_tiles_big = raster_pro.tile_finder(aoi_file, 'lat', 10)
-    lon_tiles_big = raster_pro.tile_finder(aoi_file, 'lon', 10)
     lat_tiles_small = raster_pro.tile_finder(aoi_file, 'lat', 1)
     lon_tiles_small = raster_pro.tile_finder(aoi_file, 'lon', 1)
 
     elev_download_dict = {}
-    for lat in lat_tiles_big:
-        for lon in lon_tiles_big:
-            file_name = f'{lat}{lon}-{raster_pro.fabdem_tile_end_matcher(lat)}{raster_pro.fabdem_tile_end_matcher(lon)}_FABDEM_V1-2.zip'
-
-            # unzip downloads
-            for lat1 in lat_tiles_small:
-                for lon1 in lon_tiles_small:
-                    file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
-                    elev_download_dict[file_name1] = file_name
+    for lat1 in lat_tiles_small:
+        for lon1 in lon_tiles_small:
+            file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
+            lat, lon = raster_pro.fabdem_big_tile_matcher(lat1, lon1)
+            elev_download_dict[file_name1] = f'{lat}{lon}-{raster_pro.fabdem_tile_end_matcher(lat)}{raster_pro.fabdem_tile_end_matcher(lon)}_FABDEM_V1-2.zip'
 
     elev_download_list = [f'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/{fn}' for fn in list(elev_download_dict.values())]
     downloaded_list = raster_pro.download_raster(list(set(elev_download_list)), local_elev_folder, data_bucket, data_bucket_dir='FABDEM')
