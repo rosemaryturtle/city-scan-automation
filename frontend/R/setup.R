@@ -75,4 +75,5 @@ aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
 
 # 6. CCKP data: set SSP numbers and list file paths
 scenario_numbers <- c(126, 245, 370)
+selected_ssp <- "SSP3-7.0" # Which SSP to use in the single-SSP charts
 generic_paths <- generate_generic_paths()

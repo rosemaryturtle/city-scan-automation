@@ -521,3 +521,17 @@ extract_ts <- \(file) {
       unlist() %>%
       { tibble(date = as.Date(names(r)), value = ., file = file) }
 }
+
+theme_cckp_chart <- function(...) {
+  theme(
+    ...,
+    legend.title = element_text(size = rel(0.7)), legend.text = element_text(size = rel(0.7)),
+    plot.caption = element_text(color = "grey30", size = rel(0.7), hjust = 0),
+    axis.line = element_line(color = "black"),
+    plot.background = element_rect(color = NA, fill = "white")) 
+}
+
+annotation_height <- function(x, lower_limit = NULL) {
+  if (is.null(lower_limit)) lower_limit <- min(x)
+  .95*diff(range(x)) + lower_limit
+}
