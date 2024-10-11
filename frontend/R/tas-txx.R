@@ -1,13 +1,16 @@
 # tas, txx ----
 
-tas_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "tas")))
-txx_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "txx")))
+tas_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/tas",
+  basename(unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "tas"))))) %>%
+  str_replace(".nc", "-cog.tif")
+txx_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/txx",
+  basename(unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "txx"))))) %>%
+  str_replace(".nc", "-cog.tif")
 
-tas_all_df <- file.path(
-  "source-data/tas",
-  str_extract(c(tas_paths), "[^/]+$")) %>%
-  # str_subset("median") %>%
-  # rast()
+setGDALconfig("GS_NO_SIGN_REQUEST=YES")
+tas_all_df <- tas_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%
   mutate(

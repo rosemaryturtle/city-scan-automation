@@ -1,13 +1,16 @@
 # r20mm, r50mm ----
 
-r20mm_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "r20mm")))
-r50mm_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "r50mm")))
+r20mm_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/r20mm",
+  basename(unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "r20mm"))))) %>%
+  str_replace(".nc", "-cog.tif")
+r50mm_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/r50mm",
+  basename(unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "r50mm"))))) %>%
+  str_replace(".nc", "-cog.tif")
 
-r20mm_all_df <- file.path(
-  "source-data/r20mm",
-  str_extract(c(r20mm_paths), "[^/]+$")) %>%
-  # str_subset("median") %>%
-  # rast()
+setGDALconfig("GS_NO_SIGN_REQUEST=YES")
+r20mm_all_df <- r20mm_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%
   mutate(

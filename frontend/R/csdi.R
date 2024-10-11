@@ -1,11 +1,12 @@
 # CSDI ----
-csdi_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "csdi")))
 
-csdi_all_df <- file.path(
-  "source-data/csdi",
-  str_extract(c(csdi_paths), "[^/]+$")) %>%
-  # str_subset("median") %>%
-  # rast()
+csdi_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/csdi",
+  basename(unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "csdi"))))) %>%
+  str_replace(".nc", "-cog.tif")
+
+setGDALconfig("GS_NO_SIGN_REQUEST=YES")
+csdi_all_df <- csdi_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%
   mutate(

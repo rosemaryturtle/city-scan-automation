@@ -519,5 +519,5 @@ extract_ts <- \(file) {
       mutate(across(-c(ID, fraction), \(x) fraction * x)) %>%
       summarize(across(-c(ID, fraction), \(x) sum(x))) %>%
       unlist() %>%
-      { tibble(date = time(r), value = ., file = file) }
+      { tibble(date = as.Date(names(r)), value = ., file = file) }
 }

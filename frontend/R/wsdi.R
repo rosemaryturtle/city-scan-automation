@@ -1,12 +1,12 @@
 # WSDI ----
 
-wsdi_paths <- unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "wsdi")))
+wsdi_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/wsdi",
+  basename(unlist(lapply(generic_paths, \(s) glue::glue(s, codes = "wsdi"))))) %>%
+  str_replace(".nc", "-cog.tif")
 
-wsdi_all_df <- file.path(
-  "source-data/wsdi",
-  str_extract(c(wsdi_paths), "[^/]+$")) %>%
-  # str_subset("median") %>%
-  # rast()
+setGDALconfig("GS_NO_SIGN_REQUEST=YES")
+wsdi_all_df <- wsdi_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%
   mutate(

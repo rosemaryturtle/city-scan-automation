@@ -1,9 +1,18 @@
 # rx5day ----
 
-changefactor <- list.files("source-data/rx5day-extremes", full.names = T) %>%
-  str_subset("changefactor") %>%
-  str_subset(paste0("ssp", scenario_numbers, collapse = "|")) %>%
-  # .[1:2] %>%
+rx5day_urls <- file.path(
+  "/vsigs/city-scan-global-data/cckp/rx5day-extremes", 
+  pmap_chr(expand_grid(!!!list(
+    string1 = "changefactorfaep",
+    return_period = c(5, 10, 20),
+    string2 = "yr-rx5day-period-mean_cmip6_period_all-regridded-bct-ssp",
+    scenarios = scenario_numbers,
+    string3 = "-climatology_median_",
+    period = c("2010-2039", "2035-2064", "2060-2089", "2070-2099"),
+    string4 = "-cog.tif"
+  )), paste0))
+
+changefactor <- rx5day_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%
   mutate(
