@@ -55,9 +55,16 @@ summer_lst:
   palette: ['#5290C2', '#F0EE80', '#D33837']
   title: 'Summer surface temperature<br>2017–2021'
   subtitle: 'Mean temperature (°C)'
-vegetation:
+vegetation_annual:
   fuzzy_string: NDVI_Annual.*.tif$
-  title: Vegetated Areas
+  title: Vegetated Areas (Annual)
+  subtitle: 'Normalized difference vegetation index (NDVI)'
+  palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
+  breaks: [-1, 0.015, 0.14, 0.18, 0.27, 0.36, 1]
+  labels: ['Water (-1 to 0.015)', 'Built-up (0.015 to 0.14)', 'Barren (0.14 to 0.18)', 'Shrub and Grassland (0.18 to 0.27)', 'Sparse (0.27 to 0.36)', 'Dense (0.36 to 1)']
+vegetation_seasonal:
+  fuzzy_string: NDVI_Season.tif$ # How do I know whether to use seasonal or annual?
+  title: Vegetated Areas (Seasonal)
   subtitle: 'Normalized difference vegetation index (NDVI)'
   palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
   breaks: [-1, 0.015, 0.14, 0.18, 0.27, 0.36, 1]
@@ -178,8 +185,14 @@ burnable:
   title: Burnability Factor
   palette: ['#FFFFFF', '#EFAD42', '#681A17']
   breaks: [0, .17, .33, .5, .67, .83, 1]
-moisture:
+moisture_annual:
   fuzzy_string: NDMI_Annual.*.tif$
+  title: NDMI
+  palette: ['#D45A35', '#F6F7F9', '#48A787']
+  center: 0
+  bins: 5
+moisture_seasonal:
+  fuzzy_string: NDMI_Season.tif$
   title: NDMI
   palette: ['#D45A35', '#F6F7F9', '#48A787']
   center: 0
