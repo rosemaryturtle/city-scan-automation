@@ -16,6 +16,7 @@ def landcover_burn(city_name_l, aoi_file, data_bucket, blob_name, local_output_d
     raster_bytes = utils.read_blob_to_memory(data_bucket, blob_name)
 
     out_image, out_meta = raster_pro.raster_mask_bytes(raster_bytes, features)
+    out_meta.update({'nodata': 0})
 
     ls000 = [190, 200, 201, 202, 210, 220]
     ls016 = [151]
