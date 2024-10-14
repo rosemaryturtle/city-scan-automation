@@ -76,24 +76,12 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   }) %>% unlist() -> plot_log
 
 # Elevation --------------------------------------------------------------------
-# elevation_params <- prepare_parameters("elevation")
-# elevation_title <- format_title(elevation_params$title, elevation_params$subtitle)
-# plots$elevation <- plots$elevation + labs(color = elevation_title)
-
-# # Road criticality -------------------------------------------------------------
-# # Doing this manually because of stroke weight and color legends
-# road_params <- prepare_parameters("roads")
-# road_title <- format_title(road_params$title, road_params$subtitle)
-# road_data <- fuzzy_read(spatial_dir, "edges-edit.gpkg")
-# plots$roads <- plot_layer(data = road_data, yaml_key = "roads") +
-#   scale_color_stepsn(
-#     name = road_title,
-#     colors = road_params$stroke$palette,
-#     labels = scales::label_percent()) +
-#   scale_linewidth_manual(
-#     name = "Road type",
-#     values = c("FALSE" = 0.24, "TRUE" = 1),
-#     labels = c("Secondary", "Primary"))
+elevation_breaks <- fuzzy_read(process_output_dir, "elevation.csv", read_csv, col_types = "cd")$Bin %>%
+  str_extract_all("\\d+") %>% unlist() %>% unique() %>% as.numeric()
+elevation_data <- fuzzy_read(spatial_dir, layer_params$elevation$fuzzy_string) %>%
+        # aggregate_if_too_fine(threshold = 1e6, fun = \(x) Mode(x, na.rm = T)) %>%
+        vectorize_if_coarse(threshold = 1e6)
+plots$elevation <- plot_layer(data = elevation_data, yaml_key = "elevation", breaks = elevation_breaks)
 
 # Deforestation ----------------------------------------------------------------
 deforest <- fuzzy_read(spatial_dir, layer_params$deforest$fuzzy_string, rast)

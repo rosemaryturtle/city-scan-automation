@@ -120,15 +120,21 @@ combined_flooding: # This will require pre-processing
   title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
 elevation:
-  fuzzy_string: contour.gpkg$
+  title: Elevation
+  subtitle: Meters above sea level (MASL)
+  fuzzy_string: elevation.tif$
   palette: ['#f5c4c0', '#762175']
   bins: 5
-  stroke: 
-    title: Elevation
-    subtitle: "Meters above sea level (MASL)"
-    variable: elev
-    palette: ['#f5c4c0', '#762175']
-  weight: 1
+# elevation: # For using contour lines file
+#   fuzzy_string: contour.shp$
+#   palette: NULL
+#   bins: 5
+#   stroke: 
+#     title: Elevation
+#     subtitle: "Meters above sea level (MASL)"
+#     variable: elev
+#     palette: ['#f5c4c0', '#762175']
+#   weight: 1
 slope:
   fuzzy_string: slope.tif$
   title: Slope
