@@ -93,8 +93,8 @@ infrastructure:
 fluvial:
   # fuzzy_string: fluvial_2020.tif$
   factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  # palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#4465893f', '#4465897f', '#446589bf']
   breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
@@ -102,8 +102,8 @@ fluvial:
 pluvial:
   # fuzzy_string: pluvial_2020.tif$
   factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  # palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#4465893f', '#4465897f', '#446589bf']
   breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
@@ -111,8 +111,8 @@ pluvial:
 coastal:
   # fuzzy_string: coastal_2020.tif$
   factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  # palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#4465893f', '#4465897f', '#446589bf']
   breaks: [1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
@@ -120,8 +120,8 @@ coastal:
 combined_flooding: # This will require pre-processing
   # fuzzy_string: combined_flooding_2020.tif$
   factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
+  # palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#4465893f', '#4465897f', '#446589bf']
   breaks: [1, 2, 3]
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Combined Flood probability'
