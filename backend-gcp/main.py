@@ -43,6 +43,7 @@ features = aoi_file.geometry
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
 country_name_l = city_inputs['country_name'].replace(' ', '_').replace("'", "").lower()
 country_iso3 = pycountry.countries.lookup(city_inputs['country_name']).alpha_3
+# TODO: go through the list of countries and handle anomalies
 
 # Load global inputs, such as data sources that generally remain the same across scans
 print('Load global inputs')
@@ -62,8 +63,8 @@ storage_client = storage.Client()
 city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
 input_dir = f'{city_dir}/{input_dir}'
 output_dir = f'{city_dir}/{output_dir}'
-utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', check_exists=True)
-utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', check_exists=True)
+utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml')
+utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml')
 for f in downloaded_aoi:
     utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", check_exists=True)
 

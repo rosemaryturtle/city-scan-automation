@@ -214,13 +214,14 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
 
     for ft in flood_wsf_stats:
         for year in flood_wsf_stats[ft]:
-            if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
-                for ssp in flood_ssps:
+            if list(flood_wsf_stats[ft][year].values()):
+                if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
+                    for ssp in flood_ssps:
+                        for yr in range(1985, 2016):
+                            rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
+                else:
                     for yr in range(1985, 2016):
-                        rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
-            else:
-                for yr in range(1985, 2016):
-                    rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
+                        rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
 
     df = pd.DataFrame(rows, columns=['year', 'type', 'exposed_built_up_sqkm'])
     df_pivot = df.pivot(index='year', columns='type', values='exposed_built_up_sqkm')

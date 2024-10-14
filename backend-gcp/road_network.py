@@ -2,7 +2,6 @@ import osmnx as ox
 import networkx as nx
 import pandas as pd
 import numpy as np
-from shapely.ops import unary_union
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pickle
