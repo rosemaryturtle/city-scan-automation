@@ -15,8 +15,6 @@ RUN /rocker_scripts/install_tidyverse.sh
 RUN /rocker_scripts/install_geospatial.sh
 RUN /rocker_scripts/install_python.sh
 RUN /rocker_scripts/install_pandoc.sh
-RUN /rocker_scripts/install_jupyter.sh
-RUN /rocker_scripts/install_quarto.sh
 
 ## R's X11 runtime dependencies
 RUN apt-get update \
@@ -46,8 +44,16 @@ RUN apt-get update && apt-get install -y \
 
 # Install remaining R packages
 RUN install2.r \
-    quarto \
-    plotly
+    librarian \
+    tidyterra \ 
+    cowplot \ 
+    directlabels \ 
+    ggspatial \
+    ggh4x \ 
+    ggnewscale \
+    ggrepel \ 
+    ggtext \
+    prettymapr
 
 # Set fallback mount directory
 ENV MNT_DIR /home/mnt
@@ -58,6 +64,8 @@ WORKDIR /home
 COPY . ./
 
 # Ensure the scripts are executable
+# For writing $CITY_DIR to city-dir.txt (& future entrypoint commands)
+RUN chmod +x /home/scripts/entrypoint.sh
 # For Google Gloud
 RUN chmod +x /home/scripts/gcsfuse_run.sh
 # For local runs
@@ -66,36 +74,41 @@ RUN chmod +x /home/scripts/local_run.sh
 # Create mount directory for job
 RUN mkdir -p $MNT_DIR
 
-# Write environment variable CITY_DIR to TXT file for use by R
-RUN $CITY_DIR >> city-dir.txt
+# # Write environment variable CITY_DIR to TXT file for use by R
+# # 2024-10-09 I don't think this does anything, nor is it needed. RUN is used at
+# # build time; so this would need to be in ENTRYPOINT
+# RUN $CITY_DIR >> city-dir.txt
 
 # Use tini to manage zombie processes and signal forwarding
 # https://github.com/krallin/tini
-ENTRYPOINT ["/usr/bin/tini", "--"] 
+ENTRYPOINT ["/usr/bin/tini", "--", "/home/scripts/entrypoint.sh"] 
 
 # Pass the startup script as arguments to Tini
 CMD ["/home/scripts/gcsfuse_run.sh"]
 
 #### Docker commands to build and run Docker image locally ####################
 
+# For all, Docker must be running
+# ***Add Docker instructions***
+
 # Build the container
-# docker build -t nalgene .
+# docker build -t nalgene-lgcrrp .
 # Run the container without rendering the site ()
-# docker run -it --rm -v "$(pwd)"/mnt:/home/mnt -e CITY_DIR=$CITY_DIR nalgene bash
+# docker run -it --rm -v "$(pwd)"/mnt:/home/mnt -e CITY_DIR=$CITY_DIR nalgene-lgcrrp bash
 # Run the container with rendering the site
 # docker run -it --rm -v "$(pwd)"/mnt:/home/mnt -e CITY_DIR=$CITY_DIR nalgene scripts/local_run.sh
 # where $CITY_DIR is the city-specific directory in mnt/ (e.g., 2023-10-kenya-mombasa/)
 
 # Alternatively, instead of building the container, you can run the version
-# of the image hosted on Docker Hub by simply replacing `nalgene` with 
-# `notkin/nalgene` in the command. !! This will not include any edits you've
-# made to non-mounted files !!
+# of the image hosted on Docker Hub by simply replacing `nalgene-lgcrrp` with 
+# `notkin/nalgene-lgcrrp` in the command. !! This will not include any edits you've
+# made to non-mounted files !! (notkin/nalgene-lgcrrp is not yet online)
 
 # You can avail yourself of VS Code's functionality (instead of limiting
 # yourself to the command line), with the Dev Containers extension (see tutorial
 # at https://code.visualstudio.com/docs/devcontainers/containers
 # 1. Install Dev Containers extension
-# 2. Run the container: `docker run -it --rm -v "$(pwd)"/mnt:/home/mnt -e CITY_DIR=$CITY_DIR nalgene bash`
+# 2. Run the container: `docker run -it --rm -v "$(pwd)"/mnt:/home/mnt -e CITY_DIR=$CITY_DIR nalgene-lgcrrp bash`
 # 3. Attach VS Code to the container: CMD/CTRL + SHIFT + P, then type/select
 #    "Dev Containers: Attach to Running Container..."; hit Enter again to select
 #    oddly named container
