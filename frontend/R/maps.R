@@ -4,10 +4,6 @@
 source("R/setup.R")
 source("R/pre-mapping.R")
 
-# Load map layer parameters
-layer_params_file <- 'source/layers.yml' # Also used by fns.R
-layer_params <- read_yaml(layer_params_file)
-
 # Set static map visualization parameters
 layer_alpha <- 0.8
 map_width <- 6.9
@@ -26,11 +22,10 @@ plots <- list()
 if(is.null(wards)) {
   plots$aoi <- plot_layer(aoi_only = T, plot_aoi = T)
 } else {
-  ward_labels <- site_labels(wards)
-  plots$aoi <- plot_layer(aoi_only = T, plot_aoi = F) +
+  ward_labels <- site_labels(wards, simplify = F)
+  plots$aoi <- plot_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
     # geom_spatvector_text(data = wards, aes(label = as.numeric(str_extract(WARD_NO, "\\d*$"))))
     geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
-  plots$aoi
   save_plot(plot = plots$aoi, filename = "aoi.png",
             directory = styled_maps_dir)
 }
@@ -40,6 +35,8 @@ landmarks <- fuzzy_read(user_input_dir, "Landmark")
 if (inherits(landmarks, "SpatVector")) {
   landmarks <- landmarks %>% project("epsg:4326") %>% select(Name)
   landmarks_df <- mutate(landmarks, x = geom(landmarks)[,"x"], y = geom(landmarks)[,"y"])
+
+  # Combine landmark labels, ward labels, and ward lines, to reduce text overlaps
   landmarks_and_points_to_avoid <-
     rbind(
       mutate(landmarks, label = Name, type = "landmark", fface = "italic", fsize = 1.5),
@@ -47,7 +44,7 @@ if (inherits(landmarks, "SpatVector")) {
       mutate(as.points(wards) %>% .[rep(c(T, F, F), nrow(.))], label = "", type = "perimeter")
       ) %>%
     mutate(x = geom(.)[,"x"], y = geom(.)[,"y"])
-  plots$landmarks <- plot_layer(aoi_only = T, plot_aoi = F) +
+  plots$landmarks <- plot_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
     geom_spatial_point(data = landmarks_df, crs = "epsg:4326", aes(x = x, y = y), size = 0.25) +
     geom_spatial_text_repel(data = landmarks_and_points_to_avoid, crs = "epsg:4326",
       aes(
@@ -99,7 +96,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 #     labels = c("Secondary", "Primary"))
 
 # Deforestation ----------------------------------------------------------------
-deforest <- fuzzy_read(spatial_dir, "Deforest", rast)
+deforest <- fuzzy_read(spatial_dir, layer_params$deforest$fuzzy_string, rast)
 if (inherits(deforest, c("SpatVector", "SpatRaster"), which = F)) {
   values(deforest) <- values(deforest) + 2000 # Move to pre-mapping
   plots$deforest <- plot_layer(
@@ -111,7 +108,6 @@ if (inherits(deforest, c("SpatVector", "SpatRaster"), which = F)) {
 # Flooding ---------------------------------------------------------------------
 
 plot_flooding <- function(flood_type) {
-  # browser()
   file <- fuzzy_read(spatial_dir, glue("{flood_type}_2020.tif$"), paste)
   if (is.na(file)) return(NULL)
   flood_data <- terra::crop(rast(file), vect(static_map_bounds))
@@ -183,3 +179,6 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
 plots %>% walk2(names(.), \(plot, name) {
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir)
 })
+
+unmapped <- setdiff(c(names(layer_params), "aoi", "forest_deforest", "burnt_area"), names(plots))
+if (length(unmapped) > 0) warning(paste(length(unmapped), "layers not mapped (not counting flood overlays):\n-", paste(unmapped, collapse = "\n- ")))

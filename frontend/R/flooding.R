@@ -6,7 +6,6 @@ flood_exposure <- flood_exposure %>%
   pivot_longer(cols = any_of(c("fluvial", "pluvial", "coastal", "combined")), names_to = "type", values_to = "area")
 
 plot_flood_exposure <- function(flood_type) {
-    browser()
   if (flood_type %ni% c("fluvial", "pluvial", "coastal", "combined")) stop(paste("Flood type must be one of", paste(flood_types, collapse = ", "), "not", flood_type))
   if (flood_type != "combined") flood_exposure <- flood_exposure %>% filter(type == flood_type)
   exposure_plot <- flood_exposure %>%

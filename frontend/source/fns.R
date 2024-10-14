@@ -28,7 +28,7 @@ fuzzy_read <- function(dir, fuzzy_string, FUN = NULL, path = T, convert_to_vect 
   }
 }
 
-rast_as_vect <- function(x, digits = 8, ...) {  
+rast_as_vect <- function(x, digits = 8, ...) {
   if (class(x) == "SpatVector") return(x)
   if (is.character(x)) x <- rast(x, ...)
   out <- as.polygons(x, digits = digits)
@@ -66,6 +66,9 @@ prepare_parameters <- function(yaml_key, ...) {
     if (nchar(p) == 9) {
       alpha_hex <- as.hexmode(substr(p, 8, 9))
       new_alpha_hex <- as.character(alpha_hex * layer_alpha)
+      # At one point I used the following; what was I trying to solve for? This
+      # could make colors with alpha < 1 more opaque than colors with alpha = 1
+      # new_alpha_hex <- as.character(as.hexmode("ff") - (as.hexmode("ff") - alpha_hex) * layer_alpha)
       if (nchar(new_alpha_hex) == 1) new_alpha_hex <- paste0(0, new_alpha_hex)
       new_p <- paste0(substr(p, 1, 7), new_alpha_hex)
       return(new_p)
@@ -77,7 +80,7 @@ prepare_parameters <- function(yaml_key, ...) {
 }
 
 plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, ...) {
-   if (aoi_only) {
+  if (aoi_only) {
     layer <- NULL
   } else { 
     params <- prepare_parameters(yaml_key = yaml_key, ...)
@@ -388,6 +391,7 @@ count_aoi_cells <- function(data, aoi) {
     expanse(aoi)
   }
   cell_count <- (aoi_area / cellSize(data)[1,1])[[1]]
+  return(cell_count)
 }
 
 vectorize_if_coarse <- function(data, threshold = 7000) {
@@ -402,7 +406,7 @@ aggregate_if_too_fine <- function(data, threshold = 1e5, fun = "modal") {
   cell_count <- count_aoi_cells(data, aoi)
   if (cell_count > threshold) {
     factor <- round(sqrt(cell_count / threshold))
-    data <- terra::aggregate(data, fact = factor, fun = fun)
+    if (factor > 1) data <- terra::aggregate(data, fact = factor, fun = fun)
   }
   return(data)
 }
@@ -421,10 +425,10 @@ center_max_circle <- \(x, simplify = T, tolerance = 0.0001) {
   return(list(center = center, radius = radius))
 }
 
-site_labels <- function(x) {
+site_labels <- function(x, simplify = T, tolerance = 0.0001) {
   sites <- list()
   for (i in 1:nrow(x)) {
-    sites[i] <- center_max_circle(x[i], simplify = F)["center"]
+    sites[i] <- center_max_circle(x[i], simplify = simplify, tolerance = tolerance)["center"]
   }
   label_sites <- Reduce(rbind, unlist(sites))
   return(label_sites)
@@ -520,6 +524,12 @@ extract_ts <- \(file) {
       summarize(across(-c(ID, fraction), \(x) sum(x))) %>%
       unlist() %>%
       { tibble(date = as.Date(names(r)), value = ., file = file) }
+}
+
+Mode <- \(x, na.rm = F) {
+  if (na.rm) x <- na.omit(x)
+  unique_values <- unique(x)
+  unique_values[which.max(tabulate(match(x, unique_values)))]
 }
 
 theme_cckp_chart <- function(...) {

@@ -3,9 +3,10 @@
 # 1. Load packages
 # 2. Load functions
 # 3. Set directories
-# 4. Load city parameters
-# 5. Read AOI & wards
-# 6. CCKP data: set SSP numbers and list file paths
+# 4. Load map layer parameters
+# 5. Load city parameters
+# 6. Read AOI & wards
+# 7. CCKP data: set SSP numbers and list file paths
 
 # 1. Load packages -------------------------------------------------------------
 # Install packages from CRAN using librarian
@@ -18,10 +19,10 @@ librarian::shelf(
   
   # Plots
   ggplot2, # 3.5 or higher
+  ggnewscale, # 4.10 or higher
   ggrepel,
   directlabels,
   ggh4x,
-  plotly, 
   cowplot,
 
   # Spatial
@@ -44,10 +45,6 @@ librarian::shelf(
   units,
   dplyr)
 
-librarian::stock(
-  ggnewscale, # 4.10 or higher
-  pammtools) # Only used for geom_stepribbon(), not currently used
-
 # 2. Load functions ------------------------------------------------------------
 source("source/fns.R")
 
@@ -64,16 +61,21 @@ charts_dir <- file.path(output_dir, "charts/")
 dir.create(styled_maps_dir, recursive = T)
 dir.create(charts_dir, recursive = T)
 
-# 4. Load city parameters ------------------------------------------------------
+# 4. Load map layer parameters -------------------------------------------------
+layer_params_file <- 'source/layers.yml' # Also used by fns.R
+layer_params <- read_yaml(layer_params_file)
+
+# 5. Load city parameters ------------------------------------------------------
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
 city <- city_params$city_name
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
 country <- city_params$country_name
 
-# 5. Read AOI & wards ----------------------------------------------------------
+# 6. Read AOI & wards ----------------------------------------------------------
 aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
+wards <- tryCatch(fuzzy_read(user_input_dir, "wards") %>% project("epsg:4326"), error = \(e) NULL)
 
-# 6. CCKP data: set SSP numbers and list file paths
+# 7. CCKP data: set SSP numbers and list file paths
 scenario_numbers <- c(126, 245, 370)
 selected_ssp <- "SSP3-7.0" # Which SSP to use in the single-SSP charts
 generic_paths <- generate_generic_paths()

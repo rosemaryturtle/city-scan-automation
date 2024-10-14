@@ -1,6 +1,7 @@
 # Download CCKP Data
 
 # Download tas, txx, wsdi, csdi, r20mm, r50mm
+if (!"glue" %in% installed.packages()) install.packages("glue")
 codes <- c("tas", "txx", "wsdi", "csdi", "r20mm", "r50mm")
 scenario_numbers <- c(126, 245, 370)
 
@@ -46,4 +47,4 @@ system("
 
 # Download rx5day extreme
 # Formerly system("bash bash wbcckp-download.sh") (haven't tested edit)
-system("bash wbcckp-download.sh")
+system("bash source/wbcckp-download.sh")
