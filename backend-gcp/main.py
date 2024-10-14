@@ -220,3 +220,5 @@ elif task_index == 16:
     if menu['nightlight']:
         import gee_fun
         gee_fun.gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir)
+
+# TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
