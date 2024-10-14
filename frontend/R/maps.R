@@ -5,7 +5,7 @@ source("R/setup.R")
 source("R/pre-mapping.R")
 
 # Set static map visualization parameters
-layer_alpha <- 0.8
+layer_alpha <- 0.7
 map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height
@@ -51,7 +51,7 @@ if (inherits(landmarks, "SpatVector")) {
         x = x, y = y, fontface = fface, size = fsize,
         label = break_lines(label, width = 12, newline = "\n")),
       segment.size = 0.1, box.padding = 0.1, min.segment.length = 0.2, max.time = 2,
-      force_pull = 0.1, max.overlaps = 10,
+      force_pull = 0.8, max.overlaps = 40,
       lineheight = 0.9) +
     scale_size(range = c(1.5, 2), guide = "none")
   save_plot(plot = plots$landmarks, filename = "landmarks.png",
