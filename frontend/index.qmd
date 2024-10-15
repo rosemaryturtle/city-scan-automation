@@ -76,7 +76,7 @@ August 2024
 :::
 
 <div id="cover-map">
-![](mnt/2024-08-china-guiyang/02-process-output/guiyang_network_plus_building_footprints-small-dither.png)
+![](mnt/2024-08-china-guiyang/02-process-output/spatial/guiyang_network_plus_building_footprints-small-dither.png)
 </div>
 
 ::: text-column

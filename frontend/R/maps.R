@@ -22,7 +22,14 @@ map_height <- 5.9
 aspect_ratio <- map_width / map_height
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
 # max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
-zoom_level <- max(10, round(14.6 + -0.00015 * units::drop_units(sqrt(st_area(aoi)))))
+
+area <- if (inherits(aoi, "sf")) {
+  units::drop_units(sqrt(st_area(aoi)))
+} else if (inherits(aoi, "SpatVector")) {
+  sqrt(expanse(aoi))
+}
+zoom_level <- max(10, round(14.6 + -0.00015 * area))
+
 
 # Static maps
 
