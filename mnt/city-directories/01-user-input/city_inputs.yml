@@ -1,28 +1,24 @@
 # city basic info
-city_name: 'Guiyang'
+city_name: 'Kalemie'
 alternate_city_name: 
-   - Guìyáng'
-   - Guiyang
+   - Kalemi
 
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
 AOI_path: "mnt/city-directories/01-user-input/AOI"
-country_name: 'China'
-country_iso3: 'CHN'
-lowest_admin_shp: "mnt/city-directories/01-user-input/lowest admin/gadm41_CHN_3.shp"
+country_name: 'Democratic Republic of Congo'
+country_iso3: 'DRC'
 
 # Benchmark cities
 # - When multiple countries, add country name as key before city (e.g. "- Armenia: Yerevan")
 # - When not providing manual benchmark cities, simply write `null` (without ticks)
 bm_cities_manual:
-  - Beijing
-  - Taiyuan
-  - Shanxi
-  - Guangzhou
-  - Shanghai
+  - Bukavu
+  - Uvira
+  - Kinshasa
 
-nearby_countries_string: "bhutan|burma|russia|kazakhstan|nepal|tajikistan|myanmar|laos|vietnam|macau"
+nearby_countries_string: "haiti|puerto rico|cuba|jamaica|the bahamas|turks and caicos|anguila|st. kitts and nevis|dominica|grenada"
 
 # data sources (will override global_inputs if duplicates exist)
 # put False as default value if no data exists for a city
