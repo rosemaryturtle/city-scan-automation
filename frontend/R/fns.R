@@ -43,7 +43,7 @@ prepare_parameters <- function(yaml_key, ...) {
   # Override the layers.yaml parameters with arguments provided to ...
   # Parameters include bins, breaks, center, color_scale, domain, labFormat, and palette
   layer_params <- read_yaml(layer_params_file)
-  if (yaml_key %ni% names(layer_params)) stop(paste(yaml_key, "is not a key in source/layers.yml"))
+  if (yaml_key %ni% names(layer_params)) stop(paste(yaml_key, "is not a key in", layer_params_file))
   yaml_params <- layer_params[[yaml_key]]
   new_params <- list(...)
   kept_params <- yaml_params[!names(yaml_params) %in% names(new_params)]

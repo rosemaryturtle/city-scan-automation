@@ -46,7 +46,7 @@ librarian::shelf(
   dplyr)
 
 # 2. Load functions ------------------------------------------------------------
-source("source/fns.R")
+source("R/fns.R")
 
 # 3. Set directories -----------------------------------------------------------
 city_dir <- file.path("mnt/", readLines("city-dir.txt"))
