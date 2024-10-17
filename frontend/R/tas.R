@@ -42,7 +42,7 @@ ggplot(data = csdi_projections, aes(x = date)) +
     # annotate(x = )
     theme_minimal() +
     theme(axis.line = element_line(color = "black"))
-ggsave("plots/csdi-cols.png", width = 9, height = 4)
+ggsave(file.path(charts_dir, "csdi-cols.png"), width = 9, height = 4)
 
 # Rows
 ggplot(data = csdi_projections, aes(x = date)) +
@@ -62,7 +62,7 @@ ggplot(data = csdi_projections, aes(x = date)) +
     # annotate(x = )
     theme_minimal() +
     theme(axis.line = element_line(color = "black"))
-ggsave("plots/csdi-rows.png", width = 9, height = 4)
+ggsave(file.path(charts_dir, "csdi-rows.png"), width = 9, height = 4)
 
 # Overlap, no observed
 ggplot(data = csdi_projections, aes(x = date)) +
@@ -83,7 +83,7 @@ ggplot(data = csdi_projections, aes(x = date)) +
     theme_minimal() +
     theme(legend.position = "bottom",
     axis.line = element_line(color = "black"))
-ggsave("plots/csdi-overlap-no-observed.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "csdi-overlap-no-observed.png"), width = 6, height = 4)
 
 # Overlap
 ggplot(data = csdi_projections, aes(x = date)) +
@@ -111,7 +111,7 @@ ggplot(data = csdi_projections, aes(x = date)) +
   theme_minimal() +
   theme(legend.position = "bottom",
   axis.line = element_line(color = "black"))
-ggsave("plots/csdi-overlap.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "csdi-overlap.png"), width = 6, height = 4)
 
 # CSDI no smooth
 csdi_paths_no_smooth <- csdi_paths %>% str_replace("-smooth", "")
@@ -156,7 +156,7 @@ ggplot(data = csdi_no_smooth_projections, aes(x = date)) +
     # annotate(x = )
     theme_minimal() +
     theme(axis.line = element_line(color = "black"))
-ggsave("plots/csdi-cols-no-smooth.png", width = 9, height = 4)
+ggsave(file.path(charts_dir, "csdi-cols-no-smooth.png"), width = 9, height = 4)
 
 ggplot(data = csdi_no_smooth_projections, aes(x = date)) +
     geom_ribbon(aes(ymin = p10, ymax = p90, fill = ssp), alpha = 0.33) +
@@ -176,7 +176,7 @@ ggplot(data = csdi_no_smooth_projections, aes(x = date)) +
     theme_minimal() +
     theme(legend.position = "bottom",
     axis.line = element_line(color = "black"))
-ggsave("plots/csdi-overlap-no-observed-no-smooth.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "csdi-overlap-no-observed-no-smooth.png"), width = 6, height = 4)
 
 # Overlap
 ggplot(data = csdi_no_smooth_projections, aes(x = date)) +
@@ -204,4 +204,4 @@ ggplot(data = csdi_no_smooth_projections, aes(x = date)) +
   theme_minimal() +
   theme(legend.position = "bottom",
   axis.line = element_line(color = "black"))
-ggsave("plots/csdi-overlap-no-smooth.png", width = 6, height = 4)
+ggsave(file.path(charts_dir, "csdi-overlap-no-smooth.png"), width = 6, height = 4)

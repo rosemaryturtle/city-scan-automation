@@ -9,7 +9,10 @@ demographics:
     footnote: NULL
   population_density_chart:
     method: Density is calculated using the most recent census population recorded and the official land area occupied by the city, and is an important measure of how cities function. Higher population density enables governments to more easily deliver essential infrastructure and services in urban areas at relatively low cost per capita. However, such benefits do not materialize automatically or inevitably. Whether a city's population dynamics pose challenges or offer opportunities typically depends on the policies in play.
-    footnote: Populations and areas are from CityPopulation.de. Note that the extents used by CityPopulation.de may differ from the AOIs used by the City Scans. The area for Gagarin (Combined) uses the combined areas of each of the six included villages; it does not include the space in between.
+    footnote: Populations and area are from Oxford, 2022, “Oxford Economics” or CityPopulation.de. Note that Oxford Economics uses quite large extents for its cities, meaning that the measured density is likely considerably lower than the density experienced by most inhabitants of the cities. Extents used by the both data sources may differ from the AOIs used by the City Scans.
+  population_distribution_age:
+    method: This column chart classifies the city’s population according to age group, forming the basis of population projections. Populations vary significantly in their proportions of young and old people, with growing populations generally appearing younger, and declining or slowly growing populations generally appearing older. 
+    footnote: Working age is defined as 15–64.
   population_distribution_age_sex:
     method: This column chart classifies the city's population according to age group, forming the basis of population projections. Populations vary significantly in their proportions of young and old people, with growing populations generally appearing younger, and declining or slowly growing populations generally appearing older.
     footnote: |
@@ -21,9 +24,6 @@ demographics:
   relative_wealth:
     method: This map shows micro-estimates of wealth and poverty relative to the whole country that cover the populated surface at a 2.4 km^2^ resolution. Many critical policy decisions, from strategic investments to the allocation of humanitarian aid, rely on data about the geographic distribution of wealth and poverty.
     footnote: Map data from Meta Data for Good.
-  social_distancing:
-    method: In locations where social distancing is difficult, a focus on alternative measures to reduce disease transmission may be needed. This map demonstrates an ease of social distancing index, a composite measure, intended to highlight variations in ease of social distancing in urban settings, calculated based on the space available around buildings and estimated population density. Higher values indicate a greater difficulty in social distancing.
-    footnote: "H.R. Chamberlain et al, 2021."
 # SECTION 4
 economic_activity:
   national_shares:
@@ -33,12 +33,24 @@ economic_activity:
       - connect businesses with each other, allowing clusters of firms to share pools of labor and inputs, specialize and collaborate, and glean knowledge and ideas from others in their industry​;
       - connect urban residents to more extensive markets and increase their access to a variety of choices
     footnote: 'Oxford, 2022, “Oxford Economics”.'
+  gdp_growth:
+    method: GDP growth measures how fast the local economy is growing. Positive GDP growth is typically attributed to government spending, personal consumption, business investment, construction, and net trade.
+  employment_growth:
+    method: Employment growth is an indicator of expansion in the economy and represents an increase in the economic opportunities available to the citizens of a city.
+  population_growth_multicity:
+    method: Population growth measures the annual change resulting from births, deaths, and net migration during the year. Depending on the level of development and income, it is a key factor in the overall economic growth of a city.
+  gdp_per_capita_growth:
+    method: City GDP per capita is an informal measure of economic performance and a useful unit to compare the standard of living and economic and material well-being between countries.
   economic_hotspots:
-    method: "This map measures the total emissions of nighttime lights from the monthly average of radiance for 2014 through 2022. Nighttime light radiance is a common proxy for economic activity\\: where there is more artificial light, there is generally more commercial activity."
+    method: This map measures the total emissions of nighttime lights from the monthly average of radiance for 2014 through 2022. Nighttime light radiance is a common proxy for economic activity: where there is more artificial light, there is generally more commercial activity. VIIRS observations are made fairly late at night, as its satellites cross the equator at around 1:30 local time; thus, the observed lights are typically street lights and nights which are left lit all night long. The correlation of nighttime light and economic activity is strongest for urban areas; it is less relevant in agricultural areas and areas with very low population density.
     footnote: Map data from NOAA, "VIIRS Daily Mosaic".
   economic_change:
     method: The map illustrates monthly temporal changes from 2014 to 2022 in the emission of nighttime lights, indicating changes in economic activity. Positive values represent an increase in the intensity of nighttime light emission and, by proxy, economic activity, while negative values represent a decrease in the intensity of nighttime light emission, and economic activity.
     footnote: Map data from NOAA, "VIIRS Daily Mosaic".
+  employment_share:
+    method: Share of employment by sector conveys the relative importance of different economic activities in terms of employment. This information is especially useful in identifying broad shifts in employment and stages of development.
+  gva_share:
+    method: GVA refers to the value of goods and services produced in an economy’s area, industry, or sector. This indicator adds quantitative economic specificity that can inform the assessment of an intervention’s actual or potential economic development value.
 # SECTION 5
 built_form:
   wsf:
@@ -69,9 +81,9 @@ built_form:
 # SECTION 6 CLIMATE CONDITIONS
 climate_conditions:
   solar:
-    method: Solar electricity offers a unique opportunity to achieve long-term energy sustainability goals. Photovoltaics (PV) is the most widely applied and versatile technology for solar power. The availability of solar energy depends on site conditions. This map displays an indicative estimate of annual specific yield, that is, how much energy a hypothetical PV system would produce for per unit of capacity, in a given year (kWh/kWp). Values above 1,640  are considered excellent availability, while values between 1280 and 1640 are moderate.
+    method: Solar electricity offers a unique opportunity to achieve long-term energy sustainability goals. Photovoltaics (PV) is the most widely applied and versatile technology for solar power. The availability of solar energy depends on site conditions. This map displays an indicative estimate of daily specific yield, that is, how much energy a hypothetical PV system would produce for per unit of capacity (kWh/kWp). Values above 4.5  are considered excellent availability, while values between 3.5 and 4.5 are moderate.
     footnote: |
-      Map data obtained from the “Global Solar Atlas 2.0, a free, web-based application is developed and operated by the company Solargis s.r.o. on behalf of the World Bank Group, utilizing Solargis data, with funding provided by the Energy Sector Management Assistance Program (ESMAP).
+      Map data obtained from the “Global Solar Atlas 2.0, a free, web-based application is developed and operated by the company Solargis s.r.o. on behalf of the World Bank Group, utilizing Solargis data, with funding provided by the Energy Sector Management Assistance Program (ESMAP). For additional information: https://globalsolaratlas.info
       The [Global Solar Atlas](https://globalsolaratlas.info) uses generalized theoretical settings for a quick assessment of PV power potential for a selected site. An optimum tilt angle of PV modules and 100% availability (no shutdowns due to failure) are assumed.
   air_quality:
     method: |
@@ -83,11 +95,11 @@ climate_conditions:
   summer_lst:
     method: |
       Temperatures in an area are affected by many factors, such as land cover, elevation, slope, and proximity to water. Higher temperatures can generate or exacerbate negative effects related to health, social equity, and economic productivity. Typically, cities demonstrate higher temperatures than vegetated areas: construction materials, such as concrete, absorb more solar radiation; less vegetation results in less evapotranspiration; and more vehicle usage and mechanical cooling generate more heat.
-      This map shows average surface temperatures from June through September, 2017–2021, at a 30-meter resolution. Note that it measures surface temperature rather than ambient temperature, which can differ by several degrees. Surface temperature is primarily useful for identifying hotter and cooler areas within a specific geography.
+      This map shows average surface temperatures from June through September, 2014–2023, at a 30-meter resolution. Note that it measures surface temperature rather than ambient temperature, which can differ by several degrees. Surface temperature is primarily useful for identifying hotter and cooler areas within a specific geography.
     footnote: Landsat Level 2 Surface Temperature Science Product courtesy of the U.S. Geological Survey.
   vegetation:
     method: |
-      This map displays the Normalized Difference Vegetation Index, which ranges between -1 and 1, with higher numbers indicating a higher density of green vegetation. Values of less than 0.1 typically indicate water, rock, and otherwise barren land; values of 0.1 to 0.5 are associated with sparse vegetation, such as shrubs and grassland; and values of more than 0.5 correspond to dense vegetation such as forests or mature crops.
+      This map displays the Normalized Difference Vegetation Index, which ranges between -1 and 1, with higher numbers indicating a higher density of green vegetation. Values of less than 0.1 typically indicate water, rock, and otherwise barren land; values of 0.1 to 0.3 are associated with shrubs and grassland; 0.3 to 0.5 corresponds to moderate vegetation; and values of more than 0.5 correspond to dense vegetation such as forests or mature crops.
       Vegetation and green spaces in cities are associated with health benefits and the mitigation of environmental risks. More green space in a city can reduce temperatures and the urban heat island effect, lessen air pollution, and absorb floodwaters. Green spaces can also serve important civic, social, and quality of life functions.
     footnote: |
       Map data from European Space Agency, 2020, “Normalized Difference Vegetation Index”.
@@ -98,7 +110,7 @@ climate_conditions:
 # SECTION 7
 risk_identification:
   flood_events:
-    method: These events are recorded in the Dartmouth Flood Observatory’s Global Active Archive. The archive may not include all significant flood events. The death and displacement figures reflect the deaths and displacements for the entire flood extent, which may include areas greater than the city’s extent.
+    method: These events are recorded in the Dartmouth Flood Observatory's Global Active Archive. The archive may not include all significant flood events. The death and displacement figures reflect the deaths and displacements for the entire flood extent, which may include areas greater than the city's extent.
     footnote: 'Brakenridge, “Global Active Archive of Large Flood Events”. See Data Notes for more information on the archive and its severity classifications.'
   flooding_infrastructure_fluvial:
     method: |
@@ -110,6 +122,13 @@ risk_identification:
   flooding_infrastructure_pluvial:
     method: |
       Pluvial, or surface water flooding, is caused when heavy rainfall creates a flood event independent of an overflowing water body. It can occur in any urban area — even higher elevation areas that lie above coastal and river floodplains.
+      The infrastructure assets shown here are provided by OpenStreetMap. There may be other roads, health facilities, schools, fire stations and police stations that are not cataloged by OpenStreetMap.
+    footnote: |
+      Map data from OpenStreetMap and Fathom, “Flood Hazard: Global 2.0”. See Data Notes for more on the Fathom dataset.
+      OpenStreetMap data may not include all facilities.
+  flooding_infrastructure_coastal:
+    method: |
+      Coastal flooding occurs when water inundates or covers normally dry coastal land as a result of high or rising tides or storm surges. Due to the effects of climate change (e.g. sea level rise and an increase in extreme weather events), damage due to coastal flooding has intensified.
       The infrastructure assets shown here are provided by OpenStreetMap. There may be other roads, health facilities, schools, fire stations and police stations that are not cataloged by OpenStreetMap.
     footnote: |
       Map data from OpenStreetMap and Fathom, “Flood Hazard: Global 2.0”. See Data Notes for more on the Fathom dataset.
@@ -127,14 +146,20 @@ risk_identification:
   flooding_builtup_pluvial:
     method: Tarmacked and paved surfaces, which limit water infiltration and increase the speed and amount of water running off the ground, lead to rainwater flooding in urban areas. This phenomenon is exacerbated by the alteration of natural drainage routes, resulting in reduced urban capacity for excess water.
     footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom dataset.
+flooding_builtup_coastal:
+    method: Coastal flooding is becoming more common in cities due to climate change and other human-related environmental impacts, such as land subsidence and sea level rise.
+    footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_builtup_combined:
-    method: Intense rainfall in urban areas can generate both pluvial flooding due to the limited capacity of drainage systems, as well as fluvial flooding caused by deluges from river channels. The concurrence of pluvial and fluvial flooding often aggravates the damage potential they individually produce.
+    method: Intense rainfall in urban areas can generate both pluvial flooding due to the limited capacity of drainage systems, as well as fluvial flooding caused by deluges from river channels. The concurrence of pluvial, fluvial and coastal flooding often aggravates the damage potential they individually produce.
     footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_population_fluvial:
     method: Human settlements along streams and river basins are highly vulnerable to the flow of water. People are particularly sensitive to flooding in cases where population density is high, zoning regulations are absent or not enforced, flood controls are weak, and emergency response infrastructure and early warning systems are lacking.
     footnote: Map data from WorldPop and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_population_pluvial:
     method: One consequence of increased population density in cities is an increase in impermeable surfaces, which leads to an increase in storm-water runoff.
+    footnote: Map data from WorldPop and Fathom. See Data Notes for more on the Fathom dataset.
+flooding_population_coastal:
+    method: Coastal flooding significantly impacts coastal communities by causing displacement, property damage, and economic loss, disrupting daily life and local economies. Additionally, it exacerbates health risks, undermines infrastructure, and leads to biodiversity loss and ecosystem damage, further intensifying long-term social and environmental challenges.
     footnote: Map data from WorldPop and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_population_combined:
     method: When populations are exposed, vulnerable, dense, and ill-prepared, the effects of climate change on them are exacerbated along with the increased intensity and frequency of harmful flood events.
@@ -151,14 +176,14 @@ risk_identification:
       Positive change in coastline is accretion, while negative change is erosion.
   elevation:
     method: Elevation informs an area's vulnerability to many natural disasters. The height at which infrastructure, resources, and communities sit relative to normal water levels and tides, flood waters, and storm surges and waves informs their exposure. Elevation information is critical for communities to anticipate the impacts of disasters and to prepare resilient and cost-effective response and redevelopment strategies.
-    footnote: 'Map data from USGS, 2015, “USGS EROS Archive - Digital Elevation”.'
+    footnote: Map data from FABDEM V1-2.
   slope:
     method: Slope refers to the percentage change in elevation over a certain distance. In hilly or mountainous areas, floods can occur within minutes after heavy rains, while in flat areas, floodwaters can remain for days. Considering the slope of land is important in reducing construction costs, extending services and public facilities, minimizing the risks of hazards like flooding and landslides, and mitigating the impacts of development on natural resources.
     footnote: 'Map data from USGS, 2015, “USGS EROS Archive - Digital Elevation”.'
   landslides:
     method: |
       This indicator refers to the likelihood that a landslide will occur in a particular area based on local terrain conditions. It shows the degree to which a terrain can be affected by slope movements, i.e., an estimate of “where” landslides are likely to occur. Susceptibility does not, however, consider the temporal probability of failure (i.e., when or how frequently landslides occur), nor the magnitude of the expected landslide (i.e., how large or destructive the failure will be). ​
-      This map combines satellite observations of rainfall with an assessment of the underlying susceptibility of the terrain. Steep slopes are the most important factor in a landscape’s susceptibility to landslides. Others include deforestation, presence of roads, strength of the bedrock and soils, and location of fault lines.
+      This map combines satellite observations of rainfall with an assessment of the underlying susceptibility of the terrain. Steep slopes are the most important factor in a landscape's susceptibility to landslides. Others include deforestation, presence of roads, strength of the bedrock and soils, and location of fault lines.
     footnote: 'Map data from NASA, “Landslide Susceptibility Map”.'
   earthquake_events:
     method: NULL
@@ -173,13 +198,13 @@ risk_identification:
   seismic_hazard:
     method: This map depicts the geographic distribution of the Peak Ground Acceleration (PGA) with a 10% probability of being exceeded in 50 years, computed for reference rock conditions (shear wave velocity of 760-800 m/s). Seismic risk in cities has increased mainly due to urbanization, poor land-use planning and construction, inadequate infrastructure and services, and environmental degradation. Urban risk predictions and expected losses from major earthquakes in the future justify proactive risk mitigation activities.
     footnote: |
-      Map data from Silva et al, 2018, Global Earthquake Model (GEM) Seismic Hazard Map and Seismic Risk Map, V2018.1.
-      These data and map are derived from the [Global Earthquake Model](https://web.archive.org/web/20120306024658/http://quake.abag.ca.gov/shaking/mmi/plaintext/), which provides information on probabilistic earthquake risk; at its scale, it does not address the vulnerability to earthquakes of individual structures or sub-regions. An earthquake with moderate damage potential can cause structural damage to unreinforced masonry buildings and the movement of wood-frame houses.
+      Map data from Silva et al, 2023, Global Earthquake Model (GEM) Seismic Hazard Map and Seismic Risk Map, V2023.1.
+      These data and map are derived from the Global Earthquake Model, which provides information on probabilistic earthquake risk; at its scale, it does not address the vulnerability to earthquakes of individual structures or sub-regions. An earthquake with moderate damage potential can cause structural damage to unreinforced masonry buildings and the movement of wood-frame houses. See https://web.archive.org/web/20120306024658/http://quake.abag.ca.gov/shaking/mmi/plaintext/ for more.
   seismic_risk:
-    method: This map indicates the geographic distribution of average annual loss (AAL) in USD normalized by the average construction cost of the respective country (USD/m2) due to ground shaking in the residential, commercial, and industrial building stock, considering contents, structural, and non-structural components. The normalized metric allows a direct comparison of the risk between countries with widely different construction costs. It does not consider the effects of tsunamis, liquefaction, landslides, and fires following earthquakes. The loss estimates are from direct physical damage to buildings due to shaking, and thus damage to infrastructure or indirect losses due to business interruption are not included. Seismic risk in cities has increased mainly due to urbanization, poor land-use planning and construction, inadequate infrastructure and services, and environmental degradation. Urban risk predictions and expected losses from major earthquakes in the future justify proactive risk mitigation activities.
+    method: This map indicates the geographic distribution of average annual loss (AAL) of built-up area due to ground shaking in the residential, commercial, and industrial building stock, considering contents, structural, and non-structural components. It does not consider the effects of tsunamis, liquefaction, landslides, and fires following earthquakes. The loss estimates are from direct physical damage to buildings due to shaking, and thus damage to infrastructure or indirect losses due to business interruption are not included. Seismic risk in cities has increased mainly due to urbanization, poor land-use planning and construction, inadequate infrastructure and services, and environmental degradation. Urban risk predictions and expected losses from major earthquakes in the future justify proactive risk mitigation activities.
     footnote: |
-      Map data from Silva et al, 2018, Global Earthquake Model (GEM) Seismic Hazard Map and Seismic Risk Map, V2018.1.
-      These data and map are derived from the [Global Earthquake Model](https://web.archive.org/web/20120306024658/http://quake.abag.ca.gov/shaking/mmi/plaintext/), which provides information on probabilistic earthquake risk; at its scale, it does not address the vulnerability to earthquakes of individual structures or sub-regions. An earthquake with moderate damage potential can cause structural damage to unreinforced masonry buildings and the movement of wood-frame houses.
+      Map data from Silva et al, 2023, Global Earthquake Model (GEM) Seismic Hazard Map and Seismic Risk Map, V2023.1.
+      These data and map are derived from the Global Earthquake Model, which provides information on probabilistic earthquake risk; at its scale, it does not address the vulnerability to earthquakes of individual structures or sub-regions. An earthquake with moderate damage potential can cause structural damage to unreinforced masonry buildings and the movement of wood-frame houses. See https://web.archive.org/web/20120306024658/http://quake.abag.ca.gov/shaking/mmi/plaintext/ for more.
   road_network_criticality:
     method: |
       This layer visualizes an approximation of road network criticality. It highlights segments within a road network that, if blocked due to flooding or other hazards, would cause a high degree of disruption to travel across the city. Segments in red are the most critical for the overall connectivity of the city.
@@ -190,19 +215,17 @@ risk_identification:
   burnable:
     method: This layer visualizes the burnability factor of each land cover classification, based on assigning a binned weighting factor to represent burnability of each land classification. As per Four Twenty Seven’s research and Gannon and Steinberg’s (2021) research, global trends in historical wildfire  intensity and occurrence of wildfire in each land cover classification is converted into a single burnability factor. 
     footnote: © ESA Land Cover CCI 2020/ Gannon et.al 2021
-  moisture:
+  drought:
     method: |
-      The Normalized Difference Moisture Index (NDMI) detects moisture content in vegetation, and is an indicator of water stress in crops. It is also used to identify vegetation in dry areas with an increased risk of combustion. This map computes NDMI over the June to September 2015-2022
+      The Normalized Difference Moisture Index (NDMI) detects moisture content in vegetation, and is an indicator of water stress in crops. It is also used to identify vegetation in dry areas with an increased risk of combustion. This map computes NDMI over the June to September 2014-2023
       NDMI measures soil moisture from a range of -1 to 1. Negative values indicates water stress, and positive values may indicate water-logging.
       The stresses introduced by low soil moisture are borne by agricultural crops and biodiversity. Increased depletion of soil moisture also leads to a  higher risk of wildfire.
     footnote: © ESA Land Cover CCI 2020 / Contains modified Copernicus Sentinel data (2020) processed by ESA WorldCover consortium / Gannon et al 2021
   burnt_area:
     method: |
-      While all of the city has the same likelihood of seismic activity, areas within a city will typically have differing levels of vulnerability, due to factors such as soil and building construction. Liquefaction is a phenomenon where loosely packed or waterlogged sediments, particularly beneath buildings and under structures, lose their strength in response to strong ground shaking. Liquefaction in the event of an earthquake can cause increased damages.
-      This map calculates the likelihood of liquefaction using a combination of indicators such as peak ground velocity, precipitation and others. Each level determines a threshold of confidence regarding the probability of liquefaction in the particular pixel area.
+    TK Something about historical burnt area
+    The Fire Weather Index (FWI) measures the potential for wildfire in an area at a given time, by combining measures of moisture, of built-up area, and of ignition spread. Areas with a higher index have a higher potential for wildfire, though the specific relationship between FWI and fire danger is highly localized; therefore values representing high fire potential must be determined locally.
     footnote:
-      Map data from Zorn & Koks, 2019.
-  fwi:
-    method: The Fire Weather Index (FWI) measures the potential for wildfire in an area at a given time, by combining measures of moisture, of built-up area, and of ignition spread. Areas with a higher index have a higher potential for wildfire, though the specific relationship between FWI and fire danger is highly localized; therefore values representing high fire potential must be determined locally.
-    footnote: Map data from NASA’s Global Fire Weather Database.
+      Map data from Zorn & Koks, 2019. Graph data from NASA’s Global Fire Weather Database.
+
 # SECTION 8 LOCAL INSTITUTIONS AND PLANNING
