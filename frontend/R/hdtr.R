@@ -4,6 +4,7 @@ hdtr_urls <- file.path(
   "/vsigs/city-scan-global-data/cckp/hdtr",
   glue("climatology-hdtr-monthly-mean_cmip6-x0.25_ensemble-all-ssp{sort(rep(scenario_numbers, 3))}_climatology_{rep(c('p10', 'median', 'p90'), 3)}_2040-2059-cog.tif"))
 
+setGDALconfig("GS_NO_SIGN_REQUEST=YES")
 hdtr_all_df <- hdtr_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%

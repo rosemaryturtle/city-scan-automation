@@ -12,6 +12,7 @@ rx5day_urls <- file.path(
     string4 = "-cog.tif"
   )), paste0))
 
+setGDALconfig("GS_NO_SIGN_REQUEST=YES")
 changefactor <- rx5day_urls %>%
   lapply(extract_ts) %>%
   bind_rows() %>%
