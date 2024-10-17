@@ -49,7 +49,7 @@ librarian::shelf(
 source("R/fns.R")
 
 # 3. Set directories -----------------------------------------------------------
-city_dir <- file.path("mnt/", readLines("city-dir.txt"))
+city_dir <- readLines("city-dir.txt")[1]
 user_input_dir <- file.path(city_dir, "01-user-input/")
 process_output_dir <- file.path(city_dir, "02-process-output/")
 spatial_dir <- file.path(process_output_dir, "spatial/")

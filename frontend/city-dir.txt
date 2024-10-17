@@ -1,1 +1,15 @@
-2024-08-bangladesh-singra
+mnt/yyyy-mm-country-city
+
+# Use this file to set the path to the city directory, relative to frontend/.
+# The city directory will be created by the data processing step, and will have
+# sub-folders called 01-user-inputs and 02-process-outputs. This directory is
+# also where the visualizations will be saved.
+
+# IMPORTANT
+# The directory path must be relative to frontend/.
+# The directory path must be on this file's first line.
+
+# I suggest creating a mnt/ folder in backend/, where you would create the city
+# directory, and then creating a soft link to it within frontend/. On a unix,
+# this would be done with `ln -s backend/mnt frontend/mnt`, from the top level
+# of the repo.
