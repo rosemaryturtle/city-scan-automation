@@ -76,10 +76,10 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   }) %>% unlist() -> plot_log
 
 # Non-standard plots -----------------------------------------------------------
-source("R/map-elevation.R")
-source("R/map-deforestation.R")
+# source("R/map-elevation.R")
+# source("R/map-deforestation.R")
 source("R/map-flooding.R")
-source("R/map-historical-burnt-area.R")
+# source("R/map-historical-burnt-area.R")
 
 # Save plots -------------------------------------------------------------------
 plots %>% walk2(names(.), \(plot, name) {
