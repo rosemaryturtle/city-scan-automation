@@ -3,30 +3,29 @@
 raster_processing: True
 population: True
 wsf: True
-elevation: True
-slope: True
-solar: True
-air: True
-flood: True
+elevation: False
+slope: False
+solar: False
+air: False
 flood_coastal: True
 flood_fluvial: True
 flood_pluvial: True
-landslide: True
-liquefaction: True
-demographics: True
-lightning: True
+landslide: False
+liquefaction: False
+demographics: False
+lightning: False
 
 # GEE
 landcover: True
 summer_lst: True
-winter_lst: False
+winter_lst: True
 nightlight: True
 green: True
 forest: True
 ndmi: True
 
-# accessibility
-accessibility: True
+# OSM POI
+osm_poi: True
 
 # RWI
 rwi: True
@@ -42,11 +41,7 @@ road_network: True
 # other
 erosion: False
 water_salinity: False
-soil_salinity: False
+soil_salinity: True
 
 # stats
-# flood_timeline and earthquake_timeline unclear
-all_stats: True
-
-# toolbox
-toolbox: True
+flood_stats: True

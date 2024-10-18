@@ -1,4 +1,4 @@
-mnt/yyyy-mm-country-city
+../mnt/city-directories/
 
 # Use this file to set the path to the city directory, relative to frontend/.
 # The city directory will be created by the data processing step, and will have
