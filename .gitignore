@@ -189,6 +189,7 @@ multi-scan-materials/.DS_Store
 *.csv
 *.png
 python/cache/*
+cache/*
 python/data/*
 mnt/*/02-process-output/*
 
