@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['raster_processing']:
@@ -25,19 +25,19 @@ if menu['raster_processing']:
     # SET UP ##############################################
 
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # Read AOI shapefile --------
     print('read AOI shapefile')
     # transform the input shp to correct prj (epsg 4326)
-    aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
+    aoi_file = gpd.read_file(f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.shp').to_crs(epsg = 4326)
     features = aoi_file.geometry
     aoi_bounds = aoi_file.bounds
 
@@ -50,7 +50,7 @@ if menu['raster_processing']:
     utm_crs = f"+proj=utm +zone={utm_zone} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
     # Define output folder ---------
-    output_folder_parent = Path(f'../mnt/city-directories/02-process-output/{city_name_l}')
+    output_folder_parent = Path(f'mnt/{city_name_l}/02-process-output')
     output_folder_s = output_folder_parent / 'spatial'
     output_folder_t = output_folder_parent / 'tabular'
     os.makedirs(output_folder_s, exist_ok=True)
@@ -61,7 +61,7 @@ if menu['raster_processing']:
 
 
     # DOWNLOAD AND PREPARE DATA ##########################################
-    data_folder = Path('data')
+    data_folder = Path('python/data')
 
     os.makedirs(data_folder, exist_ok=True)
 
@@ -221,7 +221,7 @@ if menu['raster_processing']:
                 print('Try GIS instead for merging.')
                 failed.append(err_msg)
         elif len(wsf_downloaded_files) == 1:
-            os.rename(wsf_folder / f'{wsf_downloaded_files[0]}.tif', wsf_folder / f'{city_name_l}_wsf_evolution.tif')
+            os.replace(wsf_folder / f'{wsf_downloaded_files[0]}.tif', wsf_folder / f'{city_name_l}_wsf_evolution.tif')
         else:
             err_msg = 'No WSF evolution file available'
             print(err_msg)
@@ -304,7 +304,7 @@ if menu['raster_processing']:
                 print('Try GIS instead for merging.')
                 failed.append(err_msg)
         elif len(elev_downloaded_files) == 1:
-            os.rename(elev_folder / elev_downloaded_files[0], elev_folder / f'{city_name_l}_elevation.tif')
+            os.replace(elev_folder / elev_downloaded_files[0], elev_folder / f'{city_name_l}_elevation.tif')
         else:
             err_msg = 'No elevation file available; use SRTM instead for elevation'
             print(err_msg)
@@ -376,13 +376,6 @@ if menu['raster_processing']:
                 elif annual_prob > flood_prob_cutoff[1]:
                     flood_rp_bins[f'gt{flood_prob_cutoff[1]}'].append(rp)
 
-            # function to check output flood raster validity
-            def flood_raster_check(raster):
-                print('checking', raster)
-                with rasterio.open(raster) as src:
-                    max_value = np.nanmax(src.read(1))
-                    return (max_value > 1)
-
             def flood_processing0(flood_type):
                 print(f'prepare {flood_type} flood')
 
@@ -390,7 +383,8 @@ if menu['raster_processing']:
                 flood_type_folder_dict = {'coastal': 'COASTAL_UNDEFENDED',
                                         'fluvial': 'FLUVIAL_UNDEFENDED',
                                         'pluvial': 'PLUVIAL_DEFENDED'}
-                raw_flood_folder = Path(global_inputs['flood_source']) / city_inputs['country_name'] / flood_type_folder_dict[flood_type]
+                # raw_flood_folder = Path(global_inputs['flood_source']) / city_inputs['country_name'] / flood_type_folder_dict[flood_type]
+                raw_flood_folder = Path('mnt/source-data/fathom') / flood_type_folder_dict[flood_type]
                 
                 # prepare flood raster files (everything before clipping)
                 for year in flood_years:
@@ -450,9 +444,6 @@ if menu['raster_processing']:
                                         dest.write(out_image, 1)
                                 
                                 flood_con()
-                                while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
-                                    print('flood_raster_check', mosaic_file[:-4])
-                                    flood_con()
 
                     elif year > 2020:
                         for ssp in flood_ssps:
@@ -515,9 +506,6 @@ if menu['raster_processing']:
                                             dest.write(out_image, 1)
                                 
                                     flood_con()
-                                    while flood_raster_check(flood_folder / f'{mosaic_file[:-4]}_con.tif'):
-                                        flood_con()
-
 
             for ft in ['coastal', 'fluvial', 'pluvial']:
                 if menu[f'flood_{ft}']:
@@ -629,15 +617,7 @@ if menu['raster_processing']:
                 with rasterio.open(output_folder_s / f'{city_name_l}_wsf_4326_reclass.tif', "w", **out_meta) as dest:
                     dest.write(out_image, 1)
 
-            def wsf_raster_check(raster):
-                print('checking', raster)
-                with rasterio.open(raster) as src:
-                    max_value = np.nanmax(src.read(1))
-                    return (max_value > 4)
-            
             wsf_reclassify()
-            while wsf_raster_check(output_folder_s / f'{city_name_l}_wsf_4326_reclass.tif'):
-                wsf_reclassify()
 
     def clipdata_demo(input_raster):
         with rasterio.open(input_raster) as src:

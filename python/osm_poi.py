@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['osm_poi']:
@@ -15,13 +15,13 @@ if menu['osm_poi']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # import GOSTnets -----------
@@ -37,7 +37,7 @@ if menu['osm_poi']:
     features = aoi_file.geometry
     
     # Define output folder ---------
-    output_folder = Path(f'../mnt/city-directories/02-process-output/{city_name_l}/spatial')
+    output_folder = Path(f'mnt/{city_name_l}/02-process-output/spatial')
     os.makedirs(output_folder, exist_ok=True)
 
 

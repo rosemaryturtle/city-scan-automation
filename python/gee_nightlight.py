@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['nightlight']:
@@ -13,13 +13,13 @@ if menu['nightlight']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # Initialize Earth Engine
@@ -28,7 +28,7 @@ if menu['nightlight']:
     viirs = ee.ImageCollection("NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG")
 
     # Read AOI shapefile --------
-    aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
+    aoi_file = gpd.read_file(f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.shp').to_crs(epsg = 4326)
 
     # Convert shapefile to ee.Geometry ------------
     jsonDict = eval(gpd.GeoSeries([aoi_file['geometry'].force_2d().union_all()]).to_json())

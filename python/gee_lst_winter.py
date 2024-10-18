@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['winter_lst']:
@@ -19,17 +19,17 @@ if menu['winter_lst']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # set output folder
-    output_folder = Path(f'../mnt/city-directories/02-process-output/{city_name_l}/tabular')
+    output_folder = Path(f'mnt/{city_name_l}/02-process-output/tabular')
     os.makedirs(output_folder, exist_ok=True)
 
     # Initialize Earth Engine
@@ -38,7 +38,7 @@ if menu['winter_lst']:
     landsat = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 
     # Read AOI shapefile --------
-    aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
+    aoi_file = gpd.read_file(f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.shp').to_crs(epsg = 4326)
     centroid = aoi_file.centroid
 
     # Convert shapefile to ee.Geometry ------------

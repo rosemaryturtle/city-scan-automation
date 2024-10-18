@@ -16,24 +16,24 @@ demographics: False
 lightning: False
 
 # GEE
-landcover: True
+landcover: False
 summer_lst: True
-winter_lst: True
-nightlight: True
-green: True
-forest: True
-ndmi: True
+winter_lst: False
+nightlight: False
+green: False
+forest: False
+ndmi: False
 
 # OSM POI
-osm_poi: True
+osm_poi: False
 
 # RWI
-rwi: True
+rwi: False
 
 # wildfire
-burned_area: True
-fwi: True
-landcover_burn: True
+burned_area: False
+fwi: False
+landcover_burn: False
 
 # road network
 road_network: True
@@ -41,7 +41,7 @@ road_network: True
 # other
 erosion: False
 water_salinity: False
-soil_salinity: True
+soil_salinity: False
 
 # stats
-flood_stats: True
+flood_stats: False
