@@ -194,3 +194,6 @@ mnt/*/02-process-output/*
 
 # GitHub Wiki
 lgcrrp-mille-feuille.wiki
+
+# Other
+python/lightning.py

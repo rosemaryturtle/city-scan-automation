@@ -25,12 +25,12 @@ if menu['soil_salinity']:
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # Read AOI shapefile --------
     # transform the input shp to correct prj (epsg 4326)
-    aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
+    aoi_file = gpd.read_file(f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.shp').to_crs(epsg = 4326)
     features = aoi_file.geometry
 
     # Define output folder ---------
@@ -74,7 +74,7 @@ if menu['soil_salinity']:
                 continue
                 # TODO: merge rasters
             else:
-                os.rename(output_folder_s / f'{city_name_l}_soil_salinity_{year}_0.tif', output_folder_s / f'{city_name_l}_soil_salinity_{year}.tif')
+                os.replace(output_folder_s / f'{city_name_l}_soil_salinity_{year}_0.tif', output_folder_s / f'{city_name_l}_soil_salinity_{year}.tif')
 
         with rasterio.open(output_folder_s / f'{city_name_l}_soil_salinity_{year}.tif') as src:
             temp_array = src.read(1)

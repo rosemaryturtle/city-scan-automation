@@ -25,7 +25,7 @@ if menu['summer_lst']:
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
     # load global inputs
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # set output folder
@@ -38,7 +38,7 @@ if menu['summer_lst']:
     landsat = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 
     # Read AOI shapefile --------
-    aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
+    aoi_file = gpd.read_file(f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.shp').to_crs(epsg = 4326)
     centroid = aoi_file.centroid
 
     # Convert shapefile to ee.Geometry ------------

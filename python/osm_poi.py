@@ -21,7 +21,7 @@ if menu['osm_poi']:
     city_name_l = city_inputs['city_name'].replace(' ', '_').lower()
 
     # load global inputs, such as data sources that generally remain the same across scans
-    with open("global_inputs.yml", 'r') as f:
+    with open("python/global_inputs.yml", 'r') as f:
         global_inputs = yaml.safe_load(f)
 
     # import GOSTnets -----------
