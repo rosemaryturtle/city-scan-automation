@@ -192,6 +192,7 @@ python/cache/*
 cache/*
 python/data/*
 mnt/*/02-process-output/*
+*.Rhistory
 
 # GitHub Wiki
 lgcrrp-mille-feuille.wiki
