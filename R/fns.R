@@ -112,7 +112,7 @@ plot_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only =
 
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
-      geom_sf(data = static_map_bounds, fill = NA, color = NA) +
+      geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
       tiles 
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
@@ -168,7 +168,11 @@ fill_scale <- function(data_type, params) {
   } else if (exists_and_true(params$factor)) {
     # Switched to na.translate = F because na.value = "transparent" includes
     # NA in legend for forest. Haven't tried with non-raster.
-    scale_fill_manual(values = params$palette, na.translate = F, name = format_title(params$title, params$subtitle))
+    scale_fill_manual(
+      values = params$palette,
+      name = format_title(params$title, params$subtitle),
+      na.translate = F,
+      na.value = "transparent")
   } else if (params$bins == 0) {
     scale_fill_gradientn(
       colors = params$palette,
