@@ -7,7 +7,7 @@ This project collects and processes spatial data, and uses them to generate maps
 First, clone this repository:
 
 ```
-git clone --filter=tree:0 https://github.com/worldbank/lgcrrp-mille-feuille.git
+git clone --filter=tree:0 https://github.com/worldbank/crp-lgcrrp.git
 ```
 
 Flood data is proprietary and therefore cannot be directly accessed by this public repository. To include flooding, please request flood data from rsu@worldbank.org. Once received, you will then place it in `mnt/source-data/` so that the resulting file path is `mnt/source-data/fathom/`.
@@ -39,7 +39,7 @@ This process will result in a city-specific directory with spatial data files, m
 
 ## Possible maps
 
-To learn more about these map layers, see the project [wiki](https://github.com/worldbank/lgcrrp-mille-feuille/wiki).
+To learn more about these map layers, see the project [wiki](https://github.com/worldbank/crp-lgcrrp/wiki).
 
 
 1. Population
@@ -63,7 +63,7 @@ To learn more about these map layers, see the project [wiki](https://github.com/
 
 ## Possible charts
 
-To learn more about these charts, see the project [wiki](https://github.com/worldbank/lgcrrp-mille-feuille/wiki).
+To learn more about these charts, see the project [wiki](https://github.com/worldbank/crp-lgcrrp/wiki).
 
 1. Population growth
 2. Urban extent over time

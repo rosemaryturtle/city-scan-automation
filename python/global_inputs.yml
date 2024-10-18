@@ -21,8 +21,8 @@ elevation_source: "D:/World Bank/CRP/data/FABDEM"
 flood:
   threshold: 15  # unit: cm
   year:
-    # - 2020
-    - 2050
+    - 2020
+    # - 2050
     # - 2080
   ssp:
     - 1
