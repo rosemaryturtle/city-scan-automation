@@ -11,7 +11,7 @@
 # 1. Load packages -------------------------------------------------------------
 # Install packages from CRAN using librarian
 if (!"librarian" %in% installed.packages()) install.packages("librarian")
-librarian::shelf(
+librarian::shelf(quiet = T,
   # Read-in
   readxl,
   readr,
@@ -23,6 +23,7 @@ librarian::shelf(
   ggrepel,
   directlabels,
   ggh4x,
+  ggtext,
   cowplot,
   prettymapr,
 

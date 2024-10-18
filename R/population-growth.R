@@ -19,11 +19,11 @@ if (!file.exists("source-data/paurashava-populations.csv")) {
       .keep = "unused") %>%
     arrange(Location, Year)
   paurashava_populations[paurashava_populations$Year != 2022, "Area_km"] <- NA
-  write_csv(paurashava_populations, "source-data/paurashava-populations.csv")
+  write_csv(paurashava_populations, "mnt/source-data/paurashava-populations.csv")
 }
 
 # Make plot
-paurashava_populations <- read_csv("source-data/paurashava-populations.csv", col_types = "ccccddd")
+paurashava_populations <- read_csv("mnt/source-data/paurashava-populations.csv", col_types = "ccccddd")
 
 pop_growth <- paurashava_populations %>%
   # Beware that city names may be spelled differently
