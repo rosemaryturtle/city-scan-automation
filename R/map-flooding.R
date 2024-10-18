@@ -7,9 +7,12 @@ plot_flooding <- function(flood_type) {
   plots[[flood_type]] <<- plot_layer(
     flood_data, yaml_key = flood_type,
     plot_aoi = is.null(wards), plot_wards = !is.null(wards))
-  plots[[glue("{flood_type}_population")]] <<- plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$population)
-  plots[[glue("{flood_type}_wsf")]] <<- plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$wsf)
-  plots[[glue("{flood_type}_infrastructure")]] <<- plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$infrastructure)
+  if (!is.null(plots$population)) plots[[glue("{flood_type}_population")]] <<-
+    plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$population)
+  if (!is.null(plots$wsf)) plots[[glue("{flood_type}_wsf")]] <<-
+    plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$wsf)
+  if (!is.null(plots$infrastructure)) plots[[glue("{flood_type}_infrastructure")]] <<-
+    plot_layer(flood_data, yaml_key = flood_type, baseplot = plots$infrastructure)
 }
 
 flooding_yaml_keys <- c("fluvial", "pluvial", "coastal", "combined_flooding")
