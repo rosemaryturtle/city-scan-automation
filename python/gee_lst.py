@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['summer_lst']:
@@ -19,7 +19,7 @@ if menu['summer_lst']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
@@ -29,7 +29,7 @@ if menu['summer_lst']:
         global_inputs = yaml.safe_load(f)
 
     # set output folder
-    output_folder = Path(f'../mnt/city-directories/02-process-output/{city_name_l}/tabular')
+    output_folder = Path(f'mnt/{city_name_l}/02-process-output/tabular')
     os.makedirs(output_folder, exist_ok=True)
 
     # Initialize Earth Engine

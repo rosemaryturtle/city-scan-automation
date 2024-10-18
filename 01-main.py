@@ -6,7 +6,7 @@ import yaml
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/other/google-cloud-city-scan-service-account-key.json"
 
 # load city inputs files, to be updated for each city scan
-with open("../mnt/01-user-input/city_inputs.yml", 'r') as f:
+with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
     city_inputs = yaml.safe_load(f)
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
 
@@ -18,14 +18,11 @@ os.makedirs(f'mnt/{city_name_l}/03-render-output', exist_ok=True)
 shp_suf0 = ['shp', 'shx', 'dbf']
 shp_suf1 = ['prj', 'sbn', 'sbx', 'fbn', 'fbx', 'ain', 'aih', 'ixs', 'mxs', 'atx', 'shp.xml', 'cpg', 'qix', 'idx']
 for suf in shp_suf0:
-    copyfile(f'../mnt/city-directories/01-user-input/AOI/{city_inputs['AOI_shp_name']}.{suf}', f'../mnt/city-directories/{city_name_l}/01-user-input/AOI/{city_name_l}.{suf}')
+    copyfile(f'mnt/01-user-input/AOI/{city_inputs["AOI_shp_name"]}.{suf}', f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.{suf}')
 for suf in shp_suf1:
-    orig_file = f'../mnt/city-directories/01-user-input/AOI/{city_inputs['AOI_shp_name']}.{suf}'
+    orig_file = f'mnt/01-user-input/AOI/{city_inputs["AOI_shp_name"]}.{suf}'
     if os.path.exists(orig_file):
-        copyfile(orig_file, f'../mnt/city-directories/{city_name_l}/01-user-input/AOI/{city_name_l}.{suf}')
-
-# TODO: make sure AOI is a polygon of an appropriate size
-# TODO: if an AOI includes several polygons, make it a multipolygon
+        copyfile(orig_file, f'mnt/{city_name_l}/01-user-input/AOI/{city_name_l}.{suf}')
 
 script_list = ["burned_area.py",
                'fwi.py',
@@ -48,5 +45,5 @@ script_list = ["burned_area.py",
                ]
 
 for s in script_list:
-    with open(s) as f:
+    with open(f'python/{s}') as f:
         exec(f.read())

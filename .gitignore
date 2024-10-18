@@ -179,6 +179,7 @@ multi-scan-materials/.DS_Store
 *.prj
 *.shp
 *.shx
+*.qmd
 
 # Other data files
 *.json
@@ -187,13 +188,9 @@ multi-scan-materials/.DS_Store
 *.zip
 *.csv
 *.png
-output/*_road_network/*
-data/flood/*
-backend/temp.ipynb
-backend/cover_image.py
-backend/desertification/*
-backend/vulnerability_mapping/*
-mnt/city-directories/02-process-output/*
+python/cache/*
+python/data/*
+mnt/*/02-process-output/*
 
 # GitHub Wiki
 lgcrrp-mille-feuille.wiki

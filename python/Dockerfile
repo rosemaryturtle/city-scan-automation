@@ -37,8 +37,8 @@ RUN adduser \
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     # -v "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/city-scan-automation/mnt":/app/mnt
-    # --mount=type=bind,source="C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/city-scan-automation/mnt/city-directories/01-user-input",target=$WORKDIR/01-user-input \
-    # --mount=type=bind,source=../mnt/city-directories/02-process-output,target=02-process-output \
+    # --mount=type=bind,source="C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/repo/city-scan-automation/mnt/01-user-input",target=$WORKDIR/01-user-input \
+    # --mount=type=bind,source=../mnt/02-process-output,target=02-process-output \
     python -m pip install -r requirements.txt
 
 # Switch to the non-privileged user to run the application.

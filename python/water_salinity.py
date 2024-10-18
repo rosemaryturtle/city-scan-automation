@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['water_salinity']:
@@ -16,7 +16,7 @@ if menu['water_salinity']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
@@ -31,7 +31,7 @@ if menu['water_salinity']:
     aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
 
     # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
+    output_folder = Path('mnt/02-process-output')
 
     os.mkdir(output_folder, exist_ok=True)
     

@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['road_network']:
@@ -22,7 +22,7 @@ if menu['road_network']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     AOI_name = city_inputs['city_name']
@@ -38,7 +38,7 @@ if menu['road_network']:
     features = aoi_file.geometry
 
     # Define output folder ---------
-    output_folder_parent = Path(f'../mnt/city-directories/02-process-output/{city_name_l}')
+    output_folder_parent = Path(f'mnt/{city_name_l}/02-process-output')
     output_folder_s = output_folder_parent / 'spatial'
     output_folder_t = output_folder_parent / 'tabular'
     os.makedirs(output_folder_s, exist_ok=True)

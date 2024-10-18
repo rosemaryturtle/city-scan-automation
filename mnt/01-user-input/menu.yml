@@ -7,41 +7,41 @@ elevation: False
 slope: False
 solar: False
 air: False
-flood_coastal: True
-flood_fluvial: True
-flood_pluvial: True
+flood_coastal: False
+flood_fluvial: False
+flood_pluvial: False
 landslide: False
 liquefaction: False
 demographics: False
 lightning: False
 
 # GEE
-landcover: True
-summer_lst: True
-winter_lst: True
-nightlight: True
-green: True
-forest: True
-ndmi: True
+landcover: False
+summer_lst: False
+winter_lst: False
+nightlight: False
+green: False
+forest: False
+ndmi: False
 
 # OSM POI
-osm_poi: True
+osm_poi: False
 
 # RWI
-rwi: True
+rwi: False
 
 # wildfire
-burned_area: True
-fwi: True
-landcover_burn: True
+burned_area: False
+fwi: False
+landcover_burn: False
 
 # road network
-road_network: True
+road_network: False
 
 # other
 erosion: False
 water_salinity: False
-soil_salinity: True
+soil_salinity: False
 
 # stats
-flood_stats: True
+flood_stats: False

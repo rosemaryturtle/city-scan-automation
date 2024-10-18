@@ -2,7 +2,7 @@
 import yaml
 
 # load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
+with open("mnt/01-user-input/menu.yml", 'r') as f:
     menu = yaml.safe_load(f)
 
 if menu['soil_salinity']:
@@ -19,7 +19,7 @@ if menu['soil_salinity']:
 
     # SET UP #########################################
     # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
+    with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
         city_inputs = yaml.safe_load(f)
 
     city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
@@ -34,7 +34,7 @@ if menu['soil_salinity']:
     features = aoi_file.geometry
 
     # Define output folder ---------
-    output_folder_parent = Path(f'../mnt/city-directories/02-process-output/{city_name_l}')
+    output_folder_parent = Path(f'mnt/{city_name_l}/02-process-output')
     output_folder_s = output_folder_parent / 'spatial'
     output_folder_t = output_folder_parent / 'tabular'
     os.makedirs(output_folder_s, exist_ok=True)
@@ -81,7 +81,7 @@ if menu['soil_salinity']:
             # temp_array = temp_array[temp_array != 0]
             avg_dict[year] = np.nanmean(temp_array)
     
-    with open(f'../mnt/city-directories/02-process-output/tabular/{city_name_l}_soil_salinity.csv', 'w') as f:
+    with open(f'mnt/02-process-output/tabular/{city_name_l}_soil_salinity.csv', 'w') as f:
         f.write('year,avg\n')
         for year in avg_dict:
             f.write("%s,%s\n"%(year, avg_dict[year]))
