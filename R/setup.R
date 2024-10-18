@@ -24,6 +24,7 @@ librarian::shelf(
   directlabels,
   ggh4x,
   cowplot,
+  prettymapr,
 
   # Spatial
   sf,
@@ -55,7 +56,7 @@ process_output_dir <- file.path(city_dir, "02-process-output/")
 spatial_dir <- file.path(process_output_dir, "spatial/")
 tabular_dir <- file.path(process_output_dir, "tabular/")
 output_dir <- file.path(city_dir, "03-render-output/")
-styled_maps_dir <- file.path(output_dir, "styled-maps/")
+styled_maps_dir <- file.path(output_dir, "maps/")
 charts_dir <- file.path(output_dir, "charts/")
 
 dir.create(styled_maps_dir, recursive = T)

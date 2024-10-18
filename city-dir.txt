@@ -1,0 +1,9 @@
+../mnt/city-directories/
+
+# Use this file to set the path to the city directory. The city directory will 
+# be created by the data processing step, and will have sub-folders called
+# 01-user-inputs and 02-process-outputs. This directory is also where the
+# visualizations will be saved.
+
+# IMPORTANT
+# The directory path must be on this file's first line.

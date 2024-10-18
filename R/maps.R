@@ -1,6 +1,5 @@
 # Generating LGCRRP Maps
 
-# setwd("lgcrrp-mille-feuille/frontend")
 source("R/setup.R")
 source("R/pre-mapping.R")
 
