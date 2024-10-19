@@ -764,7 +764,8 @@ if menu['raster_processing']:
                     if composite_raster_arrays:
                         out_image = np.maximum.reduce(composite_raster_arrays).astype(np.uint8)
                         out_meta.update(dtype = rasterio.uint8)
-                            
+                        
+                        # TODO: only write and do following steps if raster is not empty
                         with rasterio.open(output_folder_s / f'{city_name_l}_{flood_type}_{year}.tif', 'w', **out_meta) as dst:
                             dst.write(out_image)
 
