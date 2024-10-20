@@ -86,7 +86,7 @@ if menu['road_network']:
     def get_centrality_stats():
         try:
             # edges = gpd.read_file(output_folder_s / f"{city_name_l}_road_network/{city_name_l}_nodes_and_edges.gpkg")
-            edges = gpd.read_file(output_folder_s / f"{city_name_l}_nodes_and_edges.gpkg")
+            edges = gpd.read_file(output_folder_s / f"{city_name_l}_nodes_and_edges.gpkg", layer = 'edges')
             
             if 'edge_centr' in edges.columns:
                 df = pd.DataFrame()
