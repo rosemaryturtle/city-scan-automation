@@ -3,7 +3,7 @@ from shutil import copyfile
 import yaml
 
 # Set the environment variable in your code
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/other/google-cloud-city-scan-service-account-key.json"
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/other/google-cloud-city-scan-service-account-key.json"
 
 # load city inputs files, to be updated for each city scan
 with open("mnt/01-user-input/city_inputs.yml", 'r') as f:
