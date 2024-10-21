@@ -1,5 +1,5 @@
 earthengine_api==0.1.369
-geopandas==0.13.2
+geopandas==1.0.1
 GOSTnets==1.1.0
 GOSTRocks==0.2.0
 matplotlib==3.7.2
