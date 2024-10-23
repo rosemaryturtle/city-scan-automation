@@ -219,12 +219,11 @@ $page-margin-right: 0.5in;
     color: black;
     // background-image: radial-gradient(black 1px, transparent 0);
     // background-size: 10px 10px;
-    height: 10rem;
+    // min-height: 1em;k
     padding: calc(25vh - 10rem) 0 0 0;
     // margin-left: -1.5rem;
     // margin-right: -1.5rem;
-    margin-bottom: -20px;
-    margin-top: 0;
+    margin: 0;
   }
   p {
     font-size: 2.4rem; margin-bottom: 0;
@@ -475,17 +474,17 @@ $page-margin-right: 0.5in;
 
 // Section & Slide Counters
 .text-column {
-  h1 {
+  section.level1 {
     counter-reset: section_count;
     // counter-reset: slide_count;
   }
 
-  h2 {
+  section.level2 {
     counter-increment: section_count;
     counter-reset: slide_count;
   }
 
-  h3 {
+  section.level3 {
     counter-increment: slide_count;
   }
 

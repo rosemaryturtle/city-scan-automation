@@ -119,6 +119,8 @@ $headerAboveMap = $container
   .select("li")
   .select("#dynamic-header")
 
+sections = document.getElementsByClassName("navigation")[0].getElementsByTagName("ol")[0].getElementsByTagName("ol")[0].innerText.split("\n")
+
 scrollerSectionTitle = scrollama();
 function initLevel2() {
   scrollerSectionTitle
@@ -131,7 +133,8 @@ function initLevel2() {
       // I would like to include the section number but I would need to use a
       // different method for setting section numbers than CSS's counter(), which
       // can't be read by JS
-      $headerAboveMap.text("Section: " + response.element.firstElementChild.textContent)
+      var sect = response.element.firstElementChild.textContent
+      $headerAboveMap.text(sections.indexOf(sect) + " " + sect)
     })
 }
 
