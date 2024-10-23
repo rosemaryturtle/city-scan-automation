@@ -7,6 +7,7 @@ execute:
   echo: false
   output: false
   cache: true
+engine: knitr
 ---
 
 ::: setup
@@ -14,9 +15,8 @@ execute:
 ```{r}
 #| include: false
 #| label: prerender
-city <- "Guiyang" # For some reason source isn't enough for adding city name to title
-country <- "China"
 source('R/maps.R')
+cover_image <- fuzzy_read(process_output_dir, "footprints", paste)
 ```
 
 ---
@@ -24,7 +24,7 @@ title: "`r paste(city, country, sep = ', ')`"
 ---
 
 ```{r}
-# Get text
+#| label: get-text
 city_text <- read_md(file.path(user_input_dir, "text-files/manual-text.md"))
 generic_text <- read_yaml("source/generic-text.yml") %>% rapply(double_space, how = "replace") # Do I only want this for print?
 slide_texts <- merge_lists(city_text, generic_text)
@@ -38,6 +38,7 @@ slide_texts <- unlist(slide_texts, recursive = F) %>% setNames(str_extract(names
 
 ::: navigation
 ```{r}
+#| label: navigation
 #| output: asis
 # Dynamically add sections to table of contents ... there's probably a better way?
 sections <- readLines("index.qmd") %>%
@@ -61,7 +62,7 @@ by the [City Resilience Program](https://www.gfdrr.org/en/crp)
 
 City Scan
 
-August 2024
+`r month.name[lubridate::month(Sys.Date())]` `r lubridate::year(Sys.Date())`
 
 ::: donors
 ![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
@@ -76,7 +77,7 @@ August 2024
 :::
 
 <div id="cover-map">
-![](mnt/2024-08-china-guiyang/02-process-output/guiyang_network_plus_building_footprints-small-dither.png)
+![](`r cover_image`)
 </div>
 
 ::: text-column
