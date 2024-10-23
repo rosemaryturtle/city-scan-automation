@@ -115,7 +115,7 @@ initLevel3();
 // Show level 2 header above map
 $headerAboveMap = $container
   .select(".navigation")
-  .select("ul")
+  .select("ol")
   .select("li")
   .select("#dynamic-header")
 
