@@ -1,27 +1,4 @@
-# Packages ----
-# Install packages from CRAN using librarian
-if (!"librarian" %in% installed.packages()) install.packages("librarian")
-librarian::shelf(
-  terra, 
-  sf, 
-  leaflet, 
-  yaml, 
-  stringr, 
-  dplyr, 
-  ggplot2, # 3.5 or higher
-  plotly, 
-  ggspatial, 
-  tidyterra, 
-  cowplot, 
-  glue, 
-  purrr, 
-  readr)
-
-librarian::stock(
-  ggnewscale # 4.10 or higher
-)
-
-# Map Functions ----
+# Map Functions ----------------------------------------------------------------
 fuzzy_read <- function(dir, fuzzy_string, FUN = NULL, path = T, convert_to_vect = F, ...) {
   file <- list.files(dir) %>% str_subset(fuzzy_string) #%>%
   if (length(file) > 1) warning(paste("Too many", fuzzy_string, "files in", dir))
@@ -89,7 +66,7 @@ prepare_parameters <- function(yaml_key, ...) {
   # Override the layers.yaml parameters with arguments provided to ...
   # Parameters include bins, breaks, center, color_scale, domain, labFormat, and palette
   layer_params <- read_yaml(layer_params_file)
-  if (yaml_key %ni% names(layer_params)) stop(paste(yaml_key, "is not a key in source/layers.yml"))
+  if (yaml_key %ni% names(layer_params)) stop(paste(yaml_key, "is not a key in", layer_params_file))
   yaml_params <- layer_params[[yaml_key]]
   new_params <- list(...)
   kept_params <- yaml_params[!names(yaml_params) %in% names(new_params)]
@@ -111,7 +88,10 @@ prepare_parameters <- function(yaml_key, ...) {
     # If palette already has alpha, multiply
     if (nchar(p) == 9) {
       alpha_hex <- as.hexmode(substr(p, 8, 9))
-      new_alpha_hex <- as.character(as.hexmode("ff") - (as.hexmode("ff") - alpha_hex) * layer_alpha)
+      new_alpha_hex <- as.character(alpha_hex * layer_alpha)
+      # At one point I used the following; what was I trying to solve for? This
+      # could make colors with alpha < 1 more opaque than colors with alpha = 1
+      # new_alpha_hex <- as.character(as.hexmode("ff") - (as.hexmode("ff") - alpha_hex) * layer_alpha)
       if (nchar(new_alpha_hex) == 1) new_alpha_hex <- paste0(0, new_alpha_hex)
       new_p <- paste0(substr(p, 1, 7), new_alpha_hex)
       return(new_p)
@@ -251,8 +231,8 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   return(layer_function)
 }
 
-plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, ...) {
-   if (aoi_only) {
+plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, ...) {
+  if (aoi_only) {
     layer <- NULL
   } else { 
     # Create geom and scales
@@ -286,7 +266,7 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
   # Plot geom and scales on baseplot
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
-      geom_sf(data = static_map_bounds, fill = NA, color = NA) +
+      geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
       annotation_map_tile(type = "cartolight", zoom = zoom_level)
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
@@ -294,7 +274,8 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
-  if (plot_aoi) p <- p + geom_sf(data = aoi, fill = NA, linetype = "dashed", linewidth = .5) #+ 
+  if (plot_aoi) p <- p + geom_spatvector(data = aoi, fill = NA, linetype = "solid", linewidth = .25)
+  if (plot_wards) p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
   p <- p + coord_3857_bounds()
   return(p)
 }
@@ -341,7 +322,11 @@ fill_scale <- function(data_type, params) {
   } else if (exists_and_true(params$factor)) {
     # Switched to na.translate = F because na.value = "transparent" includes
     # NA in legend for forest. Haven't tried with non-raster.
-    scale_fill_manual(values = params$palette, na.translate = F, name = format_title(params$title, params$subtitle))
+    scale_fill_manual(
+      values = params$palette,
+      name = format_title(params$title, params$subtitle),
+      na.translate = F,
+      na.value = "transparent")
   } else if (params$bins == 0) {
     scale_fill_gradientn(
       colors = params$palette,
@@ -437,7 +422,8 @@ save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
     # there are now multiple guide-boxes
     get_plot_component(plot, "guide-box-right"),
     rel_widths = rel_widths,
-    nrow = 1)
+    nrow = 1) +
+    theme(plot.background = element_rect(fill = "white", colour = NA))
   cowplot::save_plot(
     plot = plot_layout,
     filename = file.path(directory, filename),
@@ -549,7 +535,7 @@ breaks_midpoints <- \(breaks, rescaler = scales::rescale, ...) {
   return(midpoints)
 }
 
-# Text Functions ----
+# Text Functions ---------------------------------------------------------------
 read_md <- function(file) {
   md <- readLines(file)
   instruction_lines <- 1:grep("CITY CONTENT BEGINS HERE", md)
@@ -662,6 +648,8 @@ fill_slide_content <- function(layer, extra_layers = NULL, title = NULL, slide_t
 }
 
 aspect_buffer <- function(x, aspect_ratio, buffer_percent = 0) {
+  # I should fully refactor to use terra
+  if (class(x)[1] %in% "SpatVector") x <- st_zm(as_sf(x))
   bounds_proj <- st_transform(st_as_sfc(st_bbox(x)), crs = "EPSG:3857")
   center_proj <- st_coordinates(st_centroid(bounds_proj))
 
@@ -734,10 +722,14 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif,
 
 include_html_chart <- \(file) cat(str_replace_all(readLines(file), "\\s+", " "), sep="\n")
 
+break_lines <- function(x, width = 20, newline = "<br>") {
+  str_replace_all(x, paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline))
+}
+
 format_title <- function(title, subtitle, width = 20) {
-  title_broken <- str_replace_all(title, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
-  subtitle_broken <- str_replace_all(subtitle, paste0("(.{", width, "}[^\\s]*)\\s"), "\\1<br>")
-  formatted_title <- paste0(title_broken, "<br><br><em>", subtitle_broken, "</em>")
+  title_broken <- break_lines(title, width = width, newline = "<br>")
+  subtitle_broken <- break_lines(subtitle, width = width, newline = "<br>")
+  formatted_title <- paste0(title_broken, "<br><br><br><em>", subtitle_broken, "</em><br>")
   return(formatted_title)
 }
 
@@ -766,4 +758,99 @@ aggregate_if_too_fine <- function(data, threshold = 1e5, fun = "modal") {
     if (factor > 1) data <- terra::aggregate(data, fact = factor, fun = fun)
   }
   return(data)
+}
+
+center_max_circle <- \(x, simplify = T, tolerance = 0.0001) {
+  if (simplify) s <- simplifyGeom(x, tolerance = tolerance) else s <- x
+  p <- as.points(s)
+  v <- voronoi(p)
+  vp <- as.points(v)
+  vp <- vp[is.related(vp, s, "within")]
+  # Using vp[which.max(nearest(vp, p)$distance)] is 60x slower
+  vppd <- distance(vp, p)
+
+  center <- vp[which.max(apply(vppd, 1, min))]
+  radius <- vppd[which.max(apply(vppd, 1, min))]
+  return(list(center = center, radius = radius))
+}
+
+site_labels <- function(x, simplify = T, tolerance = 0.0001) {
+  sites <- list()
+  for (i in 1:nrow(x)) {
+    sites[i] <- center_max_circle(x[i], simplify = simplify, tolerance = tolerance)["center"]
+  }
+  label_sites <- Reduce(rbind, unlist(sites))
+  return(label_sites)
+}
+
+`%ni%` <- Negate(`%in%`)
+
+which_not <- function(v1, v2, swap = F, both = F) {
+  if (both) {
+    list(
+      "In V1, not in V2" = v1[v1 %ni% v2],
+      "In V2, not in V1" = v2[v2 %ni% v1]
+    )
+  } else
+  if (swap) {
+    v2[v2 %ni% v1]
+  } else {
+    v1[v1 %ni% v2]
+  }
+}
+
+paste_and <- function(v) {
+    if (length(v) == 1) {
+    string <- paste(v)
+  } else {
+    # l[1:(length(l)-1)] %>% paste(collapse = ", ")
+    paste(head(v, -1), collapse = ", ") %>%
+    paste("and", tail(v, 1))
+  }
+}
+
+duplicated2way <- duplicated_all <- function(x) {
+  duplicated(x) | duplicated(x, fromLast = T)
+}
+
+tolatin <- function(x) stringi::stri_trans_general(x, id = "Latin-ASCII")
+
+ggdonut <- function(data, category_column, quantities_column, colors, title) {
+  data <- as.data.frame(data) # tibble does weird things with data frame, not fixing now
+  data <- data[!is.na(data[,quantities_column]),]
+  data <- data[data[,quantities_column] > 0,]
+  # data <- data[rev(order(data[,quantities_column])),]
+  data$decimal <- data[,quantities_column]/sum(data[,quantities_column], na.rm = T)
+  data$max <- cumsum(data$decimal) 
+  data$min <- lag(data$max)
+  data$min[1] <- 0
+  data$label <- paste(scales::label_percent(0.1)(data$decimal))
+  data$label[data$decimal < .02] <- "" 
+  data$label_position <- (data$max + data$min) / 2
+  data[,category_column] <- factor(data[,category_column], levels = data[,category_column])
+  breaks <- data[data[,"decimal"] > 0.2,] %>%
+    { setNames(.$label_position, .[,category_column]) }
+
+  donut_plot <- ggplot(data) +
+    geom_rect(
+      aes(xmin = .data[["min"]], xmax = .data[["max"]], fill = .data[[category_column]],
+      ymin = 0, ymax = 1),
+      color = "white") +
+    geom_text(y = 0.5, aes(x = label_position, label = label)) +
+    # theme_void() +
+    # scale_x_continuous(guide = "none", name = NULL) +
+    scale_y_continuous(guide = "none", name = NULL) +
+    scale_fill_manual(values = colors) +
+    scale_x_continuous(breaks = breaks, name = NULL) +
+    coord_radial(expand = F, inner.radius = 0.3) +
+    guides(theta = guide_axis_theta(angle = 0)) +
+    labs(title = paste(city, title)) +
+    theme(axis.ticks = element_blank())
+  return(donut_plot)
+}
+
+Mode <- \(x, na.rm = F) {
+  if (na.rm) x <- na.omit(x)
+  unique_values <- unique(x)
+  unique_values[which.max(tabulate(match(x, unique_values)))]
 }
