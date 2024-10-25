@@ -16,7 +16,7 @@ execute:
 #| label: prerender
 city <- "Guiyang" # For some reason source isn't enough for adding city name to title
 country <- "China"
-source('R/maps.R')
+source('R/maps-web.R')
 ```
 
 ---
