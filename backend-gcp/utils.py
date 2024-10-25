@@ -27,7 +27,8 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name, check_exis
         # Mapping of file extensions to folder names
         folder_map = {
             ('.tif', '.gpkg'): 'spatial',
-            ('.csv',): 'tabular'
+            ('.csv', '.txt'): 'tabular',
+            ('.png'): 'images'
         }
 
         # Default folder name for other file types
