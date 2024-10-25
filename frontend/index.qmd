@@ -15,7 +15,7 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
-source('R/maps.R')
+source('R/maps-web.R')
 cover_image <- fuzzy_read(process_output_dir, "footprints", paste)
 ```
 
