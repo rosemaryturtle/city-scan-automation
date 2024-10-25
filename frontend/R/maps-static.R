@@ -22,10 +22,10 @@ plots <- list()
 
 # Plot AOI & wards -------------------------------------------------------------
 if(is.null(wards)) {
-  plots$aoi <- plot_layer(aoi_only = T, plot_aoi = T)
+  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T)
 } else {
   ward_labels <- site_labels(wards, simplify = F)
-  plots$aoi <- plot_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
+  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
     # geom_spatvector_text(data = wards, aes(label = as.numeric(str_extract(WARD_NO, "\\d*$"))))
     geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
   save_plot(plot = plots$aoi, filename = "aoi.png",
@@ -46,7 +46,7 @@ if (inherits(landmarks, "SpatVector")) {
       mutate(as.points(wards) %>% .[rep(c(T, F, F), nrow(.))], label = "", type = "perimeter")
       ) %>%
     mutate(x = geom(.)[,"x"], y = geom(.)[,"y"])
-  plots$landmarks <- plot_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
+  plots$landmarks <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
     geom_spatial_point(data = landmarks_df, crs = "epsg:4326", aes(x = x, y = y), size = 0.25) +
     geom_spatial_text_repel(data = landmarks_and_points_to_avoid, crs = "epsg:4326",
       aes(
@@ -77,7 +77,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     })
   }) %>% unlist() -> plot_log
 
-# Non-standard static plots
+# Non-standard static plots ----------------------------------------------------
 
 source("R/map-schools-health-proximity") # Could be standard if layers.yml included baseplot
 source("R/map-elevation.R") # Could be standard if we wrote city-specific breakpoints to layers.yml

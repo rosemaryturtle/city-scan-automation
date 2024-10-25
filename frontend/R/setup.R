@@ -48,8 +48,6 @@ librarian::stock(
   ggnewscale, # 4.10 or higher
   prettymapr
 )
-source("source/fns.R")
-source("source/helpers.R")
 
 # 2. Load functions ------------------------------------------------------------
 source("R/fns.R")

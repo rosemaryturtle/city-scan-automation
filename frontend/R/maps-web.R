@@ -18,7 +18,7 @@ add_leaflet_plot <- function(yaml_key, fuzzy_string = NULL) {
     if (is.null(fuzzy_string)) fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
     tryCatch({
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
-        aggregate_if_too_fine(threshold = 1e3, fun = \(x) Mode(x, na.rm = T)) %>%
+        aggregate_if_too_fine(threshold = 1e6, fun = \(x) Mode(x, na.rm = T)) %>%
         vectorize_if_coarse(threshold = 1e6)
       plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
       plots_html[[yaml_key]] <<- plot_function
