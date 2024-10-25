@@ -23,6 +23,27 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name, check_exis
     if exists(source_file_name):
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
+
+        # Mapping of file extensions to folder names
+        folder_map = {
+            ('.tif', '.gpkg'): 'spatial',
+            ('.csv',): 'tabular'
+        }
+
+        # Default folder name for other file types
+        default_folder = 'other'
+
+        # Get the folder name based on file extension
+        for extensions, folder_name in folder_map.items():
+            if any(destination_blob_name.endswith(ext) for ext in extensions):
+                target_folder = folder_name
+                break
+        else:
+            target_folder = default_folder
+
+        # Construct the new destination_blob_name
+        destination_blob_name = f'{os.path.dirname(destination_blob_name)}/{target_folder}/{os.path.basename(destination_blob_name)}'
+
         blob = bucket.blob(destination_blob_name)
         if check_exists:
             if blob.exists():
