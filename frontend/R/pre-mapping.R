@@ -26,11 +26,11 @@ combine_flood_types()
 
 # Road network centrality
 assign_road_types <- function() {
-  roads <- fuzzy_read(spatial_dir, "nodes_and_edges(?=.shp$|$)", layer = "edges") %>%
+  roads <- fuzzy_read(spatial_dir, "^edges(?=.shp$|$)") %>%
     mutate(
       primary = highway %in% c("motorway", "trunk", "primary"),
       road_type = case_when(primary ~ "Primary", T ~ "Secondary"),
-      edge_centrality = edge_centrality * 100) %>%
+      edge_centrality = edge_centr * 100) %>%
     select(edge_centrality, road_type)
   writeVector(roads, filename = file.path(spatial_dir, "edges-edit.gpkg"), overwrite = T)
 }

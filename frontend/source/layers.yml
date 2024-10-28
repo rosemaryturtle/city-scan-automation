@@ -276,7 +276,7 @@ roads:
   stroke:
     title: Road network segment criticality
     subtitle: 'Criticality %'
-    variable: edge_centr
+    variable: edge_centrality
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
     title: Road type

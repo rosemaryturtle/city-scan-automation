@@ -66,7 +66,7 @@ deforest_vect <- deforest %>%
 plots_html$deforest <- create_layer_function(data = deforest_vect, yaml_key = "deforest")
 
 roads <- fuzzy_read(spatial_dir, layer_params$roads$fuzzy_string) %>%
-  filter(edge_centr > break_pretty2(edge_centr, 10)[9])
+  filter(edge_centrality > break_pretty2(edge_centrality, 10)[9])
 roads_params <- prepare_parameters("roads")
 roads_color_scale <- create_color_scale(
   domain = c(range(roads[roads_params$stroke$variable])),

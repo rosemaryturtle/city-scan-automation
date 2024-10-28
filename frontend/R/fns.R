@@ -37,6 +37,7 @@ exists_and_true <- \(x) !is.null(x) && is.logical(x) && x
 
 # Functions for making the maps
 plot_basemap <- function(basemap_style = "vector") {
+  aoi_bounds <- st_bbox(aoi)
   basemap <-
     leaflet(
       data = aoi,
