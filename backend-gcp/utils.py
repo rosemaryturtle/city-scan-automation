@@ -147,7 +147,6 @@ def download_blob_timed(bucket_name, source_blob_name, destination_file_name, ti
     from datetime import datetime as dt
     import time
 
-    # download wsf evolution raster
     time0 = dt.now()
     while (dt.now()-time0).total_seconds() <= time_limit:
         if download_blob(bucket_name, source_blob_name, destination_file_name, check_exists):
