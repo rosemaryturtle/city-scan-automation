@@ -72,4 +72,4 @@ def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, lo
 
         # Delete csv files -------------------------
         for ti in task_index_range:
-            utils.delete_blob(cloud_bucket, f'{output_dir}/{city_name_l}_globfire_centroids_{ti}.csv')
+            utils.delete_blob(cloud_bucket, f'{output_dir}/tabular/{city_name_l}_globfire_centroids_{ti}.csv')

@@ -67,7 +67,7 @@ def calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_n
     import numpy as np
 
     # download wsf evolution raster
-    utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_wsf_evolution_utm.tif", f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', 180*60, 60)
+    utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_wsf_evolution_utm.tif", f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', 180*60, 60)
 
     # reproject flood raster to match wsf raster grid
     raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif')
