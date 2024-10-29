@@ -7,6 +7,7 @@ execute:
   echo: false
   output: false
   cache: true
+engine: knitr
 ---
 
 ::: setup
@@ -14,9 +15,8 @@ execute:
 ```{r}
 #| include: false
 #| label: prerender
-city <- "Guiyang" # For some reason source isn't enough for adding city name to title
-country <- "China"
-source('R/maps.R')
+source('R/maps-web.R')
+cover_image <- fuzzy_read(process_output_dir, "footprints", paste)
 ```
 
 ---
@@ -24,7 +24,7 @@ title: "`r paste(city, country, sep = ', ')`"
 ---
 
 ```{r}
-# Get text
+#| label: get-text
 city_text <- read_md(file.path(user_input_dir, "text-files/manual-text.md"))
 generic_text <- read_yaml("source/generic-text.yml") %>% rapply(double_space, how = "replace") # Do I only want this for print?
 slide_texts <- merge_lists(city_text, generic_text)
@@ -38,15 +38,20 @@ slide_texts <- unlist(slide_texts, recursive = F) %>% setNames(str_extract(names
 
 ::: navigation
 ```{r}
+#| label: navigation
 #| output: asis
 # Dynamically add sections to table of contents ... there's probably a better way?
 sections <- readLines("index.qmd") %>%
-  subset(str_detect(., "^##")) %>% str_replace("# ", "- ") %>% str_replace_all("#", "  ")
-
-anchors <- sections %>% str_extract("^\\s*- (.*$)", group = T) %>% tolower() %>% str_replace_all(c("[^a-z\\s]" = "", "\\s+" = "-")) %>%
-  str_replace("(.*)", "(#\\1)")
-
-paste0(str_replace(sections, "(^\\s*- )(.+$)", "\\1[\\2]"), anchors) %>% { cat("- <span id='dynamic-header'>City Scan</span>  &or;", ., sep = "\n") }
+  str_subset("^## ") %>%
+  str_replace("## ", "")
+# Slugify section names to make anchor paths
+anchors <- sections %>%
+  tolower() %>%
+  str_replace_all(c("[^a-z\\s]" = "", "\\s+" = "-")) %>%
+  { paste0("#", .) }
+cat(sep = "\n",
+  "1. <span id='dynamic-header'>City Scan</span>  &or;",
+  paste0("    ", seq_along(sections), ". [", sections, "]", "(", anchors, ")"))
 ```
 :::
 
@@ -61,7 +66,7 @@ by the [City Resilience Program](https://www.gfdrr.org/en/crp)
 
 City Scan
 
-August 2024
+`r month.name[lubridate::month(Sys.Date())]` `r lubridate::year(Sys.Date())`
 
 ::: donors
 ![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
@@ -76,7 +81,7 @@ August 2024
 :::
 
 <div id="cover-map">
-![](mnt/2024-08-china-guiyang/02-process-output/guiyang_network_plus_building_footprints-small-dither.png)
+![](`r cover_image`)
 </div>
 
 ::: text-column
@@ -85,7 +90,21 @@ August 2024
 ```{r}
 #| output: asis
 #| label: executive_summary
-print_slide_text(slide_texts$executive_summary)
+slide_texts$executive_summary_no_anchor_ids$takeaways <-
+  # If not adding 'Go to section' link, only need these 2 lines + print_slide_text()
+# unlist(slide_texts$executive_summary) %>%
+#   str_replace_all("#### (.*$)", "<p class='pseudo-h4'>\\1</p>")
+  unlist(slide_texts$executive_summary) %>% paste(collapse="\n") %>%
+  str_split("#### ") %>% .[[1]] %>% str_subset("^$", negate = T) %>%
+  lapply(\(x) {
+    section <- str_extract(x, "^.*")
+    x <- str_replace(x, "^(.*)",  "<p class='pseudo-h4'>\\1</p>")
+    anchor <- str_replace_all(tolower(trimws(section)), c("[^a-z\\s]" = "", "\\s+" = "-")) %>%
+      { paste0("#", .) }
+    glue("{x}\n<p>→ [Go to section]({anchor})</p>\n")
+  }) %>%
+  str_split("\n\n") %>% unlist()
+print_slide_text(slide_texts$executive_summary_no_anchor_ids)
 ```
 
 ## Setting the Context

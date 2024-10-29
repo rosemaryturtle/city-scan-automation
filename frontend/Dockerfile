@@ -46,8 +46,16 @@ RUN apt-get update && apt-get install -y \
 
 # Install remaining R packages
 RUN install2.r \
-    quarto \
-    plotly
+    librarian \
+    tidyterra \ 
+    cowplot \ 
+    directlabels \ 
+    ggspatial \
+    ggh4x \ 
+    ggnewscale \
+    ggrepel \ 
+    ggtext \
+    prettymapr
 
 # Set fallback mount directory
 ENV MNT_DIR /home/mnt
@@ -58,6 +66,8 @@ WORKDIR /home
 COPY . ./
 
 # Ensure the scripts are executable
+# For writing $CITY_DIR to city-dir.txt (& future entrypoint commands)
+RUN chmod +x /home/scripts/entrypoint.sh
 # For Google Gloud
 RUN chmod +x /home/scripts/gcsfuse_run.sh
 # For local runs
@@ -66,17 +76,22 @@ RUN chmod +x /home/scripts/local_run.sh
 # Create mount directory for job
 RUN mkdir -p $MNT_DIR
 
-# Write environment variable CITY_DIR to TXT file for use by R
-RUN $CITY_DIR >> city-dir.txt
+# # Write environment variable CITY_DIR to TXT file for use by R
+# # 2024-10-09 I don't think this does anything, nor is it needed. RUN is used at
+# # build time; so this would need to be in ENTRYPOINT
+# RUN $CITY_DIR >> city-dir.txt
 
 # Use tini to manage zombie processes and signal forwarding
 # https://github.com/krallin/tini
-ENTRYPOINT ["/usr/bin/tini", "--"] 
+ENTRYPOINT ["/usr/bin/tini", "--", "/home/scripts/entrypoint.sh"] 
 
 # Pass the startup script as arguments to Tini
 CMD ["/home/scripts/gcsfuse_run.sh"]
 
 #### Docker commands to build and run Docker image locally ####################
+
+# For all, Docker must be running
+# ***Add Docker instructions***
 
 # Build the container
 # docker build -t nalgene .
