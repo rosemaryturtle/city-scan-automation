@@ -56,7 +56,7 @@ def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, lo
         time0 = dt.now()
         while (dt.now()-time0).total_seconds() <= 120*60:
             download_gf_csv = [utils.download_blob(cloud_bucket, 
-                                                   f"{output_dir}/{city_name_l}_globfire_centroids_{ti}.csv", 
+                                                   f"{output_dir}/tabular/{city_name_l}_globfire_centroids_{ti}.csv", 
                                                    f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv',
                                                    check_exists=True) for ti in task_index_range]
             if all(download_gf_csv):
