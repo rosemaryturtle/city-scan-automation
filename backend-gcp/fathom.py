@@ -94,7 +94,7 @@ def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_n
     import numpy as np
 
     # download population raster
-    utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 180*60, 60)
+    utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 180*60, 60)
 
     # reproject flood raster to match wsf raster grid
     raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_pop.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_population.tif')

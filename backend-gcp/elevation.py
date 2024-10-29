@@ -45,7 +45,7 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
         import gee_fun
 
         gee_fun.gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir)
-        utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif', 60*60, 30)
+        utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif', 60*60, 30)
 
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_elevation_source.txt", f"{output_dir}/{city_name_l}_elevation_source.txt")
 
