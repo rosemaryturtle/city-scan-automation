@@ -4,37 +4,35 @@ if ("frontend" %in% list.files()) setwd("frontend")
 source("R/setup.R")
 source("R/pre-mapping.R")
 
-# Set static map visualization parameters
+# Set map visualization parameters
+# Switch to using yaml file, but requires renaming all variables
+# viz <- read_yaml("source/visualization-parameters.yml")
+basemap_opacity <- 0.3
+legend_opacity <- 0.8
 layer_alpha <- 0.7
-map_width <- 6.9
-map_height <- 5.9
-aspect_ratio <- map_width / map_height
-
-# Define map extent and zoom level
-static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
 
 # HTML version of plots --------------------------------------------------------
 add_leaflet_plot <- function(yaml_key, fuzzy_string = NULL) {
-    if (is.null(fuzzy_string)) fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
-    tryCatch({
-      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
-        aggregate_if_too_fine(threshold = 1e6, fun = \(x) Mode(x, na.rm = T)) %>%
-        vectorize_if_coarse(threshold = 1e6)
-      plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
-      plots_html[[yaml_key]] <<- plot_function
-      message(paste("Success:", yaml_key))
-    },
-    error = \(e) {
-      message(paste("Failure:", yaml_key))
-      warning(glue("Error on {yaml_key}: {e}"))
-    })
-  }
+  if (is.null(fuzzy_string)) fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
+  tryCatch({
+    data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
+      aggregate_if_too_fine(threshold = 1e4, fun = \(x) Mode(x, na.rm = T)) %>%
+      vectorize_if_coarse(threshold = 1e5)
+    plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
+    plots_html[[yaml_key]] <<- plot_function
+    message(paste("Success:", yaml_key))
+  },
+  error = \(e) {
+    message(paste("Failure:", yaml_key))
+    warning(glue("Error on {yaml_key}: {e}"))
+  })
+}
 
 # Make most leaflet plots
 possible_layers <- names(keep(layer_params, \(x) !is.null(x$fuzzy_string)))
 plots_html <- list()
 possible_layers %>%
-  str_subset("luvial|flood|road", negate = T) %>%
+  str_subset("luvial|coast|flood|road", negate = T) %>%
   lapply(add_leaflet_plot) %>%
   unlist() -> plot_log
 
