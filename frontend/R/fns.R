@@ -105,30 +105,37 @@ prepare_parameters <- function(yaml_key, ...) {
 
 create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_scale = NULL, message = F, fuzzy_string = NULL, ...) {  
   if (message) message("Check if data is in EPSG:3857; if not, raster is being re-projected")
-
   if (is.null(params)) {
     params <- prepare_parameters(yaml_key, ...)
   }
-
   if (!is.null(params$data_variable)) data <- data[params$data_variable]
 
   if (exists_and_true(params$factor)) {
+    layer_values <- ordered(
+      get_layer_values(data),
+      levels = params$breaks,
+      labels = params$labels)
     data <- 
       set_layer_values(
         data = data,
-        values = ordered(get_layer_values(data),
-                        levels = params$breaks,
-                        labels = params$labels))
+        values = layer_values)
+  } else {
+    layer_values <- get_layer_values(data)
+    if(params$bins > 0 && is.null(params$breaks)) {
+      params$breaks <- break_pretty2(
+                  data = layer_values, n = params$bins + 1, FUN = signif,
+                  method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
+    }
+    if (!is.null(params$breaks)) {
+      # sig_digits <- max(nchar(str_replace_all(as.character(abs(breaks)), c("^[0\\.]*|\\." = ""))))
+      # round_digits <- max(nchar(str_extract(params$breaks %>% {. - floor(params$breaks)}, "(?<=\\.).*")), na.rm = T)
+      round_digits <- max(nchar(str_replace(params$breaks %>% {. - floor(params$breaks)}, "^.*\\.", "")), na.rm = T)
+      layer_values <- round(layer_values, round_digits)
+    } else {
+      layer_values <- round(layer_values, 2)
+    }
+    data <- set_layer_values(data, values = layer_values)
   }
-
-  # data <- fuzzy_read(spatial_dir, params$fuzzy_string)
-  layer_values <- get_layer_values(data)
-  if(params$bins > 0 && is.null(params$breaks)) {
-    params$breaks <- break_pretty2(
-                data = layer_values, n = params$bins + 1, FUN = signif,
-                method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
-  }
-
   labels <- label_maker(x = layer_values,
                         levels = params$breaks,
                         labels = params$labels,
