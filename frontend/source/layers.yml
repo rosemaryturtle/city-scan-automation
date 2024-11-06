@@ -32,7 +32,7 @@ population:
   bins: 5
 # SECTION 4 ECONOMIC ACTIVITY
 rwi:
-  fuzzy_string: rwi
+  fuzzy_string: rwi(?=.shp$|$)
   data_variable: rwi
   title: 'Relative Wealth Index'
   palette: ['#ED431B', '#FF9169', '#FFFFBA', '#70C5AD', '#009E7A']
@@ -54,7 +54,7 @@ economic_change:
   bins: 0
 # SECTION 5 BUILT FORM
 wsf:
-  fuzzy_string: wsf_4326.tif$
+  fuzzy_string: wsf_evolution.tif$
   title: 'Year of urban expansion'
   breaks: [1985, 1986, 1996, 2006, 2015]
   # labels: ['Before 1986', '1986', '1996', '2006', '2015']
@@ -79,7 +79,7 @@ land_cover:
   breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
   labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
 intersections:
-  fuzzy_string: nodes.shp$
+  fuzzy_string: nodes_and_edges(?=.shp$|$)
   title: Intersection Density
   subtitle: Number of intersections per 1 km^2^
   palette: ['#ffffffff', '#9F4830']
@@ -155,7 +155,7 @@ summer_lst:
   suffix: '°C'
   group_id: Summer surface temperature
 vegetation:
-  fuzzy_string: NDVI_Annual.*.tif$
+  fuzzy_string: ndvi_season.*.tif$
   title: Vegetated Areas
   subtitle: 'Normalized difference vegetation index (NDVI)'
   palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
@@ -163,7 +163,7 @@ vegetation:
   labels: ['Water (-1 to 0.015)', 'Built-up (0.015 to 0.14)', 'Barren (0.14 to 0.18)', 'Shrub and Grassland (0.18 to 0.27)', 'Sparse (0.27 to 0.36)', 'Dense (0.36 to 1)']
   group_id: Vegetation
 forest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: ForestCover.*.tif$
+  fuzzy_string: forest_cover.*.tif$
   title: "Forest cover"
   breaks: [1]
   palette: ['#8CC056']
@@ -171,7 +171,7 @@ forest: # Requires preprocessing to combine forest and deforestation?
   factor: TRUE
   group_id: Forests
 deforest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: Deforest.*.tif$
+  fuzzy_string: deforest.*.tif$
   title: Deforestation
   subtitle: Year of deforestation
   domain: [2001, 2021]
@@ -276,7 +276,7 @@ roads:
   stroke:
     title: Road network segment criticality
     subtitle: 'Criticality %'
-    variable: edge_centr
+    variable: edge_centrality
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
     title: Road type
@@ -294,7 +294,7 @@ burnable:
   breaks: [0, .17, .33, .5, .67, .83, 1]
   group_id: Burnable area
 drought:
-  fuzzy_string: NDMI_Annual.*.tif$
+  fuzzy_string: ndmi_season.*.tif$
   title: NDMI
   palette: ['#D45A35', '#F6F7F9', '#48A787']
   center: 0

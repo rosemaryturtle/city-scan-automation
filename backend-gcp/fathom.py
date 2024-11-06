@@ -67,7 +67,7 @@ def calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_n
     import numpy as np
 
     # download wsf evolution raster
-    utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_wsf_evolution_utm.tif", f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', 180*60, 60)
+    utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_wsf_evolution_utm.tif", f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', 180*60, 60)
 
     # reproject flood raster to match wsf raster grid
     raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif')
@@ -94,7 +94,7 @@ def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_n
     import numpy as np
 
     # download population raster
-    utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 180*60, 60)
+    utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 180*60, 60)
 
     # reproject flood raster to match wsf raster grid
     raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_pop.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_population.tif')
@@ -214,13 +214,14 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
 
     for ft in flood_wsf_stats:
         for year in flood_wsf_stats[ft]:
-            if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
-                for ssp in flood_ssps:
+            if list(flood_wsf_stats[ft][year].values()):
+                if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
+                    for ssp in flood_ssps:
+                        for yr in range(1985, 2016):
+                            rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
+                else:
                     for yr in range(1985, 2016):
-                        rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
-            else:
-                for yr in range(1985, 2016):
-                    rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
+                        rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
 
     df = pd.DataFrame(rows, columns=['year', 'type', 'exposed_built_up_sqkm'])
     df_pivot = df.pivot(index='year', columns='type', values='exposed_built_up_sqkm')

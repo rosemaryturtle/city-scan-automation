@@ -78,6 +78,29 @@ def tile_finder(aoi_file, direction, tile_size = 1):
 
     return coord_list
 
+def coord_converter(coord):
+    if coord[0] in ['N', 'E']:
+        return int(coord[1:])
+    elif coord[0] in ['S', 'W']:
+        return int(coord[1:])*(-1)
+    else:
+        print('invalid input to coord_converter')
+        return
+
+def fabdem_big_tile_matcher(small_tile_lat, small_tile_lon):
+    small_tile_lat = coord_converter(small_tile_lat)
+    small_tile_lon = coord_converter(small_tile_lon)
+    
+    import math
+
+    big_tile_lat = math.floor(small_tile_lat/10) * 10
+    big_tile_lon = math.floor(small_tile_lon/10) * 10
+
+    big_tile_lat = f'{"S" if big_tile_lat < 0 else "N"}{abs(big_tile_lat)}'
+    big_tile_lon = f'{"W" if big_tile_lon < 0 else "E"}{abs(big_tile_lon)}'
+
+    return big_tile_lat, big_tile_lon
+
 def fabdem_tile_end_matcher(tile_starter):
     if tile_starter == 'S10':
         return 'N00'
