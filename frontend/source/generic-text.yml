@@ -83,11 +83,11 @@ built_form:
     title: Intersection Density
     method: Intersection density is a measure of network compactness, conveying information about street connectivity. The amount and types of intersections in a road network help determine how a local community functions and the character of the streets themselves. In a good street network, most streets should connect at both ends. A high level of connectivity provides an efficient platform for dispersing traffic, facilitating route choice, and creating more comfortable conditions for people who travel by foot, bike, or transit.
     footnote: Map data from OpenStreetMap.
-  school_zones:
+  school_proximity:
     title: Access to Schools
     method: Using a proximity analysis along the existing road network, this map identifies the areas that are most- and least-accessible to schools. The analysis includes all facilities classified in OpenStreetMap as a school, kindergarten, college or university. Note that there may be more schools that are not included in OpenStreetMap.
     footnote: Map data from OpenStreetMap and DLR, 2015.
-  health_zones:
+  health_proximity:
     title: Access to Health Facilities 
     method: Using a proximity analysis along the existing road network, this map identifies the areas that are most- and least-accessible to schools. The analysis includes all facilities classified in OpenStreetMap as a health amenity, clinic, or hospital. Note that there may be more health facilities that are not included in OpenStreetMap.
     footnote: Map data from OpenStreetMap and DLR, 2015.

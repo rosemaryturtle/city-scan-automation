@@ -71,9 +71,9 @@ layer_params <- read_yaml(layer_params_file)
 
 # 5. Load city parameters ------------------------------------------------------
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
-city <- city_params$city_name
+city <- str_to_title(city_params$city_name)
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
-country <- city_params$country_name
+country <- str_to_title(city_params$country_name)
 
 # 6. Read AOI & wards ----------------------------------------------------------
 aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
