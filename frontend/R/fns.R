@@ -644,7 +644,7 @@ print_slide_text <- function(slide) {
     print_md(slide$method, div_class = "method")
     cat("\n")
   }
-  if (!is.null(slide$footnote)) print_md(slide$footnote, div_class = "footnote")
+  print_md(slide$footnote %||% "", div_class = "footnote")
 }
 
 fill_slide_content <- function(layer, extra_layers = NULL, title = NULL, slide_text = NULL) {
@@ -663,6 +663,41 @@ fill_slide_content <- function(layer, extra_layers = NULL, title = NULL, slide_t
       include_html_chart(fuzzy_read(file.path(output_dir, "plots/html"), slide_text$plot, paste)),
       error = \(e) return(""))
     print_slide_text(slide_text)
+  }
+}
+
+fill_slide_content_pdf <- function(layer, map_name = NULL, title = NULL, slide_text = NULL) {
+  if (is.null(map_name)) map_name <- layer
+  map_file <- file.path(styled_maps_dir, paste0(map_name, ".png"))
+  if (file.exists(map_file)) {
+    if (is.null(slide_text)) slide_text <- slide_texts[[layer]]
+    if (is.null(title)) title <- slide_text$title
+    if (is.null(title)) title <- layer
+    cat(glue("### {title}"))
+    cat("\n")
+    # cat(glue('<div class="map-list" data-static-map="{layer}"></div>'))
+    cat(glue('<p class="map"><img src="{map_file}"></p>'))
+    cat("\n")
+    # tryCatch(
+    #   include_html_chart(fuzzy_read(file.path(output_dir, "plots/html"), slide_text$plot, paste)),
+    #   error = \(e) return(""))
+    # print_slide_text(slide_text)
+
+    cat('<div class="takeaways-method">\n')
+    plot_file <- fuzzy_read(charts_dir, slide_text$plot %||% "NO PLOT TO SEARCH FOR", paste)
+    if (!is.na(plot_file)) cat(glue('<p class="side-chart"><img src="{plot_file}"></p>'))
+    cat("\n")
+    if (!is.null(slide_text$takeaways)) {
+    print_md(slide_text$takeaways, div_class = "takeaways")
+    cat("\n")
+  }
+  if (!is.null(slide_text$method)) {
+    print_md(slide_text$method, div_class = "method")
+    cat("\n")
+  }
+    cat('</div>\n')
+    print_md(slide_text$footnote %||% "", div_class = "footnote")
+  # if (!is.null(slide$footnote)) print_md(slide$footnote %||% "", div_class = "footnote")
   }
 }
 

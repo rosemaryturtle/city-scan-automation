@@ -22,7 +22,7 @@ demographics:
     title: Population Density
     method: This map estimates population numbers per 10,000 m^2^ grid cell. It provides a more consistent representation of population distributions across different landscapes than administrative unit counts. Knowing where people are is critical for impact assessments and intervention plans, especially those focused on service delivery, food security, climate change, network systems and natural disasters.
     footnote: NULL
-    plot: pop_growth.html
+    plot: pop_growth.html|pop-growth.png
   rwi:
     title: Relative Wealth
     method: This map shows micro-estimates of wealth and poverty relative to the whole country that cover the populated surface at a 2.4 km^2^ resolution. Many critical policy decisions, from strategic investments to the allocation of humanitarian aid, rely on data about the geographic distribution of wealth and poverty.
@@ -62,7 +62,7 @@ built_form:
     title: Urban Extent and Change
     method: NULL
     footnote: Map data from DLR, 2015, "World Settlement Footprint Evolution - Landsat 5/7 - Global".
-    plot: urban_built_up_area.html
+    plot: urban_built_up_area.html|wsf-built-up-area-plot.png
   impervious:
     title: Built-up Density
     method: |
@@ -73,7 +73,7 @@ built_form:
     title: Land Cover
     method: Land cover refers to the ground surface cover, including vegetation, urban infrastructure, water, and bare soil, among other classifications. Identifying land cover type helps to understand land utilization and inform planning policies and programs.
     footnote: © ESA WorldCover project 2020 / Contains modified Copernicus Sentinel data (2020) processed by ESA WorldCover consortium’
-    plot: landcover_treemap
+    plot: landcover_treemap|landcover-labels.png
   road_network_orientation:
     method: |
       This layer visualizes the geometric orientation of a city’s streets, specifically the proportion of streets that point east, west, north, south, or to any point around a compass. Street edge bearings can help illuminate the history of urban design, transportation planning, and morphology; evaluate existing transportation patterns and configurations; and explore new planning proposals and alternatives. 
@@ -99,7 +99,7 @@ climate_conditions:
     footnote: |
       Map data obtained from the “Global Solar Atlas 2.0, a free, web-based application is developed and operated by the company Solargis s.r.o. on behalf of the World Bank Group, utilizing Solargis data, with funding provided by the Energy Sector Management Assistance Program (ESMAP). For additional information: https://globalsolaratlas.info
       The [Global Solar Atlas](https://globalsolaratlas.info) uses generalized theoretical settings for a quick assessment of PV power potential for a selected site. An optimum tilt angle of PV modules and 100% availability (no shutdowns due to failure) are assumed.
-    plot: PV_graph
+    plot: PV_graph|monthly-pv.png
   air_quality:
     title: Air Quality
     method: |
@@ -165,22 +165,22 @@ risk_identification:
       OpenStreetMap data may not include all facilities.
   flooding_builtup_fluvial:
     title: Urban Built-Up Area Exposed to River Flooding
-    plot: fu_wsf
+    plot: fu_wsf|wsf-fluvial.*png
     method: ​The placement of assets in low-lying urban areas close to rivers has significantly intensified cities’ sensitivity to river floods.
     footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom 
   flooding_builtup_pluvial:
     title: Urban Built-Up Area Exposed to Rainwater Flooding
-    plot: pu_wsf
+    plot: pu_wsf|wsf-pluvial.*png
     method: Tarmacked and paved surfaces, which limit water infiltration and increase the speed and amount of water running off the ground, lead to rainwater flooding in urban areas. This phenomenon is exacerbated by the alteration of natural drainage routes, resulting in reduced urban capacity for excess water.
     footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_builtup_coastal:
     title: Urban Built-Up Area Exposed to Coastal Flooding
-    plot: cu_wsf
+    plot: cu_wsf|wsf-coastal.*png
     method: Coastal flooding is becoming more common in cities due to climate change and other human-related environmental impacts, such as land subsidence and sea level rise.
     footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_builtup_combined:
     title: Urban Built-Up Area Exposed to River, Rainwater or Coastal Flooding
-    plot: comb_wsf
+    plot: comb_wsf|wsf-combined.*png
     method: Intense rainfall in urban areas can generate both pluvial flooding due to the limited capacity of drainage systems, as well as fluvial flooding caused by deluges from river channels. The concurrence of pluvial and fluvial flooding often aggravates the damage potential they individually produce.
     footnote: Map data from DLR, 2015, and Fathom. See Data Notes for more on the Fathom dataset.
   flooding_population_fluvial:
@@ -213,12 +213,12 @@ risk_identification:
     title: Elevation
     method: Elevation informs an area's vulnerability to many natural disasters. The height at which infrastructure, resources, and communities sit relative to normal water levels and tides, flood waters, and storm surges and waves informs their exposure. Elevation information is critical for communities to anticipate the impacts of disasters and to prepare resilient and cost-effective response and redevelopment strategies.
     footnote: Map data from FABDEM V1-2.
-    plot: elevation_treemap
+    plot: elevation_treemap|elevation-labels.png
   slope:
     title: Slope
     method: Slope refers to the percentage change in elevation over a certain distance. In hilly or mountainous areas, floods can occur within minutes after heavy rains, while in flat areas, floodwaters can remain for days. Considering the slope of land is important in reducing construction costs, extending services and public facilities, minimizing the risks of hazards like flooding and landslides, and mitigating the impacts of development on natural resources.
     footnote: 'Map data from USGS, 2015, “USGS EROS Archive - Digital Elevation”.'
-    plot: slope_treemap
+    plot: slope_treemap|slope-labels.png
   landslides:
     title: Landslides
     method: |
@@ -270,6 +270,7 @@ risk_identification:
       TK Describe historical burnt area
       The Fire Weather Index (FWI) measures the potential for wildfire in an area at a given time, by combining measures of moisture, of built-up area, and of ignition spread. Areas with a higher index have a higher potential for wildfire, though the specific relationship between FWI and fire danger is highly localized; therefore values representing high fire potential must be determined locally.
     footnote: Map data from Zorn & Koks, 2019. Graph data from NASA’s Global Fire Weather Database.
+    plot: nasa-fwi.png
 # SECTION 8 LOCAL INSTITUTIONS AND PLANNING
 # SECTION 9 CONCLUSION
 conclusion:
