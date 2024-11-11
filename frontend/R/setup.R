@@ -44,7 +44,7 @@ librarian::shelf(quiet = T,
   units,
   dplyr)
 
-librarian::stock(
+librarian::stock(quiet = T,
   ggnewscale, # 4.10 or higher
   prettymapr
 )
@@ -62,8 +62,8 @@ output_dir <- file.path(city_dir, "03-render-output/")
 styled_maps_dir <- file.path(output_dir, "maps/")
 charts_dir <- file.path(output_dir, "charts/")
 
-dir.create(styled_maps_dir, recursive = T)
-dir.create(charts_dir, recursive = T)
+if (!dir.exists(styled_maps_dir)) dir.create(styled_maps_dir, recursive = T)
+if (!dir.exists(styled_maps_dir)) dir.create(charts_dir, recursive = T)
 
 # 4. Load map layer parameters -------------------------------------------------
 layer_params_file <- 'source/layers.yml' # Also used by fns.R

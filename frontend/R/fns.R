@@ -275,7 +275,7 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
   baseplot <- if (is.null(baseplot)) {
     ggplot() +
       geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
-      annotation_map_tile(type = "cartolight", zoom = zoom_level)
+      annotation_map_tile(type = "cartolight", zoom = zoom_level, progress = "none")
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
     layer + 
