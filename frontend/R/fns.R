@@ -239,7 +239,7 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   return(layer_function)
 }
 
-plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, ...) {
+plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -282,8 +282,15 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
-  if (plot_aoi) p <- p + geom_spatvector(data = aoi, fill = NA, linetype = "solid", linewidth = .25)
-  if (plot_wards) p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
+if (plot_roads) p <- p +
+    geom_spatvector(data = roads, aes(linewidth = road_type), color = "white") +
+    scale_linewidth_manual(values = c("Secondary" = 0.25, "Primary" = 1), guide = "none")
+  if (plot_aoi) p <- p + geom_spatvector(data = aoi, color = "grey30", fill = NA, linetype = "solid", linewidth = .4)
+  if (plot_wards) {
+    p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
+    if (exists("ward_labels")) p <- p +
+      geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
+  }
   p <- p + coord_3857_bounds()
   return(p)
 }
@@ -422,7 +429,10 @@ coord_3857_bounds <- function(...) {
     ...)
 }
 
-save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
+save_plot <- function(
+    plot = NULL, filename, directory,
+    map_height = map_height, map_width = map_width, dpi = 300,
+    rel_widths = c(3, 1)) {
   # Saves plots with set legend widths
   plot_layout <- plot_grid(
     plot + theme(legend.position = "none"),
@@ -435,6 +445,7 @@ save_plot <- function(plot = NULL, filename, directory, rel_widths = c(3, 1)) {
   cowplot::save_plot(
     plot = plot_layout,
     filename = file.path(directory, filename),
+    dpi = dpi,
     base_height = map_height, base_width = sum(rel_widths)/rel_widths[1] * map_width)
 }
 

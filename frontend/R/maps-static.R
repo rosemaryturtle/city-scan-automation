@@ -9,6 +9,7 @@ layer_alpha <- 0.7
 map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height
+map_portions <- c(7, 2) # First number is map width, second is legend width
 
 # Define map extent and zoom level
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
@@ -68,7 +69,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         vectorize_if_coarse()
       plot <- plot_static_layer(
         data = data, yaml_key = yaml_key,
-        plot_aoi = is.null(wards), plot_wards = !is.null(wards))
+        plot_aoi = T, plot_wards = !is.null(wards))
       plots[[yaml_key]] <<- plot
       message(paste("Success:", yaml_key))
     },
@@ -87,8 +88,8 @@ source("R/map-historical-burnt-area.R")
 source("R/map-intersections.R")
 
 # Save plots -------------------------------------------------------------------
-plots %>% walk2(names(.), \(plot, name) {
-  save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir)
+  save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir,
+    map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 })
 
 # See which layers weren't successfully mapped
