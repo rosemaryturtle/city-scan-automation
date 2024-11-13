@@ -8,6 +8,7 @@ solar: True
 air: True
 flood: True
 flood_coastal: True
+flood_coastal: False
 flood_fluvial: True
 flood_pluvial: True
 landslide: True
@@ -19,6 +20,7 @@ lightning: False
 amenities: False
 
 # GEE
+landcover: True
 landcover: True
 summer_lst: True
 winter_lst: False
