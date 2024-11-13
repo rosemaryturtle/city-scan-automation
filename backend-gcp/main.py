@@ -146,7 +146,7 @@ elif task_index == 9:
 
     if menu['slope']:  # processing time: 20s
         import raster_pro
-        raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
+        raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation_buf.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
         raster_pro.get_raster_histogram(f'{local_output_dir}/{city_name_l}_slope.tif', [0, 2, 5, 10, 20, 90], f'{local_output_dir}/{city_name_l}_slope.csv')
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.csv', f'{output_dir}/{city_name_l}_slope.csv')
 elif task_index == 10:

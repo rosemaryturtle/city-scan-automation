@@ -107,6 +107,7 @@ def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_n
             flood_array = fld.read(1)
         
         pop_nodata = -99999
+        # pop60 = 
 
 # TODO: OSM points and major roads exposure calculations
 
@@ -117,12 +118,15 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     import numpy as np
     import utils
     import pandas as pd
+    from os.path import exists
+    import rasterio
 
     # set parameters
     flood_threshold = city_inputs['flood']['threshold']
     flood_years = city_inputs['flood']['year']
     flood_ssps = city_inputs['flood']['ssp']
     flood_prob_cutoff = city_inputs['flood']['prob_cutoff']
+    flood_types = ['coastal', 'fluvial', 'pluvial']
 
     rps = [10, 100, 1000, 20, 200, 5, 50, 500]
     flood_ssp_labels = {1: '1_2.6', 2: '2_4.5', 3: '3_7.0', 5: '5_8.5'}
@@ -156,7 +160,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     flood_wsf_stats = {}
     flood_pop_stats = {}
 
-    for ft in ['coastal', 'fluvial', 'pluvial']:
+    for ft in flood_types:
         if menu[f'flood_{ft}']:
             flood_wsf_stats[ft] = {}
             for year in flood_years:
@@ -207,6 +211,32 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
                             
                             flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
+
+    for proj in ['', '_utm']:
+        for year in flood_years:
+            if year <= 2020:
+                comb_array = []
+                for ft in flood_types:
+                    if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}{proj}.tif'):
+                        with rasterio.open(f'{local_output_dir}/{city_name_l}_{ft}_{year}{proj}.tif') as src:
+                            comb_array.append(src.read(1))
+                if comb_array:
+                    composite_flood_raster(comb_array, out_meta, f'{local_output_dir}/{city_name_l}_comb_{year}{proj}.tif')
+                    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}{proj}.tif', f'{output_dir}/{city_name_l}_comb_{year}{proj}.tif')
+                    if proj == '':
+                        flood_wsf_stats['comb'][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_comb_{year}.tif')
+            elif year > 2020:
+                for ssp in flood_ssps:
+                    comb_array = []
+                    for ft in flood_types:
+                        if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}{proj}.tif'):
+                            with rasterio.open(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}{proj}.tif') as src:
+                                comb_array.append(src.read(1))
+                    if comb_array:
+                        composite_flood_raster(comb_array, out_meta, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}{proj}.tif')
+                        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}{proj}.tif', f'{output_dir}/{city_name_l}_comb_{year}_ssp{ssp}{proj}.tif')
+                        if proj == '':
+                            flood_wsf_stats['comb'][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_comb_{year}_ssp{ssp}.tif')
 
     # save flood stats as csv and upload
     # wsf

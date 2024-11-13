@@ -9,8 +9,9 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
     local_elev_folder = f'{local_data_dir}/elev'
     os.makedirs(local_elev_folder, exist_ok=True)
 
-    lat_tiles_small = raster_pro.tile_finder(aoi_file, 'lat', 1)
-    lon_tiles_small = raster_pro.tile_finder(aoi_file, 'lon', 1)
+    aoi_file_buf = aoi_file.buffer(0.001)
+    lat_tiles_small = raster_pro.tile_finder(aoi_file_buf, 'lat', 1)
+    lon_tiles_small = raster_pro.tile_finder(aoi_file_buf, 'lon', 1)
 
     elev_download_dict = {}
     for lat1 in lat_tiles_small:
@@ -37,6 +38,9 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
         raster_pro.mosaic_raster(mosaic_list, local_elev_folder, f'{city_name_l}_elevation.tif')
         out_image, out_meta = raster_pro.raster_mask_file(f'{local_elev_folder}/{city_name_l}_elevation.tif', aoi_file.geometry)
         with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif', "w", **out_meta) as dest:
+            dest.write(out_image)
+        out_image, out_meta = raster_pro.raster_mask_file(f'{local_elev_folder}/{city_name_l}_elevation.tif', aoi_file_buf.geometry)
+        with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation_buf.tif', "w", **out_meta) as dest:
             dest.write(out_image)
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_elevation.tif', f'{output_dir}/{city_name_l}_elevation.tif')
         with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:

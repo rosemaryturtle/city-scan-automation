@@ -150,5 +150,7 @@ def download_blob_timed(bucket_name, source_blob_name, destination_file_name, ti
     time0 = dt.now()
     while (dt.now()-time0).total_seconds() <= time_limit:
         if download_blob(bucket_name, source_blob_name, destination_file_name, check_exists):
-            break
+            return True
         time.sleep(attempt_interval)
+    
+    return False

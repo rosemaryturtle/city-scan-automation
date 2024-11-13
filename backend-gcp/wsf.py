@@ -21,6 +21,7 @@ def wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cl
     downloaded_list = raster_pro.download_raster(wsf_download_list, local_wsf_folder, data_bucket, data_bucket_dir='WSFevolution')
     raster_pro.mosaic_raster(downloaded_list, local_wsf_folder, f'{city_name_l}_wsf_evolution.tif')
     out_image, out_meta = raster_pro.raster_mask_file(f'{local_wsf_folder}/{city_name_l}_wsf_evolution.tif', aoi_file.geometry)
+    out_meta.update({"nodata": 0})
     with rasterio.open(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', "w", **out_meta) as dest:
         dest.write(out_image)
 
