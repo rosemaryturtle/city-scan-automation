@@ -42,6 +42,9 @@ def wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cl
         for year, cumulative_area in cumulative_dict.items():
             writer.writerow([year, cumulative_area])
 
+    raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', f'{local_output_dir}/{city_name_l}_wsf_evolution_3857.tif', dst_crs='epsg:3857')
+
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', f'{output_dir}/{city_name_l}_wsf_evolution.tif')
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', f'{output_dir}/{city_name_l}_wsf_evolution_utm.tif')
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_stats.csv', f'{output_dir}/{city_name_l}_wsf_stats.csv')
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_evolution_3857.tif', f'{output_dir}/{city_name_l}_wsf_evolution_3857.tif')

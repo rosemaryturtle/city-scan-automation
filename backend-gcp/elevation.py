@@ -43,6 +43,7 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
         with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation_buf.tif', "w", **out_meta) as dest:
             dest.write(out_image)
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_elevation.tif', f'{output_dir}/{city_name_l}_elevation.tif')
+        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_elevation_buf.tif', f'{output_dir}/{city_name_l}_elevation_buf.tif')
         with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
             f.write('FABDEM')
     else:
