@@ -136,7 +136,7 @@ def download_raster(download_list, local_data_dir, data_bucket, data_bucket_dir)
                 dl_file = requests.get(f)
                 if dl_file.status_code == 200:
                     open(f'{local_data_dir}/{dl_file_name}', 'wb').write(dl_file.content)
-                    if utils.upload_blob(data_bucket, f'{local_data_dir}/{dl_file_name}', f'{data_bucket_dir}/{dl_file_name}'):
+                    if utils.upload_blob(data_bucket, f'{local_data_dir}/{dl_file_name}', f'{data_bucket_dir}/{dl_file_name}', output=False):
                         downloaded_list.append(f'{local_data_dir}/{dl_file_name}')
                 else:
                     print(f"Failed to download. HTTP status code: {dl_file.status_code}")
