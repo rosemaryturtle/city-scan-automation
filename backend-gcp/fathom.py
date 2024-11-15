@@ -273,7 +273,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     buffer_aoi = aoi_file.buffer(np.nanmax([aoi_bounds.maxx - aoi_bounds.minx, aoi_bounds.maxy - aoi_bounds.miny]))
     lat_tiles = raster_pro.tile_finder(buffer_aoi, 'lat')
     lon_tiles = raster_pro.tile_finder(buffer_aoi, 'lon')
-    utm_crs = utils.find_utm(aoi_file)
+    utm_crs = aoi_file.estimate_utm_crs()
     
     # translate the annual probability cutoffs to bins of return periods
     rp_multipliers = {}
