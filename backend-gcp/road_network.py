@@ -222,6 +222,22 @@ def polar_plot(ax, bearings, n = 36, title = ''):
     ax.set_xticklabels(labels=xticklabels, fontdict=xtick_font)
     ax.tick_params(axis='x', which='major', pad=-2)
 
+def filter_major_roads(local_output_dir, city_name_l):
+    roads_gdf = gpd.read_file(f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg', layer='edges')
+
+    # Filter for major roads based on keywords in the 'highway' attribute
+    major_road_keywords = ['primary', 'trunk', 'motorway', 'primary_link', 'trunk_link', 'motorway_link']
+
+    def is_major_road(highway_value):
+        # Split the highway attribute by semicolon or whitespace (adjust based on your data)
+        descriptors = highway_value#.split("'").split("_")  # Or use split(' ') if space-separated
+        # Check if any descriptor matches one of the major road keywords
+        return any(keyword in descriptors for keyword in major_road_keywords)
+
+    major_roads_gdf = roads_gdf[roads_gdf['highway'].apply(is_major_road)]
+
+    major_roads_gdf.to_file(f'{local_output_dir}/{city_name_l}_major_roads.gpkg', driver='GPKG', layer = 'major_roads')
+
 def road_network(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_dir, centrality_type = 'edge'):
     print('run road_network')
     # calculate either 'node' centrality, 'edge' centrality, or 'both'
@@ -233,8 +249,12 @@ def road_network(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_d
     # generate the road bearing polar plots
     plot_radar(city_name_l, aoi_file, local_output_dir)
 
+    # filter for major roads
+    filter_major_roads(local_output_dir, city_name_l)
+
     # upload local outputs
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg", f"{output_dir}/{city_name_l}_nodes_and_edges.gpkg")
+    utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_major_roads.gpkg", f"{output_dir}/{city_name_l}_major_roads.gpkg")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_network_extended_stats.csv", f"{output_dir}/{city_name_l}_road_network_extended_stats.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_network_basic_stats.csv", f"{output_dir}/{city_name_l}_road_network_basic_stats.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_network_plot.png", f"{output_dir}/{city_name_l}_network_plot.png")
