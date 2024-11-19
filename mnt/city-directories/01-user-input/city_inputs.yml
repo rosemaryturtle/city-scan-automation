@@ -1,22 +1,24 @@
 # city basic info
-city_name: "Abuja"
+city_name: 'Kalemie'
+alternate_city_name: 
+   - Kalemi
+
 # BN: if AOI is consistently stored in 01-user-inputs, this need not be included
 # in city_inputs.yml. Here I have changed path but we could delete this line
 # (assuming python can read shapefile from directory name) 
-# AOI_path: "mnt/city-directories/01-user-input/AOI"
-AOI_path: "C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Nigeria/shapefile/abuja.shp"
-country_name: 'Nigeria'
-country_iso3: 'NGA'
+AOI_path: "mnt/city-directories/01-user-input/AOI"
+country_name: 'Democratic Republic of Congo'
+country_iso3: 'DRC'
 
 # Benchmark cities
 # - When multiple countries, add country name as key before city (e.g. "- Armenia: Yerevan")
 # - When not providing manual benchmark cities, simply write `null` (without ticks)
 bm_cities_manual:
-  - Bentiu
-  - Malakal
-  - Wau
+  - Bukavu
+  - Uvira
+  - Kinshasa
 
-nearby_countries_string: "sudan|ethiopia|kenya|uganda|central african republic"
+nearby_countries_string: "haiti|puerto rico|cuba|jamaica|the bahamas|turks and caicos|anguila|st. kitts and nevis|dominica|grenada"
 
 # data sources (will override global_inputs if duplicates exist)
 # put False as default value if no data exists for a city
@@ -27,5 +29,7 @@ impervious_source: False
 # can add to the OSM POIs in global_inputs; will override global_inputs if duplicates exist
 
 # land surface temperature parameters
+first_hot_month: 6
+last_hot_month: 8
 first_year: 2013
 last_year: 2022

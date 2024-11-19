@@ -43,7 +43,7 @@ features = aoi_file.geometry
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
 country_name_l = city_inputs['country_name'].replace(' ', '_').replace("'", "").lower()
 country_iso3 = pycountry.countries.lookup(city_inputs['country_name']).alpha_3
-# TODO: go through the list of countries and handle anomalies
+# TODO: replace country_iso3 with a functions that checks country based on shapefile
 
 # Load global inputs, such as data sources that generally remain the same across scans
 print('Load global inputs')
@@ -63,10 +63,10 @@ storage_client = storage.Client()
 city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
 input_dir = f'{city_dir}/{input_dir}'
 output_dir = f'{city_dir}/{output_dir}'
-utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml')
-utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml')
+utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', output = False)
+utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', output = False)
 for f in downloaded_aoi:
-    utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", check_exists=True)
+    utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", output = False, check_exists=True)
 
 
 ########################################################
@@ -146,7 +146,7 @@ elif task_index == 9:
 
     if menu['slope']:  # processing time: 20s
         import raster_pro
-        raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
+        raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation_buf.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
         raster_pro.get_raster_histogram(f'{local_output_dir}/{city_name_l}_slope.tif', [0, 2, 5, 10, 20, 90], f'{local_output_dir}/{city_name_l}_slope.csv')
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.csv', f'{output_dir}/{city_name_l}_slope.csv')
 elif task_index == 10:

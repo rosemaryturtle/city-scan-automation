@@ -40,7 +40,7 @@ def landcover_burn(city_name_l, aoi_file, data_bucket, blob_name, local_output_d
                 if out_image[0, i, j] in output_input_dict[out_val]:
                     out_image[0, i, j] = out_val
                     
-    # out_image[(out_image < 0) | (out_image > 1)] = 0
+    out_image[(out_image < 0) | (out_image > 1)] = 0
     
     # Write output raster --------------------------
     print('write output raster')

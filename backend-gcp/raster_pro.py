@@ -96,8 +96,8 @@ def fabdem_big_tile_matcher(small_tile_lat, small_tile_lon):
     big_tile_lat = math.floor(small_tile_lat/10) * 10
     big_tile_lon = math.floor(small_tile_lon/10) * 10
 
-    big_tile_lat = f'{"S" if big_tile_lat < 0 else "N"}{abs(big_tile_lat)}'
-    big_tile_lon = f'{"W" if big_tile_lon < 0 else "E"}{abs(big_tile_lon)}'
+    big_tile_lat = f'{"S" if big_tile_lat < 0 else "N"}{str(abs(big_tile_lat)).zfill(2)}'
+    big_tile_lon = f'{"W" if big_tile_lon < 0 else "E"}{str(abs(big_tile_lon)).zfill(3)}'
 
     return big_tile_lat, big_tile_lon
 
@@ -136,7 +136,7 @@ def download_raster(download_list, local_data_dir, data_bucket, data_bucket_dir)
                 dl_file = requests.get(f)
                 if dl_file.status_code == 200:
                     open(f'{local_data_dir}/{dl_file_name}', 'wb').write(dl_file.content)
-                    if utils.upload_blob(data_bucket, f'{local_data_dir}/{dl_file_name}', f'{data_bucket_dir}/{dl_file_name}'):
+                    if utils.upload_blob(data_bucket, f'{local_data_dir}/{dl_file_name}', f'{data_bucket_dir}/{dl_file_name}', output=False):
                         downloaded_list.append(f'{local_data_dir}/{dl_file_name}')
                 else:
                     print(f"Failed to download. HTTP status code: {dl_file.status_code}")
@@ -279,7 +279,7 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
     import numpy as np
 
     if not os.path.exists(elev_raster):
-        if not utils.download_blob(cloud_bucket, f'{output_dir}/{city_name_l}_elevation.tif', elev_raster):
+        if not utils.download_blob_timed(cloud_bucket, f'{output_dir}/spatial/{city_name_l}_elevation_buf.tif', elev_raster, 30*60, 60):
             return
     
     # Reproject elevation raster to a projected coordinate system
@@ -295,8 +295,13 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
     pixel_size_x = transform[0]
     pixel_size_y = -transform[4]
 
-    # Calculate the gradient (difference) in the x and y directions
-    dy, dx = np.gradient(elevation, pixel_size_y, pixel_size_x)
+    # Calculate the gradient (difference) in the x and y directions with padding
+    padded_elevation = np.pad(elevation, 1, mode='edge')
+    dy, dx = np.gradient(padded_elevation, pixel_size_y, pixel_size_x)
+
+    # Remove the padding after calculation
+    dy = dy[1:-1, 1:-1]
+    dx = dx[1:-1, 1:-1]
 
     # Calculate the slope in degrees
     slope = np.arctan(np.sqrt(dx**2 + dy**2)) * (180 / np.pi)
@@ -309,23 +314,13 @@ def slope(aoi_file, elev_raster, cloud_bucket, output_dir, city_name_l, local_ou
         dst.write(slope.astype(np.float32), 1)
 
     # Reproject slope raster to WGS84
-    reproject_raster(f'{local_output_dir}/{city_name_l}_slope_3857.tif', f'{local_output_dir}/{city_name_l}_slope.tif', 'EPSG:4326')
+    reproject_raster(f'{local_output_dir}/{city_name_l}_slope_3857.tif', f'{local_output_dir}/{city_name_l}_slope_4326.tif', 'EPSG:4326')
 
     # Mask slope raster with AOI
-    out_image, out_meta = raster_mask_file(f'{local_output_dir}/{city_name_l}_slope.tif', aoi_file.geometry)
+    out_image, out_meta = raster_mask_file(f'{local_output_dir}/{city_name_l}_slope_4326.tif', aoi_file.geometry)
     with rasterio.open(f'{local_output_dir}/{city_name_l}_slope.tif', 'w', **out_meta) as dest:
         dest.write(out_image)
 
-    # Remove intermediate outputs
-    try:
-        os.remove(f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
-        os.remove(f'{local_output_dir}/{city_name_l}_slope_3857.tif')
-    except Exception:
-        pass
-
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.tif', f'{output_dir}/{city_name_l}_slope.tif')
+    utils.delete_blob(cloud_bucket, f'{output_dir}/spatial/{city_name_l}_elevation_buf.tif')
     
-    # Calculate slope: unused due to richdem containerization issue ###############
-    # elev = rd.LoadGDAL(f'{local_output_dir}/{city_name_l}_elevation_3857.tif')
-    # slope = rd.TerrainAttribute(elev, attrib = 'slope_degrees')
-    # rd.SaveGDAL(f'{local_output_dir}/{city_name_l}_slope_3857.tif', slope)
