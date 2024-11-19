@@ -35,7 +35,7 @@ rwi:
   fuzzy_string: rwi(?=.shp$|.gpkg$|$)
   data_variable: rwi
   title: 'Relative Wealth Index'
-  palette: ['#ED431B', '#FF9169', '#FFFFBA', '#70C5AD', '#009E7A']
+  palette: ['#009E7A', '#70C5AD', '#FFFFBA', '#FF9169', '#ED431B' ]
   labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
   group_id: Relative wealth index
@@ -82,7 +82,7 @@ intersections:
   fuzzy_string: nodes_and_edges(?=.shp$|.gpkg$|$)
   title: Intersection Density
   subtitle: Number of intersections per 1 km^2^
-  palette: ['#ffffffff', '#9F4830']
+  palette: ['transparent', '#9F4830']
   group_id: Intersection density
 school_zones:
   fuzzy_string: school-journeys
@@ -188,40 +188,36 @@ infrastructure:
   group_id: Infrastructure
 fluvial:
   fuzzy_string: fluvial_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]  
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Riverine flooding
 pluvial:
   fuzzy_string: pluvial_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Surface water flooding
 coastal:
   fuzzy_string: coastal_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]  
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Coastal flooding
 combined_flooding: # This will require pre-processing
   fuzzy_string: combined_flooding_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
@@ -257,18 +253,16 @@ slope:
 landslides:
   fuzzy_string: landslide.*.tif$
   title: Landslide susceptibility
-  factor: TRUE
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
-  breaks: [0, 1, 2, 3, 4]
+  breaks: [-1, 0, 1, 2, 3, 4]
   group_id: Landslides
 liquefaction:
   fuzzy_string: liquefaction.tif$
   title: Liquefaction susceptibility
-  factor: TRUE
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
-  breaks: [1, 2, 3, 4, 5]
+  breaks: [0, 1, 2, 3, 4, 5]
   group_id: Liquefaction
 roads:
   fuzzy_string: edges-edit.gpkg
@@ -303,7 +297,7 @@ burnt_area:
 drought:
   fuzzy_string: ndmi_season.*.tif$
   title: NDMI
-  palette: ['#D45A35', '#F6F7F9', '#48A787']
+  palette: ['#D45A35', '#F6F7F9', '#48A747']
   center: 0
   bins: 5
   group_id: Moisture
