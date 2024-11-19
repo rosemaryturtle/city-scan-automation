@@ -359,7 +359,7 @@ fill_scale <- function(data_type, params) {
       values = if (is.null(params$breaks)) NULL else breaks_midpoints(params$breaks, rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale, mid = params$center),
       labels = if (is.null(params$labels)) waiver() else params$labels,
       limits = if (is.null(params$breaks)) NULL else range(params$breaks),
-      rescaler = if (!is.null(params$center)) ~ scales::rescale_mid(.x, mid = params$center) else scales::rescale,
+      rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale,
       na.value = "transparent",
       oob = scales::oob_squish,
       name = format_title(params$title, params$subtitle),
