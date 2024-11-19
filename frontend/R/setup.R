@@ -50,7 +50,7 @@ librarian::stock(quiet = T,
 )
 
 # 2. Load functions ------------------------------------------------------------
-source("R/fns.R")
+source("R/fns.R", local = T)
 
 # 3. Set directories -----------------------------------------------------------
 city_dir <- readLines("city-dir.txt")[1]

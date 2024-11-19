@@ -1,8 +1,8 @@
 # Generating City Scan Maps
 
 if ("frontend" %in% list.files()) setwd("frontend")
-source("R/setup.R")
-source("R/pre-mapping.R")
+source("R/setup.R", local = T)
+source("R/pre-mapping.R", local = T)
 
 # Set static map visualization parameters
 layer_alpha <- 0.7
@@ -71,12 +71,12 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 
 # Non-standard static plots ----------------------------------------------------
 
-source("R/map-schools-health-proximity.R") # Could be standard if layers.yml included baseplot
-source("R/map-elevation.R") # Could be standard if we wrote city-specific breakpoints to layers.yml
-source("R/map-deforestation.R") # Could be standard if layers.yml included baseplot and source data had 2000 added
-source("R/map-flooding.R")
-source("R/map-historical-burnt-area.R")
-source("R/map-intersections.R")
+source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
+source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
+source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
+source("R/map-flooding.R", local = T)
+source("R/map-historical-burnt-area.R", local = T)
+source("R/map-intersections.R", local = T)
 
 # Save plots -------------------------------------------------------------------
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir,
