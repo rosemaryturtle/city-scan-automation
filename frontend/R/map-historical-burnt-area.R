@@ -31,6 +31,9 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom() +
+    theme(
+      legend.title = ggtext::element_markdown(),
+      legend.text = element_text(hjust = 0)) +
     coord_3857_bounds(extent = fire_bbox, expansion = 0.6)
 
 #   plots$burnt_area_smooth <- plots$burnt_area +

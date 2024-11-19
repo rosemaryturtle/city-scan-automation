@@ -102,7 +102,7 @@ school_points:
   fuzzy_string: school-points
   title: School
   data_variable: Feature # To show individual school types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['black']
+  palette: ['#FBAF00']
   alpha: 1
   labels: ['School']
   factor: TRUE
@@ -124,7 +124,7 @@ health_points:
   fuzzy_string: health-points
   title: Health Facility
   data_variable: Feature # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['black']
+  palette: ['#523249']
   alpha: 1
   labels: ['Health facility']
   factor: TRUE
@@ -182,9 +182,10 @@ infrastructure:
   title: Infrastructure and Services
   data_variable: Feature
   factor: TRUE
-  palette: ['#00BA38', '#F8766D', '#619CFF', '#E1CC00']
+  palette: ['#523249', '#FF3838', '#619CFF', '#FBAF00']
   labels:  ['Hospital or clinic', 'Fire station', 'Police station', 'School']
   alpha: 1
+  size: 2
   group_id: Infrastructure
 fluvial:
   fuzzy_string: fluvial_2020.tif$

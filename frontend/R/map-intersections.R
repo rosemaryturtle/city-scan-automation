@@ -14,7 +14,7 @@ if (inherits(intersection_nodes, "SpatVector")) {
       contour = FALSE, n = 200) +
     scale_fill_gradient(
       # limits = c(0.1, 1),
-      low = intersection_params$palette[1], high = intersection_params$palette[2],
+      low = "transparent", high = intersection_params$palette[2],
       name = format_title(intersection_params$title, intersection_params$subtitle),
       na.value = "transparent") +
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +

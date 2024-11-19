@@ -85,6 +85,7 @@ prepare_parameters <- function(yaml_key, ...) {
   # Apply layer transparency to palette
   params$palette <- sapply(params$palette, \(p) {
     # If palette has no alpha, add
+    layer_alpha <- params$alpha %||% layer_alpha
     if (nchar(p) == 7 | substr(p, 1, 1) != "#") return(scales::alpha(p, layer_alpha))
     # If palette already has alpha, multiply
     if (nchar(p) == 9) {
@@ -311,7 +312,7 @@ create_geom <- function(data, params) {
   data_type <- type_data(data)
   layer_values <- get_layer_values(data)
   if (data_type == "points") {
-    geom_spatvector(data = data, aes(color = layer_values), size = 1)
+    geom_spatvector(data = data, aes(color = layer_values), size = params$size %||% 1)
   } else if (data_type == "polygons") {
     geom_spatvector(data = data, aes(fill = layer_values), color = params$stroke)
   } else if (data_type == "lines") {
@@ -326,7 +327,7 @@ create_geom <- function(data, params) {
     if (is.null(stroke_variable)) aes_list <- aes_list[-1]
     geom_spatvector(data = data, aes_list)
   } else if (data_type == "raster") {
-    geom_spatraster(data = data)
+    geom_spatraster(data = data, maxcell = 5e6) #, show.legend = T)
   }
 }
 

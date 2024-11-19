@@ -6,12 +6,7 @@ elevation <- fuzzy_read(process_output_dir, "elevation.csv", read_csv, col_types
          Decimal = Count/sum(Count))
 elevation_names <- elevation$Elevation
 
-elevation_colors <- c(
-  "#f5c4c0", #F5C4C0" "#DCA3B1" "#C283A2" "#A96393" "#904384" "#762175
-  "#f19bb4",
-  "#ec5fa1",
-  "#c20b8a",
-  "#762175") %>%
+elevation_colors <- colorRampPalette(prepare_parameters("elevation")$palette)(5) %>%
   setNames(elevation_names)
 
 elevation_plot <- ggdonut(elevation, "Elevation", "Count", elevation_colors, "Elevation")

@@ -1,14 +1,11 @@
 # Plotting slope pie chart
 slope <- fuzzy_read(process_output_dir, "slope.csv", read_csv, col_types = "cd") %>%
   subset(!is.na(Bin)) %>%
-  mutate(Slope = factor(Bin, levels = Bin), Decimal = Count/sum(Count))
+  mutate(
+    Bin = paste0(Bin, "°"),
+    Slope = factor(Bin, levels = Bin), Decimal = Count/sum(Count))
 slope_names <- arrange(slope, Slope)$Slope
-slope_colors <- c(
-  "#ffffd4",
-  "#fed98e",
-  "#fe9929",
-  "#d95f0e",
-  "#993404") %>%
+slope_colors <- colorRampPalette(prepare_parameters("slope")$palette)(5) %>%
   setNames(slope_names)
 
 slope_plot <- ggdonut(slope, "Slope", "Count", slope_colors, "Slope")
