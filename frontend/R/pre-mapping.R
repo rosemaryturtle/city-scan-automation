@@ -2,8 +2,8 @@
 
 # Combine infrastructure base points
 combine_infrastructure_points <- function() {
-  health_points <- fuzzy_read(spatial_dir, "osm_health(?=.shp$|.gpkg$|$)") %>% mutate(Feature = "School") %>% tryCatch(error = \(e) {return(NULL)})
-  school_points <- fuzzy_read(spatial_dir, "osm_schools(?=.shp$|.gpkg$|$)") %>% mutate(Feature = "Hospital or clinic") %>% tryCatch(error = \(e) {return(NULL)})
+  health_points <- fuzzy_read(spatial_dir, "osm_health(?=.shp$|.gpkg$|$)") %>% mutate(Feature = "Hospital or clinic") %>% tryCatch(error = \(e) {return(NULL)})
+  school_points <- fuzzy_read(spatial_dir, "osm_schools(?=.shp$|.gpkg$|$)") %>% mutate(Feature = "School") %>% tryCatch(error = \(e) {return(NULL)})
   fire_points <- fuzzy_read(spatial_dir, "osm_fire(?=.shp$|.gpkg$|$)") %>% mutate(Feature = "Fire station") %>% tryCatch(error = \(e) {return(NULL)})
   police_points <- fuzzy_read(spatial_dir, "osm_police(?=.shp$|.gpkg$|$)") %>% mutate(Feature = "Police station") %>% tryCatch(error = \(e) {return(NULL)})
   rbind_if_non_null <- \(...) Reduce(rbind, unlist(list(...)))
