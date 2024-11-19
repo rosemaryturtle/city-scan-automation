@@ -13,8 +13,7 @@ map_portions <- c(7, 2) # First number is map width, second is legend width
 
 # Define map extent and zoom level
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
-# max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
-zoom_level <- max(10, round(14.6 + -0.00015 * sqrt(expanse(aoi))) + 1)
+zoom_level <- get_zoom_level(static_map_bounds)
 
 # Static maps
 
@@ -22,16 +21,8 @@ zoom_level <- max(10, round(14.6 + -0.00015 * sqrt(expanse(aoi))) + 1)
 plots <- list()
 
 # Plot AOI & wards -------------------------------------------------------------
-if(is.null(wards)) {
-  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T)
-} else {
-  ward_labels <- site_labels(wards, simplify = F)
-  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
-    # geom_spatvector_text(data = wards, aes(label = as.numeric(str_extract(WARD_NO, "\\d*$"))))
-    geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
-  save_plot(plot = plots$aoi, filename = "aoi.png",
-            directory = styled_maps_dir)
-}
+  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards)) +
+    coord_3857_bounds(static_map_bounds, expansion = 1.5)
 
 # Plot landmarks ---------------------------------------------------------------
 landmarks <- fuzzy_read(user_input_dir, "Landmark")

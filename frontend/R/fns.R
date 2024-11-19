@@ -291,7 +291,7 @@ if (plot_roads) p <- p +
     if (exists("ward_labels")) p <- p +
       geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
   }
-  p <- p + coord_3857_bounds()
+  p <- p + coord_3857_bounds(static_map_bounds)
   return(p)
 }
 
@@ -419,14 +419,25 @@ theme_custom <- function(...) {
   ...)
 }
 
-coord_3857_bounds <- function(..., expansion = 1) {
-  bbox_3857 <- st_bbox(st_transform(static_map_bounds, crs = "epsg:3857"))
+coord_3857_bounds <- function(extent, expansion = 1, ...) {
+  if (!inherits(extent, "SpatExtent")) {
+    if (inherits(extent, "SpatVector")) extent <- ext(project(extent, "epsg:3857"))
+    if (inherits(extent, "sfc")) extent <- ext(vect(st_transform(extent, crs = "epsg:3857")))
+    extent <- ext(extent)
+  }
   coord_sf(
     crs = "epsg:3857",
     expand = F,
-    xlim = bbox_3857[c(1,3)] %>% { (. - mean(.)) * expansion + mean(.)},
-    ylim = bbox_3857[c(2,4)] %>% { (. - mean(.)) * expansion + mean(.)},
+    xlim = extent[1:2] %>% { (. - mean(.)) * expansion + mean(.)},
+    ylim = extent[3:4] %>% { (. - mean(.)) * expansion + mean(.)},
     ...)
+}
+
+get_zoom_level <- \(bounds, cap = 10) {
+  # cap & max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
+  zoom <- round(14.6 + -0.00015 * sqrt(expanse(project(bounds, "epsg:4326"))/3))
+  if (is.na(cap)) return(zoom)
+  max(zoom, cap)
 }
 
 save_plot <- function(
@@ -701,39 +712,35 @@ fill_slide_content_pdf <- function(layer, map_name = NULL, title = NULL, slide_t
   }
 }
 
-aspect_buffer <- function(x, aspect_ratio, buffer_percent = 0) {
-  # I should fully refactor to use terra
-  if (class(x)[1] %in% "SpatVector") x <- st_zm(as_sf(x))
-  bounds_proj <- st_transform(st_as_sfc(st_bbox(x)), crs = "EPSG:3857")
-  center_proj <- st_coordinates(st_centroid(bounds_proj))
+aspect_buffer <- function(x, aspect_ratio, buffer_percent = 0, to_crs = "epsg:3857", keep_crs = T) {
+  if (!inherits(x, "SpatVector")) {
+    if (inherits(x, "sfc")) x <- vect(x) else stop("Input must be a terra SpatVector object")
+  }
+  
+  from_crs <- crs(x)
+  x <- project(x, y = to_crs)
+  bounds_proj <- ext(x)
+  center_coords <- crds(centroids(vect(bounds_proj)))
+  corners <- vect(matrix(
+    c(bounds_proj$xmin, bounds_proj$ymin,  # bottom left
+      bounds_proj$xmax, bounds_proj$ymin,  # bottom right
+      bounds_proj$xmin, bounds_proj$ymax,  # top left
+      bounds_proj$xmax, bounds_proj$ymax), # top right
+    ncol = 2, byrow = TRUE), crs = to_crs)
 
-  long_distance <-max(c(
-    st_distance(
-      st_point(st_bbox(bounds_proj)[c("xmin", "ymin")]),
-      st_point(st_bbox(bounds_proj)[c("xmax", "ymin")]))[1],
-    st_distance(
-      st_point(st_bbox(bounds_proj)[c("xmin", "ymax")]),
-      st_point(st_bbox(bounds_proj)[c("xmax", "ymax")]))[1]))
-  lat_distance <- max(c(
-    st_distance(
-      st_point(st_bbox(bounds_proj)[c("xmin", "ymin")]),
-      st_point(st_bbox(bounds_proj)[c("xmin", "ymax")]))[1],
-    st_distance(
-      st_point(st_bbox(bounds_proj)[c("xmax", "ymin")]),
-      st_point(st_bbox(bounds_proj)[c("xmax", "ymax")]))[1]))
+  distance_matrix <- as.matrix(distance(corners))
+  x_distance <- max(distance_matrix[1,2], distance_matrix[3,4])
+  y_distance <- max(distance_matrix[1,3], distance_matrix[2,4])
 
-  if (long_distance/lat_distance < aspect_ratio) long_distance <- lat_distance * aspect_ratio
-  if (long_distance/lat_distance > aspect_ratio) lat_distance <- long_distance/aspect_ratio
+  if (x_distance/y_distance < aspect_ratio) x_distance <- y_distance * aspect_ratio
+  if (x_distance/y_distance > aspect_ratio) y_distance <- x_distance/aspect_ratio
 
-  new_bounds_proj <-
-  c(center_proj[,"X"] + (c(xmin = -1, xmax = 1) * long_distance/2 * (1 + buffer_percent)),
-  center_proj[,"Y"] + (c(ymin = -1, ymax = 1) * lat_distance/2 * (1 + buffer_percent)))
-
-  new_bounds <- st_bbox(new_bounds_proj, crs = "EPSG:3857") %>%
-    st_as_sfc() %>%
-    st_transform(crs = st_crs(x))
-
-  return(new_bounds)
+  new_bounds <- terra::ext(
+    x = center_coords[1] + c(-1, 1) * x_distance/2 * (1 + buffer_percent),
+    y = center_coords[2] + c(-1, 1) * y_distance/2 * (1 + buffer_percent))
+  new_bounds <- vect(new_bounds, crs = to_crs)
+  if (!keep_crs) return(new_bounds)
+  project(new_bounds, y = from_crs)
 }
 
 # Alternatively could be two separate functions: pretty_interval() and pretty_quantile()

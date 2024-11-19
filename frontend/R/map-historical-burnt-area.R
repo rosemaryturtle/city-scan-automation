@@ -2,14 +2,16 @@
 historical_fire_params <- prepare_parameters("burnt_area")
 historical_fire_data <- fuzzy_read(spatial_dir, historical_fire_params$fuzzy_string)
 if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
-  historical_fire_data_3857 <- project(historical_fire_data, "epsg:3857")
+  historical_fire_data_3857 <- project(historical_fire_data, "epsg:3857") %>%
+     mutate(x = geom(., df = T)$x, y = geom(., df = T)$y)
+  fire_bbox <- aspect_buffer(historical_fire_data, aspect_ratio, buffer_percent = 0.05)
 
   fire_breaks <- scales::rescale((0:5/5)^3)
 
   plots$burnt_area <- ggplot() +
-    geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
+    geom_spatvector(data = project(static_map_bounds, "epsg:3857"), fill = NA, color = NA) +
       # coord_sf(expand = F) +
-    annotation_map_tile(type = "cartolight", zoom = max(zoom_level - 5, 8)) +
+    annotation_map_tile(type = "cartolight", zoom = get_zoom_level(fire_bbox, cap = 8)) +
     stat_density_2d(
       data = historical_fire_data_3857,
       geom = "raster",
@@ -29,7 +31,7 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom() +
-    coord_3857_bounds(expansion = 8)
+    coord_3857_bounds(extent = fire_bbox, expansion = 0.6)
 
 #   plots$burnt_area_smooth <- plots$burnt_area +
 #     scale_fill_gradientn(
