@@ -13,6 +13,7 @@ plot_flooding <- function(flood_type) {
     plot_static_layer(flood_data, yaml_key = flood_type, baseplot = plots$wsf)
   if (!is.null(plots$infrastructure)) plots[[glue("{flood_type}_infrastructure")]] <<-
     plot_static_layer(flood_data, yaml_key = flood_type, baseplot = plots$infrastructure)
+  message(paste("Success:", flood_type))
 }
 
 flooding_yaml_keys <- c("fluvial", "pluvial", "coastal", "combined_flooding")

@@ -43,4 +43,5 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
 #       values = (fire_breaks[-1]),
 #       guide = "legend",
 #       na.value = "transparent")
+  message("Success: Historical burnt area")
 }

@@ -24,4 +24,5 @@ if (inherits(intersection_nodes, "SpatVector")) {
   geom_spatvector(data = aoi, fill = NA, linetype = "solid", linewidth = .4)
   if (!is.null(wards)) p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
   plots$intersections <- p + coord_3857_bounds(static_map_bounds)
+  message("Success: intersections")
 }
