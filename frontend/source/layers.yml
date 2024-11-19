@@ -282,7 +282,7 @@ roads:
     labels: ['Secondary', 'Primary']
   group_id: Road network criticality
 burnable:
-  fuzzy_string: lc_burn.*.tif$
+  fuzzy_string: burn-edit.tif$
   title: Burnability Factor
   palette: ['#FFFFFF', '#EFAD42', '#681A17']
   breaks: [-1, 0, .17, .33, .5, .67, .83, 1]

@@ -83,5 +83,11 @@ if (inherits(wsf, "SpatRaster")) {
   wsf_new <- project(wsf, "epsg:3857")
   values(wsf_new)[values(wsf_new) == 0] <- NA
   NAflag(wsf_new) <- NA
-  writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = F)
+  writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
+}
+
+burn <- fuzzy_read(spatial_dir, "lc_burn.tif$")
+if (inherits(burn, "SpatRaster")) {
+  values(burn)[values(burn) < 0] <- NaN
+  writeRaster(burn, file.path(spatial_dir, "burn-edit.tif"), overwrite = T)
 }
