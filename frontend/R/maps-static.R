@@ -1,19 +1,19 @@
 # Generating City Scan Maps
 
 if ("frontend" %in% list.files()) setwd("frontend")
-source("R/setup.R")
-source("R/pre-mapping.R")
+source("R/setup.R", local = T)
+source("R/pre-mapping.R", local = T)
 
 # Set static map visualization parameters
 layer_alpha <- 0.7
 map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height
+map_portions <- c(7, 2) # First number is map width, second is legend width
 
 # Define map extent and zoom level
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
-# max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
-zoom_level <- max(10, round(14.6 + -0.00015 * sqrt(expanse(aoi))) + 1)
+zoom_level <- get_zoom_level(static_map_bounds)
 
 # Static maps
 
@@ -21,16 +21,8 @@ zoom_level <- max(10, round(14.6 + -0.00015 * sqrt(expanse(aoi))) + 1)
 plots <- list()
 
 # Plot AOI & wards -------------------------------------------------------------
-if(is.null(wards)) {
-  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T)
-} else {
-  ward_labels <- site_labels(wards, simplify = F)
-  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
-    # geom_spatvector_text(data = wards, aes(label = as.numeric(str_extract(WARD_NO, "\\d*$"))))
-    geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
-  save_plot(plot = plots$aoi, filename = "aoi.png",
-            directory = styled_maps_dir)
-}
+  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards)) +
+    coord_3857_bounds(static_map_bounds, expansion = 1.5)
 
 # Plot landmarks ---------------------------------------------------------------
 landmarks <- fuzzy_read(user_input_dir, "Landmark")
@@ -68,7 +60,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         vectorize_if_coarse()
       plot <- plot_static_layer(
         data = data, yaml_key = yaml_key,
-        plot_aoi = is.null(wards), plot_wards = !is.null(wards))
+        plot_aoi = T, plot_wards = !is.null(wards))
       plots[[yaml_key]] <<- plot
       message(paste("Success:", yaml_key))
     },
@@ -79,16 +71,16 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 
 # Non-standard static plots ----------------------------------------------------
 
-source("R/map-schools-health-proximity") # Could be standard if layers.yml included baseplot
-source("R/map-elevation.R") # Could be standard if we wrote city-specific breakpoints to layers.yml
-source("R/map-deforestation.R") # Could be standard if layers.yml included baseplot and source data had 2000 added
-source("R/map-flooding.R")
-source("R/map-historical-burnt-area.R")
-source("R/map-intersections.R")
+source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
+source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
+source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
+source("R/map-flooding.R", local = T)
+source("R/map-historical-burnt-area.R", local = T)
+source("R/map-intersections.R", local = T)
 
 # Save plots -------------------------------------------------------------------
-plots %>% walk2(names(.), \(plot, name) {
-  save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir)
+  save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir,
+    map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 })
 
 # See which layers weren't successfully mapped

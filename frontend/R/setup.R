@@ -44,13 +44,13 @@ librarian::shelf(quiet = T,
   units,
   dplyr)
 
-librarian::stock(
+librarian::stock(quiet = T,
   ggnewscale, # 4.10 or higher
   prettymapr
 )
 
 # 2. Load functions ------------------------------------------------------------
-source("R/fns.R")
+source("R/fns.R", local = T)
 
 # 3. Set directories -----------------------------------------------------------
 city_dir <- readLines("city-dir.txt")[1]
@@ -62,8 +62,8 @@ output_dir <- file.path(city_dir, "03-render-output/")
 styled_maps_dir <- file.path(output_dir, "maps/")
 charts_dir <- file.path(output_dir, "charts/")
 
-dir.create(styled_maps_dir, recursive = T)
-dir.create(charts_dir, recursive = T)
+if (!dir.exists(styled_maps_dir)) dir.create(styled_maps_dir, recursive = T)
+if (!dir.exists(styled_maps_dir)) dir.create(charts_dir, recursive = T)
 
 # 4. Load map layer parameters -------------------------------------------------
 layer_params_file <- 'source/layers.yml' # Also used by fns.R
@@ -71,9 +71,9 @@ layer_params <- read_yaml(layer_params_file)
 
 # 5. Load city parameters ------------------------------------------------------
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
-city <- city_params$city_name
+city <- str_to_title(city_params$city_name)
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
-country <- city_params$country_name
+country <- str_to_title(city_params$country_name)
 
 # 6. Read AOI & wards ----------------------------------------------------------
 aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
