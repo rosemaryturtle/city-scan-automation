@@ -91,53 +91,35 @@ def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_n
     import utils
     import rasterio
     import numpy as np
-    from rasterio.warp import reproject, Resampling
+    import raster_pro
 
     # download population raster
     if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 30*60, 60):
-        # reproject flood raster to match population raster grid
-        with rasterio.open(f'{local_output_dir}/{city_name_l}_population.tif') as target_raster:
-            dst_crs = target_raster.crs  # Use the CRS from the target raster
-            target_transform = target_raster.transform
-            target_meta = target_raster.meta.copy()
-        
-        with rasterio.open(f'{local_output_dir}/{flood_raster}') as src_raster:
-            # Create output raster metadata
-            dst_meta = src_raster.meta.copy()
-            dst_meta.update({
-                'crs': dst_crs,
-                'transform': target_transform,
-                'width': target_meta['width'],
-                'height': target_meta['height']
-            })
-
-            # Open the destination raster for writing
-            with rasterio.open(f'{local_output_dir}/{flood_raster[:-4]}_pop.tif', 'w', **dst_meta) as dst_raster:
-                # Reproject and write to the new file
-                for i in range(1, src_raster.count + 1):
-                    reproject(
-                        source=rasterio.band(src_raster, i),
-                        destination=rasterio.band(dst_raster, i),
-                        src_transform=src_raster.transform,
-                        src_crs=src_raster.crs,
-                        dst_transform=target_transform,
-                        dst_crs=dst_crs,
-                        resampling=Resampling.mode
-                    )
-        
-        # compute dense population exposure
         with rasterio.open(f'{local_output_dir}/{city_name_l}_population.tif') as pop:
             pop_array = pop.read(1)
+            out_meta = pop.meta.copy()
+            out_meta.update({'nodata': np.nan})
             pop_nodata = -99999
             pop_array = np.where(pop_array == pop_nodata, np.nan, pop_array)
 
-            with rasterio.open(f'{local_output_dir}/{flood_raster[:-4]}_pop.tif') as fld:
-                flood_array = fld.read(1)
-            
             pop60 = np.nanpercentile(pop_array, 60)
             pop_array_60 = np.where(pop_array >= pop60, 1, 0)
 
-            exposed_pop = np.count_nonzero(flood_array[pop_array_60 == 1]) / np.nansum(pop_array_60)
+            with rasterio.open(f'{local_output_dir}/{city_name_l}_dense_population.tif', 'w', **out_meta) as dst:
+                dst.write(pop_array_60, indexes = 1)
+        
+        # reproject population raster to match flood raster grid
+        raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_dense_population.tif', f'{local_output_dir}/{city_name_l}_dense_population_fld.tif',
+                                    target_raster_path=f'{local_output_dir}/{flood_raster}')
+
+        # compute dense population exposure
+        with rasterio.open(f'{local_output_dir}/{city_name_l}_dense_population_fld.tif') as pop:
+            pop_array = pop.read(1)
+
+            with rasterio.open(f'{local_output_dir}/{flood_raster}') as fld:
+                flood_array = fld.read(1)
+            
+            exposed_pop = np.count_nonzero(flood_array[pop_array == 1]) / np.nansum(pop_array) * 100
             return exposed_pop
     return
 
@@ -463,12 +445,14 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                 if isinstance(list(flood_osm_stats[ft][year].values())[0], dict):
                     for ssp in flood_ssps:
                         for poi in flood_osm_stats[ft][year][ssp]:
-                            total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][ssp][poi]
-                            rows.append([poi, f'{ft}_{year}_ssp{ssp}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
+                            if flood_osm_stats[ft][year][ssp][poi] is not None:
+                                total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][ssp][poi]
+                                rows.append([poi, f'{ft}_{year}_ssp{ssp}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
                 else:
                     for poi in flood_osm_stats[ft][year]:
-                        total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][poi]
-                        rows.append([poi, f'{ft}_{year}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
+                        if flood_osm_stats[ft][year][poi] is not None:
+                            total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][poi]
+                            rows.append([poi, f'{ft}_{year}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
 
     df = pd.DataFrame(rows, columns=['poi', 'type', 'total_pois', 'pois_in_flood_zone', 'percentage_in_flood_zone'])
 

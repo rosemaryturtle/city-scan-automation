@@ -278,8 +278,6 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
 def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data_bucket, cloud_bucket, output_dir, season):
     print('run gee_lst')
     
-    import gc
-
     # SET UP #########################################
     AOI = aoi_to_ee_geometry(aoi_file)
     landsat = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
@@ -323,9 +321,6 @@ def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data
     })
     task.start()
 
-    # free up memory -------------
-    gc.collect()
-
 def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, data_bucket, cloud_bucket, output_dir, index_type):
     print(f'run gee_{index_type}')
 
@@ -334,8 +329,6 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         print('gee_ndxi function error')
         print('index_type argument invalid')
         exit()
-    
-    import gc
     
     # SET UP #########################################
     AOI = aoi_to_ee_geometry(aoi_file)
@@ -384,9 +377,6 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         }
     })
     task.start()
-
-    # Free up memory -------------
-    gc.collect()
 
 def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
     print('run gee_nightlight')
