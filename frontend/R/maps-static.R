@@ -79,6 +79,7 @@ source("R/map-historical-burnt-area.R", local = T)
 source("R/map-intersections.R", local = T)
 
 # Save plots -------------------------------------------------------------------
+plots %>% walk2(names(.), \(plot, name) {
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir,
     map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 })

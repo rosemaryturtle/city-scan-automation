@@ -240,7 +240,10 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   return(layer_function)
 }
 
-plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
+plot_static_layer <- function(
+    data, yaml_key, baseplot = NULL, static_map_bounds, zoom_adj = 0,
+    expansion, aoi_stroke = list(color = "grey30", linewidth = 0.4),
+    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -272,23 +275,46 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
     layer <- list(geom = geom, scale = scales, theme = theme)
   }
 
+  # I should make all these functions into a package and then define city_dir,
+  # map_width, static_map_bounds, etc., as package level variables that get set
+  # with set_.*() variables
+
+  if ("static_map_bounds" %in% ls() && missing(static_map_bounds)) remove(static_map_bounds, inherits = F)
+  if (!exists("static_map_bounds")) {
+    warning(paste("static_map_bounds does not exist. Define one globally or as an",
+      "argument to plot_static_layer. A plot extent will be defined using `aoi`."))
+    if (exists("aoi")) {
+      static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
+  } else stop("No object `aoi` exists.")
+  }
+
+  if (!missing(expansion)) {
+    aspect_ratio <- as.vector(ext(project(static_map_bounds, "epsg:3857"))) %>%
+      { diff(.[1:2])/diff(.[3:4]) }
+    static_map_bounds <- aspect_buffer(static_map_bounds, aspect_ratio, buffer_percent = expansion)
+  }
+
   # Plot geom and scales on baseplot
-  baseplot <- if (is.null(baseplot)) {
+  baseplot <- if (is.null(baseplot) || baseplot == "vector") {
     ggplot() +
       geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
-      annotation_map_tile(type = "cartolight", zoom = zoom_level, progress = "none")
+      annotation_map_tile(type = "cartolight", zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
+  } else if (is.character(baseplot)) {
+    ggplot() +
+      geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
+      annotation_map_tile(type = baseplot, zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
     layer + 
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
-if (plot_roads) p <- p +
+  if (plot_roads) p <- p +
     geom_spatvector(data = roads, aes(linewidth = road_type), color = "white") +
     scale_linewidth_manual(values = c("Secondary" = 0.25, "Primary" = 1), guide = "none")
-  if (plot_aoi) p <- p + geom_spatvector(data = aoi, color = "grey30", fill = NA, linetype = "solid", linewidth = .4)
+  if (plot_aoi) p <- p + geom_spatvector(data = aoi, color = aoi_stroke$color, fill = NA, linetype = "solid", linewidth = aoi_stroke$linewidth)
   if (plot_wards) {
-    p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
+    p <- p + geom_spatvector(data = wards, color = aoi_stroke$color, fill = NA, linetype = "solid", linewidth = .25)
     if (exists("ward_labels")) p <- p +
       geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
   }
