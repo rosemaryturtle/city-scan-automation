@@ -76,7 +76,6 @@ source("R/map-elevation.R", local = T) # Could be standard if we wrote city-spec
 source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
 source("R/map-flooding.R", local = T)
 source("R/map-historical-burnt-area.R", local = T)
-source("R/map-intersections.R", local = T)
 
 # Save plots -------------------------------------------------------------------
 plots %>% walk2(names(.), \(plot, name) {

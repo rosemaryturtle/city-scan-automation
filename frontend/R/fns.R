@@ -943,3 +943,16 @@ Mode <- \(x, na.rm = F) {
   unique_values <- unique(x)
   unique_values[which.max(tabulate(match(x, unique_values)))]
 }
+
+rotate_ccw <- \(x) t(x)[ncol(x):1,]
+
+density_rast <- \(points, n = 100) {
+  crs <- crs(points)
+  points <- as_tibble(mutate(points, x = geom(points, df = T)$x, y = geom(points, df = T)$y))
+  density <-  MASS::kde2d(points$x, points$y, n = n)
+   dimnames(density$z) <- list(x = density$x, y = density$y)
+  # Rotate density, because top left is lowest x and lowest y, instead of lowest x and highest y
+  density$z <- rotate_ccw(density$z)
+  extent <- ext(c(range(density$x), range(density$y)))
+  rast(scales::rescale((density$z)), crs = crs, extent = extent)
+}

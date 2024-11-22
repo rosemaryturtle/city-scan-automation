@@ -91,3 +91,15 @@ if (inherits(burn, "SpatRaster")) {
   values(burn)[values(burn) < 0] <- NaN
   writeRaster(burn, file.path(spatial_dir, "burn-edit.tif"), overwrite = T)
 }
+
+intersection_nodes <- fuzzy_read(spatial_dir, "nodes_and_edges(?=.shp$|.gpkg$|$)", layer = "nodes")
+if (inherits(intersection_nodes, "SpatVector")) {
+  intersection_density <- density_rast(intersection_nodes, n = 200)
+  writeRaster(intersection_density, file.path(spatial_dir, "intersection-density.tif"), overwrite = T)
+}
+
+historical_fire_data <- fuzzy_read(spatial_dir, "globfire")
+if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
+  historical_fire_density <- density_rast(historical_fire_data, n = 200)
+  writeRaster(historical_fire_density, file.path(spatial_dir, "burnt-area-density.tif"), overwrite = T)
+}
