@@ -86,6 +86,7 @@ prepare_parameters <- function(yaml_key, ...) {
   params$palette <- sapply(params$palette, \(p) {
     # If palette has no alpha, add
     layer_alpha <- params$alpha %||% layer_alpha
+    if (p == "transparent") return("#FFFFFF00")
     if (nchar(p) == 7 | substr(p, 1, 1) != "#") return(scales::alpha(p, layer_alpha))
     # If palette already has alpha, multiply
     if (nchar(p) == 9) {
@@ -291,11 +292,11 @@ plot_static_layer <- function(
   if (!missing(expansion)) {
     aspect_ratio <- as.vector(ext(project(static_map_bounds, "epsg:3857"))) %>%
       { diff(.[1:2])/diff(.[3:4]) }
-    static_map_bounds <- aspect_buffer(static_map_bounds, aspect_ratio, buffer_percent = expansion)
+    static_map_bounds <- aspect_buffer(static_map_bounds, aspect_ratio, buffer_percent = expansion - 1)
   }
 
   # Plot geom and scales on baseplot
-  baseplot <- if (is.null(baseplot) || baseplot == "vector") {
+  baseplot <- if (is.null(baseplot) || identical(baseplot, "vector")) {
     ggplot() +
       geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
       annotation_map_tile(type = "cartolight", zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
@@ -948,11 +949,11 @@ rotate_ccw <- \(x) t(x)[ncol(x):1,]
 
 density_rast <- \(points, n = 100) {
   crs <- crs(points)
-  points <- as_tibble(mutate(points, x = geom(points, df = T)$x, y = geom(points, df = T)$y))
-  density <-  MASS::kde2d(points$x, points$y, n = n)
-   dimnames(density$z) <- list(x = density$x, y = density$y)
+  density_extent <- ext(aspect_buffer(vect(ext(points), crs = crs), aspect_ratio = aspect_ratio))
+  points_df <- as_tibble(mutate(points, x = geom(points, df = T)$x, y = geom(points, df = T)$y))
+  density <-  MASS::kde2d(points_df$x, points_df$y, n = n, lims = as.vector(density_extent))
+  dimnames(density$z) <- list(x = density$x, y = density$y)
   # Rotate density, because top left is lowest x and lowest y, instead of lowest x and highest y
   density$z <- rotate_ccw(density$z)
-  extent <- ext(c(range(density$x), range(density$y)))
-  rast(scales::rescale((density$z)), crs = crs, extent = extent)
+  rast(scales::rescale((density$z)), crs = crs, extent = density_extent)
 }
