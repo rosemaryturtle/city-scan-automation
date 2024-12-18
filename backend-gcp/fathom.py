@@ -37,14 +37,14 @@ def download_fathom_from_aws(download_list, aws_access_key_id, aws_secret_access
 
     return downloaded_list
 
-def apply_flood_threshold(out_image, out_meta, flood_threshold, multiplier):
+def apply_flood_threshold(out_image, out_meta, flood_threshold, prob):
     import numpy as np
 
     out_image[out_image == out_meta['nodata']] = 0
     out_image[out_image < flood_threshold] = 0
     out_image[out_image >= flood_threshold] = 1
     out_image = np.asarray(out_image)
-    out_image = out_image * multiplier
+    out_image = out_image * prob
 
     out_meta.update({'nodata': 0})
 
@@ -236,20 +236,21 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     flood_threshold = city_inputs['flood']['threshold']
     flood_years = city_inputs['flood']['year']
     flood_ssps = city_inputs['flood']['ssp']
-    flood_prob_cutoff = city_inputs['flood']['prob_cutoff']
+    # flood_prob_cutoff = city_inputs['flood']['prob_cutoff']
+    flood_rps = city_inputs['flood']['return_period']
     flood_types = ['coastal', 'fluvial', 'pluvial']
     osm_pois = None
     if ('osm_query' in city_inputs) and bool(city_inputs['osm_query']):
         osm_pois = city_inputs['osm_query']
 
-    rps = [10, 100, 1000, 20, 200, 5, 50, 500]
+    # rps = [10, 100, 1000, 20, 200, 5, 50, 500]
     flood_ssp_labels = {1: '1_2.6', 2: '2_4.5', 3: '3_7.0', 5: '5_8.5'}
     flood_type_folder_dict = {'coastal': 'COASTAL-UNDEFENDED',
                               'fluvial': 'FLUVIAL-UNDEFENDED',
                               'pluvial': 'PLUVIAL-DEFENDED'}
-    if not len(flood_prob_cutoff) == 2:
-        print('exactly 2 cutoffs required for flood')
-        exit()
+    # if not len(flood_prob_cutoff) == 2:
+    #     print('exactly 2 cutoffs required for flood')
+    #     exit()
     
     local_flood_folder = set_flood_folder(local_data_dir)
     
@@ -261,15 +262,15 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     utm_crs = aoi_file.estimate_utm_crs()
     
     # translate the annual probability cutoffs to bins of return periods
-    rp_multipliers = {}
-    for rp in rps:
-        annual_prob = 1/rp*100
-        if annual_prob < flood_prob_cutoff[0]:
-            rp_multipliers[rp] = 1
-        elif annual_prob >= flood_prob_cutoff[0] and annual_prob <= flood_prob_cutoff[1]:
-            rp_multipliers[rp] = 2
-        elif annual_prob > flood_prob_cutoff[1]:
-            rp_multipliers[rp] = 3
+    # rp_multipliers = {}
+    # for rp in rps:
+    #     annual_prob = 1/rp*100
+    #     if annual_prob < flood_prob_cutoff[0]:
+    #         rp_multipliers[rp] = 1
+    #     elif annual_prob >= flood_prob_cutoff[0] and annual_prob <= flood_prob_cutoff[1]:
+    #         rp_multipliers[rp] = 2
+    #     elif annual_prob > flood_prob_cutoff[1]:
+    #         rp_multipliers[rp] = 3
     
     flood_wsf_stats = {}
     flood_pop_stats = {}
@@ -287,7 +288,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                 flood_osm_stats[ft][year] = {}
                 if year <= 2020:
                     out_image_arrays = []
-                    for rp in rps:
+                    for rp in flood_rps:
                         download_list = []
                         for lat in lat_tiles:
                             for lon in lon_tiles:
@@ -297,7 +298,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
                             raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
                             out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
-                            out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
+                            out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, 100/rp)
                             out_image_arrays.append(out_image)
                     if out_image_arrays:
                         composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
@@ -318,7 +319,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                     flood_road_stats[ft][year] = {}
                     for ssp in flood_ssps:
                         out_image_arrays = []
-                        for rp in rps:
+                        for rp in flood_rps:
                             download_list = []
                             for lat in lat_tiles:
                                 for lon in lon_tiles:
@@ -328,7 +329,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                                 mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
                                 raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
                                 out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
-                                out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
+                                out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, 100/rp)
                                 out_image_arrays.append(out_image)
                         if out_image_arrays:
                             composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
