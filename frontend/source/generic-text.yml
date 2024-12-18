@@ -1,7 +1,7 @@
 # SECTION 2
 setting_the_context:
   basic_city_info:
-    footnote: The black and yellow boundary marks the area of interest for the City Scan.
+    footnote: The yellow boundary marks the area of interest for the City Scan.
 # SECTION 3
 demographics:
   population_growth:
