@@ -1,0 +1,415 @@
+Area of the city:
+- 'Area of the city of kalemie is 120.815490 sq.km
+
+  '
+Bechmark cities Manual:
+- '[''Bukavu'', ''Kinshasa'', ''Uvira'']
+
+  '
+Benchmark cities:
+- 'Nearby cities: [''Cuba'', ''Havana'', ''Dominican Republic'', ''Santo Domingo'',
+  ''Haiti'', ''Port-Au-Prince'', ''Jamaica'', ''Kingston'', ''San Juan'']
+
+  Error finding benchmark cities. Proceed to next step of adding manual benchmark
+  cities
+
+  []
+
+  '
+Change in Economic Activity:
+- 'Cluster labels shape: (186, 169)
+
+  The cluster with the highest value is located in the center of the city.
+
+  The cluster with the lowest value is located in the south east of the city.
+
+  Error: ufunc ''isnan'' not supported for the input types, and the inputs could not
+  be safely coerced to any supported types according to the casting rule ''''safe''''
+
+  '
+- '/var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:3:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:6:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:8:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  '
+City Population Growth:
+- '''NoneType'' object has no attribute ''find''
+
+  Kalemie population data could not be retrieved from CityPopulation.de. Try manual
+  entry instead
+
+  '
+- 'An error occurred while calculating growth text: ''NoneType'' object has no attribute
+  ''iloc'', try manual method instead
+
+  '
+City Subdistricts available?: []
+Combined Flooding: []
+Combined Flooding and WSF:
+- 'PNG saved to ../mnt/city-directories/03-render-output/kalemie_comb_wsf.png
+
+  '
+- 'In 2015, 0.35 sq.km of the city’s cumulative built-up area (2.92%) was exposed
+  to combined flooding.
+
+  In 1985, 0.24 sq.km of the city’s cumulative built-up area (2.92%) was exposed to
+  combined flooding.
+
+  '
+Combined flooding and Infrastructure: []
+Combined flooding and Population:
+- '60th Percentile of Population Data (excluding zeros): 113.84169921875
+
+  2.54% of densely populated areas are located within the combined flood risk zone
+  with a minimum depth of 15 cm
+
+  Result saved to ../mnt/city-directories/02-process-output/comb_pop_area.csv
+
+  '
+Earthquake:
+- <Figure size 1250x600 with 1 Axes>
+- 'Base directory for organizing files: ../mnt/city-directories/03-render-output
+
+  Creating folders:
+
+  - ../mnt/city-directories/03-render-output/plots
+
+  - ../mnt/city-directories/03-render-output/plots/html
+
+  - ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_pu_wsf.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_age_stats.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie_comb_wsf.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie_earthquake_timeline.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie-pop-density.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_slope_treemap.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_age_stats.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_earthquake_timeline.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_fu_wsf.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie_slope_treemap.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie-pop-density-plotly.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie_fu_wsf.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie_pu_wsf.html to ../mnt/city-directories/03-render-output/plots/html
+
+  Moved kalemie_comb_wsf.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved kalemie-pop-growth.png to ../mnt/city-directories/03-render-output/plots/png
+
+  Moved Kalemie_pop_growth.html to ../mnt/city-directories/03-render-output/plots/html
+
+  '
+- '/Users/ipshitakarmakar/mambaforge/envs/geo/share/jupyter/nbconvert/templates/base/display_priority.j2:32:
+  UserWarning:
+
+
+  Your element with mimetype(s) dict_keys([''application/vnd.plotly.v1+json'']) is
+  not able to be represented.
+
+
+  '
+Economic Activity:
+- 'Cluster labels shape: (186, 169)
+
+  The cluster with the highest value is located in the center of the city.
+
+  The cluster with the lowest value is located in the south east of the city.
+
+  Values range from 0.00 units to 1256.00 units
+
+  '
+- '/var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:3:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:6:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:8:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  '
+- (1256.0, 0.0)
+Elevation:
+- 'Highest percentage entry for Elevation is 36.13% in the bin range 790-825
+
+  '
+Flooding: []
+Fluvial and OSM: []
+Fluvial and Population:
+- '60th Percentile of Population Data (excluding zeros): 113.84169921875
+
+  0.56% of densely populated areas are located within the fluvial flood risk zone
+  with a minimum depth of 15 cm
+
+  Result saved to ../mnt/city-directories/02-process-output/fu_pop_area.csv
+
+  '
+Fluvial and WSF:
+- '945.4413289238794
+
+  PNG saved to ../mnt/city-directories/03-render-output/kalemie_fu_wsf.png
+
+  '
+- 'In 2015, 0.10 sq.m of the city’s cumulative built-up area (0.82%) was exposed to
+  fluvial flooding.
+
+  In 1985, 0.05 sq.m of the city’s cumulative built-up area (0.54%) was exposed to
+  fluvial flooding.
+
+  '
+Green Spaces:
+- 'Values range from -0.18 units to 0.69 units
+
+  '
+Koppen Climate:
+- 'Köppen climate classification:  Aw (See https://en.wikipedia.org/wiki/Köppen_climate_classification
+  for classes)
+
+  '
+- '/var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_63182/2843199857.py:5:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  '
+- array([' Aw'], dtype=object)
+Land Cover:
+- 'The first highest landcover value is Grassland with 67.22% of the total land area
+
+  The second highest landcover value is Built-up with 17.28% of the total land area
+
+  The third highest landcover value is Tree cover with 8.01% of the total land area
+
+  '
+Land Surface Temperature:
+- 'Values range from 27.79 to 49.84
+
+  '
+Lowest admin level available?: []
+NDMI:
+- 'Values range from -0.47 units to 0.45 units
+
+  '
+Photovoltaic Power Potential:
+- 'Seasonality is low to moderate, making solar energy available in only some of the
+  months
+
+  '
+Pluvial Flooding and WSF:
+- 'PNG saved to ../mnt/city-directories/03-render-output/kalemie_pu_wsf.png
+
+  '
+- 'As of 2015, 1.33 sq.km of the city’s built-up area (11.10%) was exposed to surface
+  water flooding.
+
+  '
+Pluvial and OSM: []
+Pluvial and Population:
+- '60th Percentile of Population Data (excluding zeros): 113.84169921875
+
+  2.42% of densely populated areas are located within the rainwater flood risk zone
+  with a minimum depth of 15 cm
+
+  Result saved to ../mnt/city-directories/02-process-output/pu_pop_area.csv
+
+  '
+Population Density:
+- "Error: invalid path or file: array([[0., 0., 0., ..., 0., 0., 0.],\n       [0.,\
+  \ 0., 0., ..., 0., 0., 0.],\n       [0., 0., 0., ..., 0., 0., 0.],\n       ...,\n\
+  \       [0., 0., 0., ..., 0., 0., 0.],\n       [0., 0., 0., ..., 0., 0., 0.],\n\
+  \       [0., 0., 0., ..., 0., 0., 0.]], dtype=float32)\n"
+- 'Cluster labels shape: (200, 183)
+
+  The cluster with the highest value is located in the center of the city.
+
+  The cluster with the lowest value is located in the north east of the city.
+
+  Values range from -99999.00 units to 475.39 units
+
+  '
+- '/var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:3:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:6:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  /var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_43472/2115868692.py:8:
+  UserWarning:
+
+
+  Geometry is in a geographic CRS. Results from ''centroid'' are likely incorrect.
+  Use ''GeoSeries.to_crs()'' to re-project geometries to a projected CRS before this
+  operation.
+
+
+
+  '
+- (475.39, -99999.0)
+Population Density Manual:
+- 'Looks like you are using a tranform that doesn''t support FancyArrowPatch, using
+  ax.annotate instead. The arrows might strike through texts. Increasing shrinkA in
+  arrowprops might help.
+
+  '
+- <Figure size 2550x1800 with 1 Axes>
+- 'City is not in oxford economics
+
+  '
+- 'City is not in oxford economics
+
+  '
+- 'City is not in oxford economics
+
+  '
+- 'City is not in oxford economics
+
+  '
+- 'City is not in oxford economics
+
+  '
+- 'City is not in oxford economics
+
+  '
+Population Growth Manual:
+- '/var/folders/tb/lt6mv9zn47973s97jtlwv_b40000gn/T/ipykernel_63182/93912762.py:7:
+  SettingWithCopyWarning:
+
+
+
+  A value is trying to be set on a copy of a slice from a DataFrame.
+
+  Try using .loc[row_indexer,col_indexer] = value instead
+
+
+  See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+
+
+  '
+- <Figure size 2550x1800 with 1 Axes>
+Population distribution by age and sex:
+- 'under5: 30.32%
+
+  youth (15-24): 39.10%
+
+  working_age (15-64): 0.52%
+
+  elderly (60+): 9.02%
+
+  reproductive_age, percent of women (15-50): 46.49%
+
+  sex_ratio: -98.05 males to 100 females
+
+  '
+Population from citypopulation.de:
+- '''NoneType'' object has no attribute ''find''
+
+  Kalemie population data could not be retrieved from CityPopulation.de. Try manual
+  entry instead.
+
+  ''NoneType'' object has no attribute ''find''
+
+  '
+Population in Oxford economics:
+- 'Kalemie is not in Oxford Locations.
+
+  Population data for Kalemie does not exist in Oxford Economics. Check citypopulation.de
+  or add manually
+
+  '
+Slope:
+- 'Values range from 0.00 units to 89.86 units
+
+  '
+- 'Highest percentage entry for Slope is 33% in the bin range 2-5
+
+  '
+Text begins:
+- <Figure size 640x480 with 1 Axes>
+- 'city name: kalemie
+
+  country name:democratic_republic_of_congo
+
+  '
+Urban Extent and Change:
+- 'The city''s built-up area grew from 8.33 sq. km in 1985 to 11.95 in 2015 for 43.33%
+  growth
+
+  '
