@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pickle
 import utils
 import sys
+from os.path import exists
 
 # FUNCTIONS ###################################
 def get_polygon(aoi_file):
@@ -61,7 +62,7 @@ def get_graph(city_name_l, aoi_file, local_output_dir):
     
         return G  # Return the newly created graph
 
-def get_centrality_stats(city_name_l, aoi_file, local_output_dir):
+def get_centrality_stats(G, city_name_l, aoi_file, local_output_dir):
     try:
         edges = gpd.read_file(f"{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg", layer = 'edges')
         if 'edge_centrality' in edges.columns:
@@ -74,19 +75,14 @@ def get_centrality_stats(city_name_l, aoi_file, local_output_dir):
             df.to_csv(f"{local_output_dir}/{city_name_l}_road_network_extended_stats.csv")
     except FileNotFoundError:
         print("Edges file doesn't exist. Running edge_centrality function.")
-        G = get_graph(city_name_l, aoi_file, local_output_dir)
-        if G is not None:
-            extended_stats = ox.extended_stats(G, bc = True)
-            dat = pd.DataFrame.from_dict(extended_stats)
-            dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_extended_stats.csv')
+        extended_stats = ox.extended_stats(G, bc = True)
+        dat = pd.DataFrame.from_dict(extended_stats)
+        dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_extended_stats.csv')
     except Exception as e:
         print('Exception Occurred', e)
 
-def get_centrality(city_name_l, aoi_file, local_output_dir, centrality_type = "edge"):
+def get_centrality(G, city_name_l, aoi_file, local_output_dir, centrality_type = "edge"):
     # centrality_type can be either node, edge, or both
-    
-    # download and project a street network
-    G = get_graph(city_name_l, aoi_file, local_output_dir)
 
     if G is not None:
         nnodes = G.number_of_nodes()
@@ -137,22 +133,18 @@ def get_centrality(city_name_l, aoi_file, local_output_dir, centrality_type = "e
         dat = pd.DataFrame.from_dict(basic_stats)
         dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_basic_stats.csv')
         
-        get_centrality_stats(city_name_l, aoi_file, local_output_dir)
+        get_centrality_stats(G, city_name_l, aoi_file, local_output_dir)
         
     return
 
-def get_network_plots(city_name_l, aoi_file, local_output_dir):
-    G = get_graph(city_name_l, aoi_file, local_output_dir)
-    
+def get_network_plots(G, city_name_l, aoi_file, local_output_dir):
     if G is not None:
         fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5, show = False)
         fig.savefig(f'{local_output_dir}/{city_name_l}_network_plot.png', dpi = 300)
         
     return
 
-def plot_radar(city_name_l, aoi_file, local_output_dir):
-    G = get_graph(city_name_l, aoi_file, local_output_dir)
-    
+def plot_radar(G, city_name_l, aoi_file, local_output_dir):
     if G is not None:
         try:
             if G.graph['crs'].is_projected:
@@ -222,34 +214,49 @@ def polar_plot(ax, bearings, n = 36, title = ''):
     ax.set_xticklabels(labels=xticklabels, fontdict=xtick_font)
     ax.tick_params(axis='x', which='major', pad=-2)
 
-def filter_major_roads(local_output_dir, city_name_l):
-    roads_gdf = gpd.read_file(f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg', layer='edges')
+def filter_major_roads(G, local_output_dir, city_name_l):
+    if G is not None:
+        # Ensure G is a MultiDiGraph
+        if not isinstance(G, nx.MultiDiGraph):
+            G = nx.MultiDiGraph(G)
+        
+        graph_gpkg = f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg'
+        if not exists(graph_gpkg):
+            ox.save_graph_geopackage(G, filepath = graph_gpkg)
 
-    # Filter for major roads based on keywords in the 'highway' attribute
-    major_road_keywords = ['primary', 'trunk', 'motorway', 'primary_link', 'trunk_link', 'motorway_link']
+        roads_gdf = gpd.read_file(f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg', layer='edges')
 
-    # Filter for major roads using a lambda function
-    major_roads_gdf = roads_gdf[roads_gdf['highway'].apply(lambda highway_value: any(keyword in highway_value for keyword in major_road_keywords))]
+        # Filter for major roads based on keywords in the 'highway' attribute
+        major_road_keywords = ['primary', 'trunk', 'motorway', 'primary_link', 'trunk_link', 'motorway_link']
 
-    major_roads_gdf.to_file(f'{local_output_dir}/{city_name_l}_major_roads.gpkg', driver='GPKG', layer = 'major_roads')
+        # Filter for major roads using a lambda function
+        major_roads_gdf = roads_gdf[roads_gdf['highway'].apply(lambda highway_value: any(keyword in highway_value for keyword in major_road_keywords))]
+
+        major_roads_gdf.to_file(f'{local_output_dir}/{city_name_l}_major_roads.gpkg', driver='GPKG', layer = 'major_roads')
 
 def road_network(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_dir, centrality_type = 'edge'):
     print('run road_network')
+
+    # download and project a street network
+    G = get_graph(city_name_l, aoi_file, local_output_dir)
+    
+    # filter for major roads
+    filter_major_roads(G, local_output_dir, city_name_l)
+
+    # upload major roads for faster flood calculation
+    utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_major_roads.gpkg", f"{output_dir}/{city_name_l}_major_roads.gpkg")
+
     # calculate either 'node' centrality, 'edge' centrality, or 'both'
-    get_centrality(city_name_l, aoi_file, local_output_dir, centrality_type)
+    get_centrality(G, city_name_l, aoi_file, local_output_dir, centrality_type)
 
     # plot the road network
-    get_network_plots(city_name_l, aoi_file, local_output_dir)
+    get_network_plots(G, city_name_l, aoi_file, local_output_dir)
 
     # generate the road bearing polar plots
-    plot_radar(city_name_l, aoi_file, local_output_dir)
-
-    # filter for major roads
-    filter_major_roads(local_output_dir, city_name_l)
+    plot_radar(G, city_name_l, aoi_file, local_output_dir)
 
     # upload local outputs
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg", f"{output_dir}/{city_name_l}_nodes_and_edges.gpkg")
-    utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_major_roads.gpkg", f"{output_dir}/{city_name_l}_major_roads.gpkg")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_network_extended_stats.csv", f"{output_dir}/{city_name_l}_road_network_extended_stats.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_network_basic_stats.csv", f"{output_dir}/{city_name_l}_road_network_basic_stats.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_network_plot.png", f"{output_dir}/{city_name_l}_network_plot.png")
