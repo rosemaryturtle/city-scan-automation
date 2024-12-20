@@ -16,3 +16,4 @@ pyquadkey2
 scipy
 xarray
 pycountry
+fiona
