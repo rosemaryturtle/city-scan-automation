@@ -43,7 +43,7 @@ features = aoi_file.geometry
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
 country_name_l = city_inputs['country_name'].replace(' ', '_').replace("'", "").lower()
 country_iso3 = pycountry.countries.lookup(city_inputs['country_name']).alpha_3
-# TODO: replace country_iso3 with a functions that checks country based on shapefile
+# replace country_iso3 with a functions that checks country based on which country aoi_file overlaps with the most
 
 # Load global inputs, such as data sources that generally remain the same across scans
 print('Load global inputs')
@@ -55,12 +55,15 @@ print('Load menu')
 with open('menu.yml', 'r') as f:
     menu = yaml.safe_load(f)
 
-# Initialize a storage client
-print('Initialize a storage client')
-storage_client = storage.Client()
-
 # Update directories and make a copy of city inputs and menu in city-specific directory
-city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
+if city_inputs.get('prev_run_date', None) is not None:
+    city_dir = f"{city_inputs['prev_run_date']}-{country_name_l}-{city_name_l}"
+    # check if this directory exists on google cloud storage; if not, print message and exit
+    if not utils.check_dir_exists(cloud_bucket, city_dir):
+        print(f"Directory {city_dir} does not exist in the {cloud_bucket} bucket. Please check prev_run_date in city_inputs.yml.")
+        exit()
+else:
+    city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
 input_dir = f'{city_dir}/{input_dir}'
 output_dir = f'{city_dir}/{output_dir}'
 utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', output = False)
