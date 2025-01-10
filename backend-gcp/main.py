@@ -95,7 +95,7 @@ if task_index == 0:
 elif task_index in range(1, 6):
     if menu['burned_area']:  # processing time: 1h
         import burned_area
-        burned_area.burned_area(aoi_file, global_inputs['burned_area_blob'], task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir)
+        burned_area.burned_area(aoi_file, global_inputs['burned_area_dir'], global_inputs['burned_area_blob_prefix'], task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index == 6:
     if menu['demographics']:  # processing time: 19m
         import raster_pro
@@ -177,7 +177,7 @@ elif task_index == 10:
 elif task_index == 11:
     if menu['fwi']:  # processing time: 5m
         import fwi
-        fwi.fwi(aoi_file, local_data_dir, data_bucket, city_inputs['fwi_first_year'], city_inputs['fwi_last_year'], global_inputs['fwi_blob'], local_output_dir, city_name_l, cloud_bucket, output_dir)
+        fwi.fwi(aoi_file, local_data_dir, data_bucket, city_inputs['fwi_first_year'], city_inputs['fwi_last_year'], global_inputs['fwi_dir'], global_inputs['fwi_blob_prefix'], local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index == 12:
     if menu['landcover_burn']:  # processing time: 40s
         import landcover_burnability
@@ -189,7 +189,7 @@ elif task_index == 13:
 elif task_index == 14:
     if menu['rwi']:  # processing time: 50s
         import rwi
-        rwi.rwi(global_inputs['rwi_blob'], country_iso3, data_bucket, local_data_dir, aoi_file, local_output_dir, city_name_l, cloud_bucket, output_dir)
+        rwi.rwi(global_inputs['rwi_dir'], global_inputs['rwi_blob_suffix'], country_iso3, data_bucket, local_data_dir, aoi_file, local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index == 15:
     for i in ['air', 'landslide', 'liquefaction', 'solar']:  # processing time: 1m
         if menu[i]:
