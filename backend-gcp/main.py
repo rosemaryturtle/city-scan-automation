@@ -1,9 +1,7 @@
 import os
 import yaml
 import utils
-import pycountry
 import geopandas as gpd
-from google.cloud import storage
 from datetime import datetime as dt
 
 ########################################################
@@ -33,7 +31,7 @@ utils.download_blob(cloud_bucket, f"{input_dir}/city_inputs.yml", 'city_inputs.y
 utils.download_blob(cloud_bucket, f"{input_dir}/global_inputs.yml", 'global_inputs.yml')
 utils.download_blob(cloud_bucket, f"{input_dir}/menu.yml", 'menu.yml')
 
-# Download the AOI and get city and country names
+# Download the AOI and get city name
 print('Download the AOI and get city name')
 with open('city_inputs.yml', 'r') as f:
     city_inputs = yaml.safe_load(f)
@@ -41,9 +39,6 @@ downloaded_aoi = utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_sh
 aoi_file = gpd.read_file(f"{local_aoi_dir}/{city_inputs['AOI_shp_name']}.shp").to_crs(epsg = 4326)
 features = aoi_file.geometry
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
-country_name_l = city_inputs['country_name'].replace(' ', '_').replace("'", "").lower()
-country_iso3 = pycountry.countries.lookup(city_inputs['country_name']).alpha_3
-# replace country_iso3 with a functions that checks country based on which country aoi_file overlaps with the most
 
 # Load global inputs, such as data sources that generally remain the same across scans
 print('Load global inputs')
@@ -54,6 +49,22 @@ with open("global_inputs.yml", 'r') as f:
 print('Load menu')
 with open('menu.yml', 'r') as f:
     menu = yaml.safe_load(f)
+
+# Checks country based on which country aoi_file overlaps with the most
+# Load global countries shapefile
+for blob in utils.list_blobs_with_prefix(data_bucket, f"{global_inputs['countries_shp_dir']}/{global_inputs['countries_shp_blob']}"):
+    utils.download_blob(data_bucket, blob.name, f"{local_data_dir}/{blob.name.split('/')[-1]}")
+countries = gpd.read_file(f"{local_data_dir}/{global_inputs['countries_shp_blob']}.shp")
+# Perform spatial join to find intersections
+intersection = gpd.overlay(aoi_file, countries, how='intersection')
+# Calculate the area of each intersection
+intersection['area'] = intersection.geometry.area
+# Find the country with the largest intersection area
+max_area_country = intersection.loc[intersection['area'].idxmax()]
+# Get the ISO3 code and name of the country with the largest intersection area
+country_iso3 = max_area_country['ISO_A3']
+country_name = max_area_country['NAME_EN']
+country_name_l = country_name.replace(' ', '_').replace("'", "").lower()
 
 # Update directories and make a copy of city inputs and menu in city-specific directory
 if city_inputs.get('prev_run_date', None) is not None:
