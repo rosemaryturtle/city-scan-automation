@@ -78,12 +78,21 @@ tryCatch({
   writeVector(health_points, filename = file.path(spatial_dir, "health-points.gpkg"), overwrite = T)
 }, error = \(e) warning(e))
 
-wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif")
+wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif$")
 if (inherits(wsf, "SpatRaster")) {
   wsf_new <- project(wsf, "epsg:3857")
   values(wsf_new)[values(wsf_new) == 0] <- NA
   NAflag(wsf_new) <- NA
   writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
+}
+
+wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
+if (inherits(wsf_tracker, "SpatRaster")) {
+  wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
+  wsf_tracker_new <- 2016 + wsf_tracker_new/2
+  # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
+  # NAflag(wsf_tracker_new) <- NA
+  writeRaster(wsf_tracker_new, file.path(spatial_dir, "wsf-tracker-edit.tif"), overwrite = T)
 }
 
 burn <- fuzzy_read(spatial_dir, "lc_burn.tif$")

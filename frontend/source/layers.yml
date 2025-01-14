@@ -41,13 +41,15 @@ rwi:
   group_id: Relative wealth index
 economic_activity:
   fuzzy_string: avg_rad_sum.*.tif$
-  title: 'Average nighttime light radiance'
+  title: Economic activity
+  subtitle: 'Average nighttime light radiance'
   group_id: Economic hotspots
   palette: ['#00a884', '#f0f0f0', '#e64c00']
   bins: 5
 economic_change:
   fuzzy_string: linfit.tif$
-  title: 'Rate of change in nighttime radiance'
+  title: Change in economic activity
+  subtitle: 'Rate of change in nighttime radiance'
   group_id: Economic change
   palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
   center: 0
@@ -55,7 +57,7 @@ economic_change:
 # SECTION 5 BUILT FORM
 wsf:
   fuzzy_string: wsf-edit.tif$
-  title: 'Year of urban expansion'
+  title: Year of urban expansion, 1985–2015
   breaks: [1985, 1986, 1996, 2006, 2015]
   # labels: ['Before 1986', '1986', '1996', '2006', '2015']
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
@@ -64,6 +66,14 @@ wsf:
   group_id: Urban extent
   # wsf_val[[city]] <- c('', 'Pre 1985', '1986-1995', '1996-2005', '2006-2015')
   # wsf_col[[city]] <- c('transparent', '#ffffbe', '#ffaa00', '#e60000', '#290800')
+wsf_tracker:
+  fuzzy_string: wsf-tracker-edit.tif$
+  title: Year of urban expansion, 2016–2024
+  breaks: [2016.5, 2017, 2019, 2021, 2023, 2024.5]
+  # labels: ['Before 1986', '1986', '1996', '2006', '2015']
+  # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
+  labels: ['Before July 2016', 'July 2016-2018', 'July 2018-2020', 'July 2020–2022', 'July 2022–2024']
+  palette: ['#FBF9CD', '#D18158', '#25115B']
 impervious:
   title: Impervious Surfaces
   min: 0
