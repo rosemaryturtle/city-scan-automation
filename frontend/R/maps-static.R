@@ -1,8 +1,5 @@
 # Generating City Scan Maps
-
 if ("frontend" %in% list.files()) setwd("frontend")
-source("R/setup.R", local = T)
-source("R/pre-mapping.R", local = T)
 
 # Set static map visualization parameters
 layer_alpha <- 0.7
@@ -10,6 +7,10 @@ map_width <- 6.9
 map_height <- 5.9
 aspect_ratio <- map_width / map_height
 map_portions <- c(7, 2) # First number is map width, second is legend width
+
+# Load libraries and pre-process rasters
+source("R/setup.R", local = T)
+source("R/pre-mapping.R", local = T)
 
 # Define map extent and zoom level
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
