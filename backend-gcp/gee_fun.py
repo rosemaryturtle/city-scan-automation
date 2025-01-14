@@ -171,7 +171,7 @@ def gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_
     task0 = ee.batch.Export.image.toCloudStorage(**{'image': lc_aoi,
                                                     'description': f'{city_name_l}_lc',
                                                     'region': AOI,
-                                                    # 'scale': 10,
+                                                    'scale': 10,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_lc",
                                                     'maxPixels': 1e9,
@@ -203,7 +203,7 @@ def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
     task0 = ee.batch.Export.image.toCloudStorage(**{'image': elevation_clip,
                                                     'description': f'{city_name_l}_elevation',
                                                     'region': AOI,
-                                                    # 'scale': 30,
+                                                    'scale': 30,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_elevation",
                                                     'maxPixels': 1e9,
@@ -217,7 +217,7 @@ def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
     task1 = ee.batch.Export.image.toCloudStorage(**{'image': elevation_clip_buf,
                                                     'description': f'{city_name_l}_elevation_buf',
                                                     'region': AOI_buf,
-                                                    # 'scale': 30,
+                                                    'scale': 30,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_elevation_buf",
                                                     'maxPixels': 1e9,
@@ -250,7 +250,7 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
     task0 = ee.batch.Export.image.toCloudStorage(**{'image': forestCover23,
                                                     'description': f'{city_name_l}_forest_cover23',
                                                     'region': AOI,
-                                                    # 'scale': 30,
+                                                    'scale': 30.92,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_forest_cover23",
                                                     'maxPixels': 1e9,
@@ -264,7 +264,7 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
     task1 = ee.batch.Export.image.toCloudStorage(**{'image': deforestation_year,
                                                     'description': f'{city_name_l}_deforestation',
                                                     'region': AOI,
-                                                    # 'scale': 30,
+                                                    'scale': 30.92,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_deforestation",
                                                     'maxPixels': 1e9,
@@ -278,8 +278,6 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
 def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data_bucket, cloud_bucket, output_dir, season):
     print('run gee_lst')
     
-    import gc
-
     # SET UP #########################################
     AOI = aoi_to_ee_geometry(aoi_file)
     landsat = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
@@ -313,7 +311,7 @@ def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data
         'bucket': cloud_bucket,
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_{season}",
         'region': AOI,
-        # 'scale': 30,
+        'scale': 30,
         'maxPixels': 1e9,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
@@ -323,9 +321,6 @@ def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data
     })
     task.start()
 
-    # free up memory -------------
-    gc.collect()
-
 def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, data_bucket, cloud_bucket, output_dir, index_type):
     print(f'run gee_{index_type}')
 
@@ -334,8 +329,6 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         print('gee_ndxi function error')
         print('index_type argument invalid')
         exit()
-    
-    import gc
     
     # SET UP #########################################
     AOI = aoi_to_ee_geometry(aoi_file)
@@ -375,7 +368,7 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         'bucket': cloud_bucket,
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_{index_type}_season",
         'region': AOI,
-        # 'scale': 10,
+        'scale': 10,
         'maxPixels': 1e9,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
@@ -384,9 +377,6 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         }
     })
     task.start()
-
-    # Free up memory -------------
-    gc.collect()
 
 def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
     print('run gee_nightlight')
@@ -422,7 +412,7 @@ def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
         'bucket': cloud_bucket,
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_linfit",
         'region': AOI,
-        # 'scale': 100,
+        'scale': 463.83,
         'maxPixels': 1e9,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
@@ -438,7 +428,7 @@ def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
         'bucket': cloud_bucket,
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_avg_rad_sum",
         'region': AOI,
-        # 'scale': 100,
+        'scale': 463.83,
         'maxPixels': 1e9,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {

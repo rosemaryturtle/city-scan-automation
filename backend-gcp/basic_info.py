@@ -42,9 +42,9 @@ def check_city_in_oxford(city, country, oxford_locations, oxford_global_source):
     else:
         print(f"Population data for {city} does not exist in Oxford Economics. Check citypopulation.de or add manually")
     
-    return in_oxford, oxford_full
+    # return in_oxford, oxford_full
+    return # the texts?
 
-#Benchmark Cities
 def find_benchmark_cities(city, country, nearby_countries_string, oxford_locations_source, oxford_global_source):
     import pandas as pd
     
@@ -85,6 +85,6 @@ def find_benchmark_cities(city, country, nearby_countries_string, oxford_locatio
         bm_cities = bm_cities_df['Location'].tolist()
         return bm_cities
 
-    except Exception as e:
+    except Exception:
         print(f"Error finding benchmark cities. Proceed to next step of adding manual benchmark cities")
         return []
