@@ -1,49 +1,65 @@
 import osmnx as ox
 import networkx as nx
-# import nx_parallel as nxp
 import pandas as pd
 import numpy as np
-from shapely.ops import unary_union
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pickle
 import utils
 import sys
-import gc
-import os
 
 # FUNCTIONS ###################################
 def get_polygon(aoi_file):
     boundary_poly = aoi_file
 
-    pol = [i for i in boundary_poly.geometry]
-    boundary_poly = unary_union(pol)
-        
-    return boundary_poly
+    polygons = [i for i in boundary_poly.geometry]
+    
+    return polygons  # Return the list of polygons
 
 def get_graph(city_name_l, aoi_file, local_output_dir):
     print(f'Fetching graph data for {city_name_l}')
     
-    poly = get_polygon(aoi_file)
-    poly = poly.buffer(0)
+    polygons = get_polygon(aoi_file)  # Get a list of polygons
+    polygons = [poly.buffer(0) for poly in polygons]  # Apply buffer to each polygon
     
     try:
         with open(f'{local_output_dir}/{city_name_l}', 'rb') as f:
-            G = pickle.load(f)
-    
-        val = 1
+            G = pickle.load(f)  # Load the graph from the pickle file
+        print('Graph loaded from pickle file')
+        return G  # Return the loaded graph immediately
     except FileNotFoundError:
-        print("no pickle file found, retrieving new graph via OSMNX")
-        G = ox.graph_from_polygon(poly, network_type = 'drive')
-        val = 0
+        print("No pickle file found, retrieving new graph via OSMNX")
+        G_list = []
+        
+        for poly in polygons:
+            if poly.geom_type == 'Polygon':  # Single polygon
+                print("Processing a polygon...")
+                try:
+                    G_part = ox.graph_from_polygon(poly, network_type='drive')
+                    G_list.append(G_part)
+                except ox._errors.InsufficientResponseError:
+                    print(f"No roads found in this polygon, skipping...")
+            elif poly.geom_type == 'MultiPolygon':  # Handle any nested MultiPolygons
+                for p in poly.geoms:
+                    print("Processing a polygon in multipolygon...")
+                    try:
+                        G_part = ox.graph_from_polygon(p, network_type='drive')
+                        G_list.append(G_part)
+                    except ox._errors.InsufficientResponseError:
+                        print(f"No roads found in this polygon, skipping...")
+
+        if not G_list:
+            print("No graphs created from polygons, skipping graph creation.")
+            return None  # If no graphs were created, return None
+
+        # Combine all subgraphs into one graph
+        G = nx.compose_all(G_list)
     
-    print('Writing graph file')
-    
-    if val != 1:
+        print('Writing graph file')
         with open(f'{local_output_dir}/{city_name_l}', 'wb') as f:
             pickle.dump(G, f, pickle.HIGHEST_PROTOCOL)
     
-    return G
+        return G  # Return the newly created graph
 
 def get_centrality_stats(city_name_l, aoi_file, local_output_dir):
     try:
@@ -58,11 +74,11 @@ def get_centrality_stats(city_name_l, aoi_file, local_output_dir):
             df.to_csv(f"{local_output_dir}/{city_name_l}_road_network_extended_stats.csv")
     except FileNotFoundError:
         print("Edges file doesn't exist. Running edge_centrality function.")
-        # G = get_graph(G)
         G = get_graph(city_name_l, aoi_file, local_output_dir)
-        extended_stats = ox.extended_stats(G, bc = True)
-        dat = pd.DataFrame.from_dict(extended_stats)
-        dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_extended_stats.csv')
+        if G is not None:
+            extended_stats = ox.extended_stats(G, bc = True)
+            dat = pd.DataFrame.from_dict(extended_stats)
+            dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_extended_stats.csv')
     except Exception as e:
         print('Exception Occurred', e)
 
@@ -71,87 +87,92 @@ def get_centrality(city_name_l, aoi_file, local_output_dir, centrality_type = "e
     
     # download and project a street network
     G = get_graph(city_name_l, aoi_file, local_output_dir)
-    nnodes = G.number_of_nodes()
-    max_nodes = 50000
 
-    G = nx.DiGraph(G)
-    
-    if centrality_type == "node" or centrality_type == "both": 
-        print('Getting node centrality')
-        node_centrality = nx.betweenness_centrality(G)
+    if G is not None:
+        nnodes = G.number_of_nodes()
+        max_nodes = 50000
 
-        nx.set_node_attributes(G, node_centrality, 'node_centrality')
-    
-    if centrality_type == "edge" or centrality_type == "both": 
-        print('Getting edge centrality')
-        # edge closeness centrality: convert graph to a line graph so edges become nodes and vice versa
-        try:
-            if nnodes > max_nodes:
-                edge_centrality = nx.edge_betweenness_centrality(G, k=max_nodes)
-            else:
-                edge_centrality = nx.edge_betweenness_centrality(G)
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            sys.stdout.flush()  # Flush to ensure the log is captured
+        # Check if the graph is already directed before converting
+        if not G.is_directed():
+            G = nx.DiGraph(G)
+        
+        if centrality_type == "node" or centrality_type == "both": 
+            print('Getting node centrality')
+            node_centrality = nx.betweenness_centrality(G)
+            nx.set_node_attributes(G, node_centrality, 'node_centrality')
+        
+        if centrality_type == "edge" or centrality_type == "both": 
+            print('Getting edge centrality')
+            try:
+                if nnodes > max_nodes:
+                    edge_centrality = nx.edge_betweenness_centrality(G, k=max_nodes)
+                else:
+                    edge_centrality = nx.edge_betweenness_centrality(G)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                sys.stdout.flush()  # Flush to ensure the log is captured
 
-        new_edge_centrality = {}
+            # Set edge attributes
+            nx.set_edge_attributes(G, edge_centrality, 'edge_centrality')
 
-        for u,v in edge_centrality:
-            new_edge_centrality[(u,v)] = edge_centrality[u,v]
-            
-        nx.set_edge_attributes(G, new_edge_centrality, 'edge_centrality')
-    
-    print('Saving output gdf')
-    
-    G = nx.MultiDiGraph(G)
-    graph_gpkg = f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg'
-    ox.save_graph_geopackage(G, filepath = graph_gpkg)
-    # os.makedirs(output_folder_s / f'{city_name_l}_edges', exist_ok=True)
-    # os.makedirs(output_folder_s / f'{city_name_l}_nodes', exist_ok=True)
-    # gpd.read_file(graph_gpkg, layer = 'edges').to_file(output_folder_s / f'{city_name_l}_edges' / f'{city_name_l}_edges.shp')
-    # gpd.read_file(graph_gpkg, layer = 'nodes').to_file(output_folder_s / f'{city_name_l}_nodes' / f'{city_name_l}_nodes.shp')        
-    
-    print('Getting basic stats')
-    
-    basic_stats = ox.basic_stats(G)
-    dat = pd.DataFrame.from_dict(basic_stats)
-    dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_basic_stats.csv')
-    
-    get_centrality_stats(city_name_l, aoi_file, local_output_dir)
-    
+            # new_edge_centrality = {}
+
+            # for u,v in edge_centrality:
+            #     new_edge_centrality[(u,v)] = edge_centrality[u,v]
+                
+            # nx.set_edge_attributes(G, new_edge_centrality, 'edge_centrality')
+        
+        print('Saving output gdf')
+        
+        # Convert back to MultiDiGraph if needed
+        if not isinstance(G, nx.MultiDiGraph):
+            G = nx.MultiDiGraph(G)
+
+        graph_gpkg = f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg'
+        ox.save_graph_geopackage(G, filepath = graph_gpkg)
+        
+        print('Getting basic stats')
+        
+        basic_stats = ox.basic_stats(G)
+        dat = pd.DataFrame.from_dict(basic_stats)
+        dat.to_csv(f'{local_output_dir}/{city_name_l}_road_network_basic_stats.csv')
+        
+        get_centrality_stats(city_name_l, aoi_file, local_output_dir)
+        
     return
 
 def get_network_plots(city_name_l, aoi_file, local_output_dir):
     G = get_graph(city_name_l, aoi_file, local_output_dir)
     
-    fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5, show = False)
-    
-    fig.savefig(f'{local_output_dir}/{city_name_l}_network_plot.png', dpi = 300)
-    
-    return 
+    if G is not None:
+        fig, ax = ox.plot_graph(G, bgcolor = '#ffffff', node_color = '#336699', node_zorder = 2, node_size = 5, show = False)
+        fig.savefig(f'{local_output_dir}/{city_name_l}_network_plot.png', dpi = 300)
+        
+    return
 
 def plot_radar(city_name_l, aoi_file, local_output_dir):
     G = get_graph(city_name_l, aoi_file, local_output_dir)
     
-    try:
-        if G.graph['crs'].is_projected:
-            raise Exception("Graph seems to be projected, bearings will not generated if x and y are not in decimal degrees")
-    except Exception:
-        print("graph seems to be unprojected, this is ok, continue")
+    if G is not None:
+        try:
+            if G.graph['crs'].is_projected:
+                raise Exception("Graph seems to be projected, bearings will not generated if x and y are not in decimal degrees")
+        except Exception:
+            print("graph seems to be unprojected, this is ok, continue")
+            
+        G = ox.add_edge_bearings(G)
         
-    G = ox.add_edge_bearings(G)
-    
-    bearings = pd.Series([data.get('bearing', np.nan) for u, v, k, data in G.edges(keys=True, data=True)])
-    
-    # save bearings as csv
-    bearings.to_csv(f'{local_output_dir}/{city_name_l}_road_bearings.csv')
-    
-    fig = plt.figure()  # an empty figure with no axes
-    ax = fig.add_subplot(1, 1, 1, projection='polar')
+        bearings = pd.Series([data.get('bearing', np.nan) for u, v, k, data in G.edges(keys=True, data=True)])
+        
+        # save bearings as csv
+        bearings.to_csv(f'{local_output_dir}/{city_name_l}_road_bearings.csv')
+        
+        fig = plt.figure()  # an empty figure with no axes
+        ax = fig.add_subplot(1, 1, 1, projection='polar')
 
-    polar_plot(ax, bearings)
-    
-    fig.savefig(f'{local_output_dir}/{city_name_l}_road_radar_plot.png', dpi = 300)
+        polar_plot(ax, bearings)
+        
+        fig.savefig(f'{local_output_dir}/{city_name_l}_road_radar_plot.png', dpi = 300)
     
     return
 
@@ -201,6 +222,17 @@ def polar_plot(ax, bearings, n = 36, title = ''):
     ax.set_xticklabels(labels=xticklabels, fontdict=xtick_font)
     ax.tick_params(axis='x', which='major', pad=-2)
 
+def filter_major_roads(local_output_dir, city_name_l):
+    roads_gdf = gpd.read_file(f'{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg', layer='edges')
+
+    # Filter for major roads based on keywords in the 'highway' attribute
+    major_road_keywords = ['primary', 'trunk', 'motorway', 'primary_link', 'trunk_link', 'motorway_link']
+
+    # Filter for major roads using a lambda function
+    major_roads_gdf = roads_gdf[roads_gdf['highway'].apply(lambda highway_value: any(keyword in highway_value for keyword in major_road_keywords))]
+
+    major_roads_gdf.to_file(f'{local_output_dir}/{city_name_l}_major_roads.gpkg', driver='GPKG', layer = 'major_roads')
+
 def road_network(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_dir, centrality_type = 'edge'):
     print('run road_network')
     # calculate either 'node' centrality, 'edge' centrality, or 'both'
@@ -212,21 +244,14 @@ def road_network(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_d
     # generate the road bearing polar plots
     plot_radar(city_name_l, aoi_file, local_output_dir)
 
+    # filter for major roads
+    filter_major_roads(local_output_dir, city_name_l)
+
     # upload local outputs
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_nodes_and_edges.gpkg", f"{output_dir}/{city_name_l}_nodes_and_edges.gpkg")
+    utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_major_roads.gpkg", f"{output_dir}/{city_name_l}_major_roads.gpkg")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_network_extended_stats.csv", f"{output_dir}/{city_name_l}_road_network_extended_stats.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_network_basic_stats.csv", f"{output_dir}/{city_name_l}_road_network_basic_stats.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_network_plot.png", f"{output_dir}/{city_name_l}_network_plot.png")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_bearings.csv", f"{output_dir}/{city_name_l}_road_bearings.csv")
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_road_radar_plot.png", f"{output_dir}/{city_name_l}_road_radar_plot.png")
-
-    # free up memory
-    if os.path.exists(f'{local_output_dir}/{city_name_l}'):
-        os.remove(f'{local_output_dir}/{city_name_l}')
-    gc.collect()
-
-# aoi_file = gpd.read_file("C:/Users/Owner/OneDrive/Documents/Career/World Bank/CRP/Africa Flood Risk Workshop/shapefile/Cape_Town.shp").to_crs(epsg = 4326)
-# city_name_l = 'cape_town'
-# local_output_dir = '.'
-
-# get_centrality(city_name_l, aoi_file, local_output_dir)

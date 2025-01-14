@@ -25,17 +25,17 @@ template:
 population:
   fuzzy_string: population.*.tif$
   title: 'Population density'
-  subtitle: 'Number of persons per 10,000 m^2^'
+  subtitle: 'Number of persons per 10,000 m<sup>2</sup>'
   palette: ['#ECEB72', '#8E3933']
   basemap: 'satellite'
   group_id: Population density
   bins: 5
 # SECTION 4 ECONOMIC ACTIVITY
 rwi:
-  fuzzy_string: rwi
+  fuzzy_string: rwi(?=.shp$|.gpkg$|$)
   data_variable: rwi
   title: 'Relative Wealth Index'
-  palette: ['#ED431B', '#FF9169', '#FFFFBA', '#70C5AD', '#009E7A']
+  palette: ['#009E7A', '#70C5AD', '#FFFFBA', '#FF9169', '#ED431B' ]
   labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
   group_id: Relative wealth index
@@ -54,7 +54,7 @@ economic_change:
   bins: 0
 # SECTION 5 BUILT FORM
 wsf:
-  fuzzy_string: wsf_4326.tif$
+  fuzzy_string: wsf-edit.tif$
   title: 'Year of urban expansion'
   breaks: [1985, 1986, 1996, 2006, 2015]
   # labels: ['Before 1986', '1986', '1996', '2006', '2015']
@@ -79,10 +79,10 @@ land_cover:
   breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
   labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
 intersections:
-  fuzzy_string: nodes.shp$
+  fuzzy_string: nodes_and_edges(?=.shp$|.gpkg$|$)
   title: Intersection Density
   subtitle: Number of intersections per 1 km^2^
-  palette: ['#ffffffff', '#9F4830']
+  palette: ['transparent', '#9F4830']
   group_id: Intersection density
 school_zones:
   fuzzy_string: school-journeys
@@ -92,7 +92,7 @@ school_zones:
   # palette: ['#B6D053', '#B6D053AA', '#B6D05366']
   palette: ['#577156', '#7DA953', '#DAE7AE']
   breaks: [800, 1600, 2400]
-  labels: ["<800 m", "800–1,600 m", "1,600–2,400 m"]
+  labels: ['<800 m', '800–1,600 m', '1,600–2,400 m']
   bins: 3
   factor: TRUE
   # How do I indicate shading?
@@ -102,7 +102,7 @@ school_points:
   fuzzy_string: school-points
   title: School
   data_variable: Feature # To show individual school types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['black']
+  palette: ['#FBAF00']
   alpha: 1
   labels: ['School']
   factor: TRUE
@@ -115,7 +115,7 @@ health_zones:
   # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
   palette: ['#577156', '#7DA953', '#DAE7AE']
   breaks: [1000, 2000, 3000]
-  labels: ["<1 km", "1–2 km", "2–3 km"]
+  labels: ['<1 km', '1–2 km', '2–3 km']
   bins: 3
   factor: TRUE
   # How do I indicate shading?
@@ -124,7 +124,7 @@ health_points:
   fuzzy_string: health-points
   title: Health Facility
   data_variable: Feature # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['black']
+  palette: ['#523249']
   alpha: 1
   labels: ['Health facility']
   factor: TRUE
@@ -155,7 +155,7 @@ summer_lst:
   suffix: '°C'
   group_id: Summer surface temperature
 vegetation:
-  fuzzy_string: NDVI_Annual.*.tif$
+  fuzzy_string: ndvi_season.*.tif$
   title: Vegetated Areas
   subtitle: 'Normalized difference vegetation index (NDVI)'
   palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
@@ -163,15 +163,15 @@ vegetation:
   labels: ['Water (-1 to 0.015)', 'Built-up (0.015 to 0.14)', 'Barren (0.14 to 0.18)', 'Shrub and Grassland (0.18 to 0.27)', 'Sparse (0.27 to 0.36)', 'Dense (0.36 to 1)']
   group_id: Vegetation
 forest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: ForestCover.*.tif$
-  title: "Forest cover"
+  fuzzy_string: forest_cover.*.tif$
+  title: 'Forest cover'
   breaks: [1]
   palette: ['#8CC056']
   labels: ['Current Forest']
   factor: TRUE
   group_id: Forests
 deforest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: Deforest.*.tif$
+  fuzzy_string: deforest.*.tif$
   title: Deforestation
   subtitle: Year of deforestation
   domain: [2001, 2021]
@@ -182,46 +182,43 @@ infrastructure:
   title: Infrastructure and Services
   data_variable: Feature
   factor: TRUE
-  palette: ['green', 'red', 'blue', 'yellow']
+  palette: ['#523249', '#FF3838', '#619CFF', '#FBAF00']
   labels:  ['Hospital or clinic', 'Fire station', 'Police station', 'School']
   alpha: 1
+  size: 2
   group_id: Infrastructure
 fluvial:
   fuzzy_string: fluvial_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]  
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Riverine flooding
 pluvial:
   fuzzy_string: pluvial_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Surface water flooding
 coastal:
   fuzzy_string: coastal_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]  
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Coastal flooding
 combined_flooding: # This will require pre-processing
   fuzzy_string: combined_flooding_2020.tif$
-  factor: TRUE
-  palette: ['#C7CBD4', '#A0A8BE', '#7987A8'] # Changing color instead of opacity
+  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [1, 2, 3]
+  breaks: [0, 1, 2, 3]  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
@@ -239,7 +236,7 @@ elevation:
 #   bins: 5
 #   stroke: 
 #     title: Elevation
-#     subtitle: "Meters above sea level (MASL)"
+#     subtitle: 'Meters above sea level (MASL)'
 #     variable: elev
 #     palette: ['#f5c4c0', '#762175']
 #   weight: 1
@@ -257,18 +254,16 @@ slope:
 landslides:
   fuzzy_string: landslide.*.tif$
   title: Landslide susceptibility
-  factor: TRUE
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
-  breaks: [0, 1, 2, 3, 4]
+  breaks: [-1, 0, 1, 2, 3, 4]
   group_id: Landslides
 liquefaction:
   fuzzy_string: liquefaction.tif$
   title: Liquefaction susceptibility
-  factor: TRUE
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
-  breaks: [1, 2, 3, 4, 5]
+  breaks: [0, 1, 2, 3, 4, 5]
   group_id: Liquefaction
 roads:
   fuzzy_string: edges-edit.gpkg
@@ -276,7 +271,7 @@ roads:
   stroke:
     title: Road network segment criticality
     subtitle: 'Criticality %'
-    variable: edge_centr
+    variable: edge_centrality
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
     title: Road type
@@ -288,15 +283,22 @@ roads:
     labels: ['Secondary', 'Primary']
   group_id: Road network criticality
 burnable:
-  fuzzy_string: lc_burn.*.tif$
+  fuzzy_string: burn-edit.tif$
   title: Burnability Factor
   palette: ['#FFFFFF', '#EFAD42', '#681A17']
-  breaks: [0, .17, .33, .5, .67, .83, 1]
+  breaks: [-1, 0, .17, .33, .5, .67, .83, 1]
+  labels: [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1]
   group_id: Burnable area
+burnt_area:
+  fuzzy_string: globfire
+  title: History of fire
+  palette: ['#4B90C1', '#A6C19D', '#FBFA7C', '#EB9148', '#D63228']
+  breaks: [0.008, 0.064, 0.216, 0.512, 1.000]
+  labels: ['Lowest', 'Low', 'Medium', 'High', 'Highest']
 drought:
-  fuzzy_string: NDMI_Annual.*.tif$
+  fuzzy_string: ndmi_season.*.tif$
   title: NDMI
-  palette: ['#D45A35', '#F6F7F9', '#48A787']
+  palette: ['#D45A35', '#F6F7F9', '#48A747']
   center: 0
   bins: 5
   group_id: Moisture

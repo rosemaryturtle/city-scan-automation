@@ -9,21 +9,16 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
     local_elev_folder = f'{local_data_dir}/elev'
     os.makedirs(local_elev_folder, exist_ok=True)
 
-    lat_tiles_big = raster_pro.tile_finder(aoi_file, 'lat', 10)
-    lon_tiles_big = raster_pro.tile_finder(aoi_file, 'lon', 10)
-    lat_tiles_small = raster_pro.tile_finder(aoi_file, 'lat', 1)
-    lon_tiles_small = raster_pro.tile_finder(aoi_file, 'lon', 1)
+    aoi_file_buf = aoi_file.buffer(0.001)
+    lat_tiles_small = raster_pro.tile_finder(aoi_file_buf, 'lat', 1)
+    lon_tiles_small = raster_pro.tile_finder(aoi_file_buf, 'lon', 1)
 
     elev_download_dict = {}
-    for lat in lat_tiles_big:
-        for lon in lon_tiles_big:
-            file_name = f'{lat}{lon}-{raster_pro.fabdem_tile_end_matcher(lat)}{raster_pro.fabdem_tile_end_matcher(lon)}_FABDEM_V1-2.zip'
-
-            # unzip downloads
-            for lat1 in lat_tiles_small:
-                for lon1 in lon_tiles_small:
-                    file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
-                    elev_download_dict[file_name1] = file_name
+    for lat1 in lat_tiles_small:
+        for lon1 in lon_tiles_small:
+            file_name1 = f'{lat1}{lon1}_FABDEM_V1-2.tif'
+            lat, lon = raster_pro.fabdem_big_tile_matcher(lat1, lon1)
+            elev_download_dict[file_name1] = f'{lat}{lon}-{raster_pro.fabdem_tile_end_matcher(lat)}{raster_pro.fabdem_tile_end_matcher(lon)}_FABDEM_V1-2.zip'
 
     elev_download_list = [f'https://data.bris.ac.uk/datasets/s5hqmjcdj8yo2ibzi9b4ew3sn/{fn}' for fn in list(elev_download_dict.values())]
     downloaded_list = raster_pro.download_raster(list(set(elev_download_list)), local_elev_folder, data_bucket, data_bucket_dir='FABDEM')
@@ -44,14 +39,20 @@ def elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_d
         out_image, out_meta = raster_pro.raster_mask_file(f'{local_elev_folder}/{city_name_l}_elevation.tif', aoi_file.geometry)
         with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif', "w", **out_meta) as dest:
             dest.write(out_image)
+        out_image, out_meta = raster_pro.raster_mask_file(f'{local_elev_folder}/{city_name_l}_elevation.tif', aoi_file_buf.geometry)
+        with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation_buf.tif', "w", **out_meta) as dest:
+            dest.write(out_image)
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_elevation.tif', f'{output_dir}/{city_name_l}_elevation.tif')
+        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_elevation_buf.tif', f'{output_dir}/{city_name_l}_elevation_buf.tif')
         with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
             f.write('FABDEM')
     else:
         import gee_fun
 
         gee_fun.gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir)
-        utils.download_blob_timed(cloud_bucket, f"{output_dir}/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif', 60*60, 30)
+        utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_elevation.tif", f'{local_output_dir}/{city_name_l}_elevation.tif', 60*60, 30)
+        with open(f"{local_output_dir}/{city_name_l}_elevation_source.txt", 'w') as f:
+            f.write('SRTM')
 
     utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_elevation_source.txt", f"{output_dir}/{city_name_l}_elevation_source.txt")
 
@@ -64,24 +65,13 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
     import fiona
     import math
     import rasterio
-    from affine import Affine
     import utils
 
     with rasterio.open(f'{local_output_dir}/{city_name_l}_elevation.tif') as src:
         elevation_data = src.read(1)
-        bounds = src.bounds
         transform = src.transform
-        width = src.width
-        height = src.height
+        demNan = src.nodata if src.nodata else -9999
     
-    # Use the rasterio transform to map pixel coordinates to geographic coordinates
-    # Get the bounding box
-    min_x, min_y, max_x, max_y = bounds
-    transform = Affine.from_gdal(min_x, (max_x - min_x) / width, 0, max_y, 0, (min_y - max_y) / height)
-
-    # Define no-data value
-    demNan = -9999
-
     # Get min and max elevation values
     demMax = elevation_data.max()
     demMin = elevation_data[elevation_data != demNan].min()
@@ -119,7 +109,7 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
                         (transform * (x, y)) for x, y in polygon
                     ]
                     poly = Polygon(geographic_polygon)
-                    contour_polygons.append((poly, level))
+                    contour_polygons.append((poly, float(level)))
 
     # Optionally save to a shapefile using Fiona
     schema = {

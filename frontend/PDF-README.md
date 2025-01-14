@@ -8,13 +8,13 @@ We are using [Vivliostyle](https://vivliostyle.org) to save the City Scan to PDF
 Right now we are using `source/custom.scss` as our style sheet for both the HTML version and the print version. We might want to separate this, instead of simply relying on a media query. Regardless, that style sheet is a [Sass](https://sass-lang.com) stylesheet (see that it ends `.scss` instead of `.css`), which makes writing CSS easier, but which Vivliostyle can't read. We therefore need to convert from Sass to CSS:
 
 ```
-$ sass source/custom.scss source/custom.scss
+$ sass source/custom.scss source/custom.css
 ```
 
 If we are continuing to edit custom.scss we can watch for changes so that custom.css gets automatically updated.
 
 ```
-$ sass --watch source/custom.scss source/custom.scss
+$ sass --watch source/custom.scss:source/custom.css
 ```
 
 ## Linking the stylesheet
@@ -27,7 +27,6 @@ We could generate the PDF from the HTML of the City Scan or from a markdown file
 4. `<link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">`
 
 The final one includes the styles from custom.scss. However, we would like to override all of these. So, before rendering the PDF we want to delete/comment out each of these lines and add in our desired stylesheet:
-We want to override these
 
 ```
 <link href="source/custom.css" rel="stylesheet">

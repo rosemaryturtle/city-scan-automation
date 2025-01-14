@@ -43,6 +43,7 @@ features = aoi_file.geometry
 city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
 country_name_l = city_inputs['country_name'].replace(' ', '_').replace("'", "").lower()
 country_iso3 = pycountry.countries.lookup(city_inputs['country_name']).alpha_3
+# TODO: replace country_iso3 with a functions that checks country based on shapefile
 
 # Load global inputs, such as data sources that generally remain the same across scans
 print('Load global inputs')
@@ -62,10 +63,10 @@ storage_client = storage.Client()
 city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
 input_dir = f'{city_dir}/{input_dir}'
 output_dir = f'{city_dir}/{output_dir}'
-utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', check_exists=True)
-utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', check_exists=True)
+utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', output = False)
+utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', output = False)
 for f in downloaded_aoi:
-    utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", check_exists=True)
+    utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", output = False, check_exists=True)
 
 
 ########################################################
@@ -78,7 +79,7 @@ if task_index == 0:
         import accessibility
         accessibility.accessibility(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index in range(1, 6):
-    if menu['burned_area']:  # processing time: 5h
+    if menu['burned_area']:  # processing time: 1h
         import burned_area
         burned_area.burned_area(aoi_file, global_inputs['burned_area_blob'], task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir)
 elif task_index == 6:
@@ -145,7 +146,7 @@ elif task_index == 9:
 
     if menu['slope']:  # processing time: 20s
         import raster_pro
-        raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
+        raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation_buf.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
         raster_pro.get_raster_histogram(f'{local_output_dir}/{city_name_l}_slope.tif', [0, 2, 5, 10, 20, 90], f'{local_output_dir}/{city_name_l}_slope.csv')
         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.csv', f'{output_dir}/{city_name_l}_slope.csv')
 elif task_index == 10:
@@ -220,3 +221,5 @@ elif task_index == 16:
     if menu['nightlight']:
         import gee_fun
         gee_fun.gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir)
+
+# TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory

@@ -21,6 +21,7 @@ def wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cl
     downloaded_list = raster_pro.download_raster(wsf_download_list, local_wsf_folder, data_bucket, data_bucket_dir='WSFevolution')
     raster_pro.mosaic_raster(downloaded_list, local_wsf_folder, f'{city_name_l}_wsf_evolution.tif')
     out_image, out_meta = raster_pro.raster_mask_file(f'{local_wsf_folder}/{city_name_l}_wsf_evolution.tif', aoi_file.geometry)
+    out_meta.update({"nodata": 0})
     with rasterio.open(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', "w", **out_meta) as dest:
         dest.write(out_image)
 
@@ -41,6 +42,9 @@ def wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cl
         for year, cumulative_area in cumulative_dict.items():
             writer.writerow([year, cumulative_area])
 
+    raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', f'{local_output_dir}/{city_name_l}_wsf_evolution_3857.tif', dst_crs='epsg:3857')
+
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_evolution.tif', f'{output_dir}/{city_name_l}_wsf_evolution.tif')
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', f'{output_dir}/{city_name_l}_wsf_evolution_utm.tif')
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_stats.csv', f'{output_dir}/{city_name_l}_wsf_stats.csv')
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_wsf_evolution_3857.tif', f'{output_dir}/{city_name_l}_wsf_evolution_3857.tif')

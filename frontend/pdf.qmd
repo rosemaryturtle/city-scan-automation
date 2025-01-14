@@ -15,7 +15,10 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
-source('R/maps-web.R')
+source('R/setup.R')
+# source('R/plots.R')
+# source('R/maps-web.R')
+# source('R/maps-static.R')
 cover_image <- fuzzy_read(process_output_dir, "footprints", paste)
 ```
 
@@ -25,10 +28,12 @@ title: "`r paste(city, country, sep = ', ')`"
 
 ```{r}
 #| label: get-text
-city_text <- read_md(file.path(user_input_dir, "text-files/manual-text.md"))
-generic_text <- read_yaml("source/generic-text.yml") %>% rapply(double_space, how = "replace") # Do I only want this for print?
-slide_texts <- merge_lists(city_text, generic_text)
-slide_texts <- unlist(slide_texts, recursive = F) %>% setNames(str_extract(names(.), "\\.(.*)$", group = T))
+city_text <- fuzzy_read(user_input_dir, "text-files/manual-text.md", read_md)
+generic_text <- read_yaml("source/generic-text.yml") %>%
+  rapply(double_space, how = "replace") # Do I only want this for print?
+slide_texts <- merge_lists(generic_text, city_text)
+slide_texts <- unlist(slide_texts, recursive = F) %>%
+  setNames(str_extract(names(.), "([^\\.]*)$", group = T))
 ```
 
 :::
@@ -104,6 +109,10 @@ slide_texts$executive_summary_no_anchor_ids$takeaways <-
     glue("{x}\n<p>→ [Go to section]({anchor})</p>\n")
   }) %>%
   str_split("\n\n") %>% unlist()
+cat("### Executive Summary\n")
+# if (is.null(slide_texts$executive_summary_no_anchor_ids) {
+#   cat("This City Scan")
+# }
 print_slide_text(slide_texts$executive_summary_no_anchor_ids)
 ```
 
@@ -113,6 +122,7 @@ print_slide_text(slide_texts$executive_summary_no_anchor_ids)
 ```{r}
 #| output: asis
 #| label: basic_city_info
+glue('<p class="map"><img src="{file.path(styled_maps_dir, "aoi.png")}"></p>')
 print_slide_text(slide_texts$basic_city_info)
 ```
 
@@ -121,45 +131,45 @@ print_slide_text(slide_texts$basic_city_info)
 ```{r}
 #| output: asis
 # For map layer to continue to show, all text column content must be in same cell
-fill_slide_content("population")
-print_slide_text(slide_texts$demographics$population_growth)
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "pop-density", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Density\n") 
-  include_html_chart(plots_file)
-  print_slide_text(slide_texts$population_density_chart)
-}
+fill_slide_content_pdf("population")
+# print_slide_text(slide_texts$demographics$population_growth)
+# plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "pop-density", paste)
+# if (!is.na(plots_file)) {
+#   cat("#### Population Density\n") 
+#   include_html_chart(plots_file)
+#   print_slide_text(slide_texts$population_density_chart)
+# }
 
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "\\?\\?\\?", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Distribution by Age\n") 
-  include_html_chart(plots_file)
-  print_slide_text(slide_texts$population_density_chart)
-}
+# plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "\\?\\?\\?", paste)
+# if (!is.na(plots_file)) {
+#   cat("#### Population Distribution by Age\n") 
+#   include_html_chart(plots_file)
+#   print_slide_text(slide_texts$population_density_chart)
+# }
 
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "age_stats", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Distribution by Age & Sex\n") 
-  include_html_chart(plots_file)
-  print_slide_text(slide_texts$population_distribution_age_sex)
-}
+# plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "age_stats", paste)
+# if (!is.na(plots_file)) {
+#   cat("#### Population Distribution by Age & Sex\n") 
+#   include_html_chart(plots_file)
+#   print_slide_text(slide_texts$population_distribution_age_sex)
+# }
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("rwi")
+fill_slide_content_pdf("rwi")
 ```
 
 ## Economic Activity
 
 ```{r}
 #| output: asis
-fill_slide_content("economic_activity")
+fill_slide_content_pdf("economic_activity")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("economic_change")
+fill_slide_content_pdf("economic_change")
 plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "national-shares", paste)
 if (!is.na(plots_file)) {
   cat("#### Cities’ Shares of National Population, Employment & GDP\n") 
@@ -208,55 +218,60 @@ if (!is.na(plots_file)) {
 
 ```{r}
 #| output: asis
-fill_slide_content("wsf")
+fill_slide_content_pdf("wsf")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("impervious")
+fill_slide_content_pdf("impervious")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("land_cover")
+fill_slide_content_pdf("land_cover")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("school_zones")
+fill_slide_content_pdf("intersections")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("health_zones")
+fill_slide_content_pdf("school_proximity")
+```
+
+```{r}
+#| output: asis
+fill_slide_content_pdf("health_proximity")
 ```
 
 ## Climate Conditions
 
 ```{r}
 #| output: asis
-fill_slide_content("solar")
+fill_slide_content_pdf("solar")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("air_quality")
+fill_slide_content_pdf("air_quality")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("summer_lst")
+fill_slide_content_pdf("summer_lst")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("vegetation")
+fill_slide_content_pdf("vegetation")
 ```
 
 ```{r}
 #| output: asis
 # Something appears wrong here – forest and deforest are both showing for forest?
-fill_slide_content("forest", "deforest")
+fill_slide_content_pdf("forest", "deforest")
 ```
 
 ## Risk Identification
@@ -273,77 +288,77 @@ if (!is.na(plots_file)) {
 <!-- All the flooding -->
 ```{r}
 #| output: asis
-fill_slide_content("fluvial", "infrastructure", slide_text = slide_texts$flooding_infrastructure_fluvial)
+fill_slide_content_pdf("flooding_infrastructure_fluvial", "fluvial_infrastructure")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("pluvial", "infrastructure", slide_text = slide_texts$flooding_infrastructure_pluvial)
+fill_slide_content_pdf("flooding_infrastructure_pluvial", "pluvial_infrastructure")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("coastal", "infrastructure", slide_text = slide_texts$flooding_infrastructure_coastal)
+fill_slide_content_pdf("flooding_infrastructure_coastal", "coastal_infrastructure")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("combined_flooding", "infrastructure", slide_text = slide_texts$flooding_infrastructure_combined)
+fill_slide_content_pdf("flooding_infrastructure_combined", "combined_flooding_infrastructure")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("fluvial", "wsf", slide_text = slide_texts$flooding_builtup_fluvial)
+fill_slide_content_pdf("flooding_builtup_fluvial", "fluvial_wsf")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("pluvial", "wsf", slide_text = slide_texts$flooding_builtup_pluvial)
+fill_slide_content_pdf("flooding_builtup_pluvial", "pluvial_wsf")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("coastal", "wsf", slide_text = slide_texts$flooding_builtup_coastal)
+fill_slide_content_pdf("flooding_builtup_coastal", "coastal_wsf")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("combined_flooding", "wsf", slide_text = slide_texts$flooding_builtup_combined)
+fill_slide_content_pdf("flooding_builtup_combined", "combined_wsf")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("fluvial", "population", slide_text = slide_texts$flooding_population_fluvial)
+fill_slide_content_pdf("flooding_population_fluvial", "fluvial_population")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("pluvial", "population", slide_text = slide_texts$flooding_population_pluvial)
+fill_slide_content_pdf("pluvial", "pluvial_population", slide_text = slide_texts$flooding_population_pluvial)
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("coastal", "population", slide_text = slide_texts$flooding_population_coastal)
+fill_slide_content_pdf("coastal", "coastal_population", slide_text = slide_texts$flooding_population_coastal)
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("combined_flooding", "population", slide_text = slide_texts$flooding_population_combined)
+fill_slide_content_pdf("combined_flooding", "combined_population", slide_text = slide_texts$flooding_population_combined)
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("elevation")
+fill_slide_content_pdf("elevation")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("slope")
+fill_slide_content_pdf("slope")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("landslides")
+fill_slide_content_pdf("landslides")
 ```
 
 ```{r}
@@ -357,30 +372,30 @@ if (!is.na(plots_file)) {
 
 ```{r}
 #| output: asis
-fill_slide_content("liquefaction")
+fill_slide_content_pdf("liquefaction")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("roads")
+fill_slide_content_pdf("roads")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("burnable")
+fill_slide_content_pdf("burnable")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("moisture")
+fill_slide_content_pdf("moisture")
 ```
 
 ```{r}
 #| output: asis
-fill_slide_content("burnt_area")
+fill_slide_content_pdf("burnt_area")
 ```
 
-## Local Institutions & Planning
+<!-- ## Local Institutions & Planning
 
 ### Administrative Structure
 
@@ -412,12 +427,13 @@ print_slide_text(slide_texts$infrastructure_and_service_delivery)
 #| output: asis
 print_md(slide_texts$concluding_questions)
 ```
-
+-->
 :::
 
 ::: maps
 ```{r}
-#| output: true
+#| eval: false
+#| output: false
 #| label: leaflet_maps
 # # all_maps # Created in maps.R
 plots_html %>%

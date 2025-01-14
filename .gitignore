@@ -200,6 +200,7 @@ backend/vulnerability_mapping/*
 backend-gcp/city_inputs.yml
 backend-gcp/fathom_aws_credentials.yml
 backend-gcp/menu.yml
+backend-gcp/global_inputs.yml
 
 # GitHub Wiki
 city-scan-automation.wiki.git

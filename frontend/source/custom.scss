@@ -24,8 +24,8 @@ $side-padding: 1.5rem;
 
 // Print variables
 $column-gap: .25in;
-$page-margin-top: .5in;
-$page-margin-bottom: .5in;
+$page-margin-top: 0.5in;
+$page-margin-bottom: 0.5in;
 $page-margin-left: 0.5in;
 $page-margin-right: 0.5in;
 
@@ -43,13 +43,13 @@ $page-margin-right: 0.5in;
     display: grid; // Overridden by print
     grid-template-columns: 1fr 2fr;
     grid-template-rows: var(--topbar-height) calc(100vh - var(--topbar-height)) auto auto;
+    min-height: 90vh;
+    padding-bottom: 5vh;
+    border-bottom: 2px;
+    margin-top: 0;
+    margin-bottom: 5vh;
   }
-  @media print { display: block; }
-  min-height: 90vh;
-  padding-bottom: 5vh;
-  border-bottom: 2px;
-  margin-top: 0;
-  margin-bottom: 5vh;
+  @media print { display: grid; grid-template-columns: 1fr 1fr 1fr;}
 }
 
 @media screen {
@@ -98,6 +98,75 @@ $page-margin-right: 0.5in;
     }
   }
 }
+@media print {
+  #cover-page {
+    // display: none;
+    // grid-row: 2/3;
+    grid-column: 1/2;
+    // min-height: calc(100vh - var(--topbar-height));
+    height: 8.5in - $page-margin-top - $page-margin-top - 0.05in;
+    // height: 7.25in;
+    padding: 0 $side-padding;
+    margin-right: -$side-padding;
+    background-image: radial-gradient(black 1px, transparent 0);
+    background-size: 20px 20px;
+    // display: flex;
+    // section.level1 {
+    //   display: flex;
+    //   flex-direction: column;
+    // }
+
+    .donors {
+      width: 3in;
+      position: absolute;
+      bottom: 0;
+      // display: none;
+      // height: 2in;
+  //     // padding: $side-padding;
+  //     // display: flex;
+  //     // flex-direction: column;
+  //     // justify-content: end;
+      display: grid;
+      grid-template: auto auto / 1fr 1fr;
+      place-items: center;
+      // align-content: end;
+      justify-content: center;
+  
+      figure {
+        margin: 0;
+        p {
+        // text-align: left; // For if using flex instead of grid
+        // width: 12vw;
+        width: 1.2in;
+        padding-bottom: 1rem;
+
+        img {width: 1.2in;}
+      }
+    }
+      figcaption {display: none;}
+    }
+  }
+  #cover-map {
+    // display: none;
+    // grid-row: 2/3;
+    grid-column: 2/4;
+    width: 100%;
+    height: 8.5in - $page-margin-top - $page-margin-top - 0.05in;
+    // height: 100vh;
+    // height: 5in;
+    // background: #000;
+
+    p {margin: 0}
+    img {
+      width: 100%;
+      height: 8.5in - $page-margin-top - $page-margin-top - 0.05in;
+      object-fit:cover
+    }
+  }
+}
+@media print {
+  .topbar { display: none;}
+}
 
 .text-column {
   @media screen {
@@ -118,8 +187,9 @@ $page-margin-right: 0.5in;
   }
 
   @media print {
+    grid-column: 1 / -1;
     h2, h3 {
-      grid-column: 1 / 4;
+      grid-column: 1 / -1;
       grid-row: 1 / 2;
       // margin-top: 0; // Already set for screen
     }
@@ -148,14 +218,17 @@ $page-margin-right: 0.5in;
     section.level3 {
       @media screen { padding-bottom: 3rem; }
       @media print {
-        // height: calc(8.5in - $page-margin-top);
-        height: 7.45in;
+        height: 8.5in - $page-margin-top - $page-margin-top - 0.05in;
+        max-height: .5in - $page-margin-top - $page-margin-top - 0.05in;
+
+        // height: 7.45in;
         // min-height: 7.5in;
         width: 100%;
         display: grid; // I don't think this is ever actually used, overridden by flex above somehow
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
         grid-column-gap: $column-gap;
-        grid-template-rows: 1fr repeat(2, min-content) minmax(.5in, max-content);
+        // grid-template-rows: 1fr repeat(2, min-content) minmax(.5in, max-content);
+        grid-template-rows: .25in (8.5in - $page-margin-top - $page-margin-top - 0.75in) .5in ;
         align-items: end;
         align-content: stretch;
         // padding-bottom: 3rem;
@@ -169,8 +242,14 @@ $page-margin-right: 0.5in;
     }
   }
 
-  div.takeaways, div.method { grid-column: 1 / 2; }
-  
+  @media screen { div.takeaways, div.method { grid-column: 1 / 2; } }
+  // @media print { div.takeaways, div.method { grid-column: -2 / -1; } }
+  @media print { section.level3 div.takeaways-method {
+    grid-column: -2 / -1;
+    grid-row: 2 / 3;
+    overflow: hidden;
+  } }
+
   div.footnote {
     @media screen {
         grid-column: 1 / 2; // Overridden by print
@@ -179,8 +258,8 @@ $page-margin-right: 0.5in;
       }
 
     @media print {
-      grid-column: 1 / 4;
-      grid-row: 4 / 5;
+      grid-column: 1 / -1;
+      grid-row: -2 / -1;
       align-self: end;
       column-count: 3;
       column-gap: $column-gap;
@@ -194,6 +273,33 @@ $page-margin-right: 0.5in;
         margin-top: 0;
       }  
     }
+  }
+
+  @media print {section#executive-summary section.level3 { // Ideally would use a class or :not(:has())
+    align-items: center;
+  }}
+
+  section#executive-summary .takeaways,
+  section#concluding-questions .takeaways {
+  @media print {
+    grid-column: 1 / 5;
+    grid-row: 2 / 4;
+    // align-self: end;
+    column-count: 3;
+    column-gap: $column-gap;
+    // border-top: 1px solid $pale-color;
+    // padding-top: 4px;
+    // color: $pale-color;
+    // min-height: .5in;
+    // height: .5in;
+  }
+
+    p {
+      margin-top: 0;
+    }  
+
+    p:has(+ .pseudo-h4), p:last-child {display: none}  // Don't show Go to sections
+
   }
 
   form {
@@ -219,12 +325,11 @@ $page-margin-right: 0.5in;
     color: black;
     // background-image: radial-gradient(black 1px, transparent 0);
     // background-size: 10px 10px;
-    height: 10rem;
+    // min-height: 1em;k
     padding: calc(25vh - 10rem) 0 0 0;
     // margin-left: -1.5rem;
     // margin-right: -1.5rem;
-    margin-bottom: -20px;
-    margin-top: 0;
+    margin: 0;
   }
   p {
     font-size: 2.4rem; margin-bottom: 0;
@@ -254,17 +359,31 @@ $page-margin-right: 0.5in;
     @media print{ padding: 2in $column-gap 4.5in $column-gap }
     margin-left: -$side-padding;
     margin-right: -$side-padding;
+    @media print {margin-left: 0; margin-right: 0}
   }
 
   h3 { // Previously also applied to h3::before 
     font-size: 1.1rem;
     border-bottom: 1px solid black;
+    @media print {margin: 0}
   }
-  h4 { font-size: 1.1rem; }
+  h4, .pseudo-h4 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin: 1.5rem 0 0.5rem 0;
+    line-height: 1.2;
+    color: var(--bs-heading-color);
+  }
   p { font-size: 1rem; }
-  .takeaways { font-size: 1.1rem; }
+  .takeaways { 
+    font-size: 1.1rem; 
+    @media print {font-size: 13pt}
+  }
+  @media print { .method p {font-size: 9pt} }
   div.footnote p {
     font-size: 0.8rem;
+    @media print {font-size: 8pt;}
     color: $pale-color;
   }
 
@@ -303,9 +422,9 @@ $page-margin-right: 0.5in;
 }
 
 @media print {
-  section.level3>p:has(img) {
-    grid-column: 2 / 4;
-    grid-row: 1 / 4;
+  section.level3>p.map {
+    grid-column: 1 / 4;
+    grid-row: 2 / 3;
     // grid-row-end: 4;
     width: 100%;
     // height: 1in;
@@ -313,6 +432,21 @@ $page-margin-right: 0.5in;
     img {
       width: 100%;
       height: 100%;
+    }
+  }
+}
+
+@media print {
+  section.level3 p.side-chart {
+    // grid-column: 1 / 4;
+    // grid-row: 2 / 3;
+    // grid-row-end: 4;
+    // width: 100%;
+    // height: 1in;
+    
+    img {
+      width: 100%;
+      // height: 100%;
     }
   }
 }
@@ -366,20 +500,22 @@ $page-margin-right: 0.5in;
     text-transform: uppercase;
   }
 
-  // This puts "Inputs version" on the same line as the navivation menu 
+  // This puts "Inputs version" on the same line as the navigation menu 
   div.cell+p {
     margin-top: 0;
     padding: .25rem .5rem;
   }
 
-  ul {
+  > ol {list-style: none;}
+
+  ol {
     // background: #FFF;
-    list-style: none;
+    // list-style: none;
     margin: 0;
     padding-left: 0;
   }
 
-  >ul>li {
+  >ol>li {
     padding-top: 0;
     padding-bottom: 0;
   }
@@ -387,7 +523,7 @@ $page-margin-right: 0.5in;
   li {
     color: #000;
     // background: #FFF;
-    display: block;
+    // display: ;
     float: left;
     padding: .25rem 0.5rem;
     position: relative;
@@ -410,19 +546,21 @@ $page-margin-right: 0.5in;
     background: #fff;
   }
 
+  li li:hover a {color: $pale-color}
+
   // But I don't want to highlight the whole table of contents
-  >ul>li:focus-within,
-  >ul>li:hover {
+  >ol>li:focus-within,
+  >ol>li:hover {
     background-color: #FFF;
     border: 1px solid black
   }
 
-  // li:focus-within a {
-  //   outline: none;
-  // }
+  li:focus-within a {
+    outline: none;
+  }
 
-  ul li ul,
-  ul li ul li ul {
+  ol li ol,
+  ol li ol li ol {
     background: #FFF;
     visibility: hidden;
     opacity: 0;
@@ -433,12 +571,13 @@ $page-margin-right: 0.5in;
     display: none;
   }
 
-  ul li ul {
+  ol li ol {
     position: relative;
     left: 0;
+    margin-left: 1.5rem;
   }
 
-  ul li ul li ul {
+  ol li ol li ol {
     position: absolute;
     left: 100%;
     right: -105%;
@@ -446,16 +585,16 @@ $page-margin-right: 0.5in;
     border: 1px solid black;
   }
 
-  ul li:hover>ul,
-  ul li:focus-within>ul,
-  ul li ul:hover,
-  ul li ul:focus {
+  ol li:hover>ol,
+  ol li:focus-within>ol,
+  ol li ol:hover,
+  ol li ol:focus {
     visibility: visible;
     opacity: 1;
     display: block;
   }
 
-  ul li ul li {
+  ol li ol li {
     clear: both;
     width: 100%;
   }
@@ -463,17 +602,17 @@ $page-margin-right: 0.5in;
 
 // Section & Slide Counters
 .text-column {
-  h1 {
+  section.level1 {
     counter-reset: section_count;
     // counter-reset: slide_count;
   }
 
-  h2 {
+  section.level2 {
     counter-increment: section_count;
     counter-reset: slide_count;
   }
 
-  h3 {
+  section.level3 {
     counter-increment: slide_count;
   }
 
@@ -494,8 +633,8 @@ $page-margin-right: 0.5in;
 
 // HIDDEN ELEMENTS
 #title-block-header { display: none; }
-
-.setup section { display: none; }
+.setup section, .setup { display: none; }
+@media print {div.hidden {display: none;}}
 
 // Print specific; either move to above, or move above to here
 @media print {
@@ -505,6 +644,7 @@ $page-margin-right: 0.5in;
     color: black;
   }
 
+  div#cover-page h1 {string-set: city_name content(); }
   h2 {
     page-break-after: always;
     string-set: section_title content(); 
@@ -560,7 +700,7 @@ $page-margin-right: 0.5in;
     }
     
     @right-top {
-      content: "Goris, Armenia"; // This needs to be automated with string-set
+      content:  string(city_name); // "Goris, Armenia"; // This needs to be automated with string-set
       writing-mode: vertical-rl;
       text-orientation: mixed;
     }
