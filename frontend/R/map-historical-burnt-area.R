@@ -7,6 +7,7 @@ if (inherits(burnt_area, c("SpatVector", "SpatRaster"), which = F)) {
     aspect_ratio, buffer_percent = 0.05)
   plots$burnt_area <- plot_static_layer(
     burnt_area, "burnt_area",
-    static_map_bounds = burnt_extent)
+    static_map_bounds = burnt_extent,
+    plot_aoi = T)
   message("Success: Historical burnt area")
 }
