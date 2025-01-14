@@ -23,7 +23,7 @@ $topbar-height: 2rem;
 $side-padding: 1.5rem;
 
 // Print variables
-$column-gap: .25in;
+$column-gap: .125in;
 $page-margin-top: 0.5in;
 $page-margin-bottom: 0.5in;
 $page-margin-left: 0.5in;
@@ -225,7 +225,7 @@ $page-margin-right: 0.5in;
         // min-height: 7.5in;
         width: 100%;
         display: grid; // I don't think this is ever actually used, overridden by flex above somehow
-        grid-template-columns: 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr .6fr; // If we like this, switch to 5 columns, with text in 5th
         grid-column-gap: $column-gap;
         // grid-template-rows: 1fr repeat(2, min-content) minmax(.5in, max-content);
         grid-template-rows: .25in (8.5in - $page-margin-top - $page-margin-top - 0.75in) .5in ;
@@ -365,10 +365,10 @@ $page-margin-right: 0.5in;
   h3 { // Previously also applied to h3::before 
     font-size: 1.1rem;
     border-bottom: 1px solid black;
-    @media print {margin: 0}
+    @media print {font-size: 14pt; margin: 0}
   }
   h4, .pseudo-h4 {
-    font-size: 1.1rem;
+    font-size: 1.1rem; @media print {font-size: 12pt; margin: 0}
     font-weight: 500;
     opacity: 0.9;
     margin: 1.5rem 0 0.5rem 0;
@@ -380,10 +380,10 @@ $page-margin-right: 0.5in;
     font-size: 1.1rem; 
     @media print {font-size: 13pt}
   }
-  @media print { .method p {font-size: 9pt} }
+  @media print { .method p {font-size: 8pt} }
   div.footnote p {
     font-size: 0.8rem;
-    @media print {font-size: 8pt;}
+    @media print {font-size: 7pt;}
     color: $pale-color;
   }
 

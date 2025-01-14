@@ -96,4 +96,5 @@ plots_html$roads <- \(maps, show = T) {
 message(paste("Following plots not made:", paste_and(which_not(possible_layers, names(plots_html)))))
 
 # Add group ids (for leaflet layer control) for all successfully created layers
-group_ids <- map(layer_params, \(x) x$group_id) %>% keep_at(names(plots_html)) %>% unlist() %>% unname()
+group_ids <- map(layer_params, \(x) x$group_id) %>%
+  keep_at(names(plots_html)) %>% unlist() %>% unname()

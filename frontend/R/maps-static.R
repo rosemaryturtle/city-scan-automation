@@ -1,15 +1,16 @@
 # Generating City Scan Maps
-
 if ("frontend" %in% list.files()) setwd("frontend")
-source("R/setup.R", local = T)
-source("R/pre-mapping.R", local = T)
 
 # Set static map visualization parameters
 layer_alpha <- 0.7
-map_width <- 6.9
-map_height <- 5.9
+map_width <- 8.77 # Width of the map itself, excluding legend
+map_height <- 7.55
 aspect_ratio <- map_width / map_height
 map_portions <- c(7, 2) # First number is map width, second is legend width
+
+# Load libraries and pre-process rasters
+source("R/setup.R", local = T)
+source("R/pre-mapping.R", local = T)
 
 # Define map extent and zoom level
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
@@ -21,8 +22,15 @@ zoom_level <- get_zoom_level(static_map_bounds)
 plots <- list()
 
 # Plot AOI & wards -------------------------------------------------------------
-  plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards)) +
-    coord_3857_bounds(static_map_bounds, expansion = 1.5)
+plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards),
+  expansion = 1.5, aoi_stroke = list(color = "yellow", linewidth = 0.4),
+  baseplot = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg")
+# if inherits(wards, "SpatVector") {
+#   ward_labels <- site_labels(wards, simplify = F)
+#   plots$wards <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = T) +
+#     # geom_spatvector_text(data = wards, aes(label = as.numeric(str_extract(WARD_NO, "\\d*$"))))
+#     geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
+# }
 
 # Plot landmarks ---------------------------------------------------------------
 landmarks <- fuzzy_read(user_input_dir, "Landmark")
@@ -54,6 +62,7 @@ if (inherits(landmarks, "SpatVector")) {
 
 # Standard plots ---------------------------------------------------------------
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
+  discard_at(c("fluvial", "pluvial", "coastal", "combined_flooding", "burnt_area", "elevation")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch({
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
@@ -76,9 +85,9 @@ source("R/map-elevation.R", local = T) # Could be standard if we wrote city-spec
 source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
 source("R/map-flooding.R", local = T)
 source("R/map-historical-burnt-area.R", local = T)
-source("R/map-intersections.R", local = T)
 
 # Save plots -------------------------------------------------------------------
+plots %>% walk2(names(.), \(plot, name) {
   save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir,
     map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 })

@@ -78,7 +78,7 @@ tryCatch({
   writeVector(health_points, filename = file.path(spatial_dir, "health-points.gpkg"), overwrite = T)
 }, error = \(e) warning(e))
 
-wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif")
+wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif$")
 if (inherits(wsf, "SpatRaster")) {
   wsf_new <- project(wsf, "epsg:3857")
   values(wsf_new)[values(wsf_new) == 0] <- NA
@@ -86,8 +86,29 @@ if (inherits(wsf, "SpatRaster")) {
   writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
 }
 
+wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
+if (inherits(wsf_tracker, "SpatRaster")) {
+  wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
+  wsf_tracker_new <- 2016 + wsf_tracker_new/2
+  # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
+  # NAflag(wsf_tracker_new) <- NA
+  writeRaster(wsf_tracker_new, file.path(spatial_dir, "wsf-tracker-edit.tif"), overwrite = T)
+}
+
 burn <- fuzzy_read(spatial_dir, "lc_burn.tif$")
 if (inherits(burn, "SpatRaster")) {
   values(burn)[values(burn) < 0] <- NaN
   writeRaster(burn, file.path(spatial_dir, "burn-edit.tif"), overwrite = T)
+}
+
+intersection_nodes <- fuzzy_read(spatial_dir, "nodes_and_edges(?=.shp$|.gpkg$|$)", layer = "nodes")
+if (inherits(intersection_nodes, "SpatVector")) {
+  intersection_density <- density_rast(intersection_nodes, n = 200)
+  writeRaster(intersection_density, file.path(spatial_dir, "intersection-density.tif"), overwrite = T)
+}
+
+historical_fire_data <- fuzzy_read(spatial_dir, "globfire")
+if (inherits(historical_fire_data, c("SpatVector", "SpatRaster"), which = F)) {
+  historical_fire_density <- density_rast(historical_fire_data, n = 200)
+  writeRaster(historical_fire_density, file.path(spatial_dir, "burnt-area-density.tif"), overwrite = T)
 }

@@ -22,13 +22,13 @@ template:
   crop: crop domain to layer values - default of  
   # resolution or resolution_factor
 # SECTION 3 DEMOGRAPHICS
-population:
+population: # <-- We refer to this as the "YAML key" and is used to match generic and manual text
   fuzzy_string: population.*.tif$
   title: 'Population density'
   subtitle: 'Number of persons per 10,000 m<sup>2</sup>'
   palette: ['#ECEB72', '#8E3933']
   basemap: 'satellite'
-  group_id: Population density
+  group_id: Population density # <-- This is the name shown in the leaflet layer control
   bins: 5
 # SECTION 4 ECONOMIC ACTIVITY
 rwi:
@@ -41,13 +41,15 @@ rwi:
   group_id: Relative wealth index
 economic_activity:
   fuzzy_string: avg_rad_sum.*.tif$
-  title: 'Average nighttime light radiance'
+  title: Economic activity
+  subtitle: 'Average nighttime light radiance'
   group_id: Economic hotspots
   palette: ['#00a884', '#f0f0f0', '#e64c00']
   bins: 5
 economic_change:
   fuzzy_string: linfit.tif$
-  title: 'Rate of change in nighttime radiance'
+  title: Change in economic activity
+  subtitle: 'Rate of change in nighttime radiance'
   group_id: Economic change
   palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
   center: 0
@@ -55,7 +57,7 @@ economic_change:
 # SECTION 5 BUILT FORM
 wsf:
   fuzzy_string: wsf-edit.tif$
-  title: 'Year of urban expansion'
+  title: Year of urban expansion, 1985–2015
   breaks: [1985, 1986, 1996, 2006, 2015]
   # labels: ['Before 1986', '1986', '1996', '2006', '2015']
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
@@ -64,6 +66,14 @@ wsf:
   group_id: Urban extent
   # wsf_val[[city]] <- c('', 'Pre 1985', '1986-1995', '1996-2005', '2006-2015')
   # wsf_col[[city]] <- c('transparent', '#ffffbe', '#ffaa00', '#e60000', '#290800')
+wsf_tracker:
+  fuzzy_string: wsf-tracker-edit.tif$
+  title: Year of urban expansion, 2016–2024
+  breaks: [2016.5, 2017, 2019, 2021, 2023, 2024.5]
+  # labels: ['Before 1986', '1986', '1996', '2006', '2015']
+  # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
+  labels: ['Before July 2016', 'July 2016-2018', 'July 2018-2020', 'July 2020–2022', 'July 2022–2024']
+  palette: ['#FBF9CD', '#D18158', '#25115B']
 impervious:
   title: Impervious Surfaces
   min: 0
@@ -79,7 +89,7 @@ land_cover:
   breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
   labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
 intersections:
-  fuzzy_string: nodes_and_edges(?=.shp$|.gpkg$|$)
+  fuzzy_string: intersection-density.tif$
   title: Intersection Density
   subtitle: Number of intersections per 1 km^2^
   palette: ['transparent', '#9F4830']
@@ -290,7 +300,7 @@ burnable:
   labels: [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1]
   group_id: Burnable area
 burnt_area:
-  fuzzy_string: globfire
+  fuzzy_string: burnt-area-density.tif
   title: History of fire
   palette: ['#4B90C1', '#A6C19D', '#FBFA7C', '#EB9148', '#D63228']
   breaks: [0.008, 0.064, 0.216, 0.512, 1.000]

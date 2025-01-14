@@ -5,6 +5,10 @@ mnt/...
 # 01-user-inputs and 02-process-outputs. This directory is also where the
 # visualizations will be saved.
 
+# This file may be hidden from git by using
+#   git update-index --skip-worktree frontend/city-dir.txt
+# to unhide, use
+#   git update-index --no-skip-worktree frontend/city-dir.txt
+
 # IMPORTANT
 # The directory path must be on this file's first line.
-
