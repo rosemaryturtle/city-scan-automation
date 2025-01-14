@@ -40,10 +40,10 @@ function handleStepEnter(response) {
   // Set the entered section.level3 class to .is-active, turning text black
   response.element.classList.add("is-active");
   // Is this still needed?
-  $graphic.classed("is-active", function (d, i) {
-    var colorRows = [1, 3]
-    return colorRows.includes(response.index)
-  })
+  // $graphic.classed("is-active", function (d, i) {
+  //   var colorRows = [1, 3]
+  //   return colorRows.includes(response.index)
+  // })
   
   // "Click" the layer controls relevant to the entered section.level3
   // Ideally I'd find the index during build
