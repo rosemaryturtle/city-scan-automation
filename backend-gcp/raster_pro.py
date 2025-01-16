@@ -145,7 +145,7 @@ def download_raster(download_list, local_data_dir, data_bucket, data_bucket_dir)
     
     return downloaded_list
 
-def mosaic_raster(mosaic_list, local_data_dir, mosaic_file):
+def mosaic_raster(mosaic_list, local_output_dir, mosaic_file, method = 'first'):
     # mosaic or rename raster file(s) as needed
     import os
     import rasterio
@@ -153,7 +153,7 @@ def mosaic_raster(mosaic_list, local_data_dir, mosaic_file):
 
     if len(mosaic_list) > 1:
         try:
-            mosaic, output = merge(mosaic_list)
+            mosaic, output = merge(mosaic_list, method = method)
             with rasterio.open(mosaic_list[0]) as src:
                 output_meta = src.meta.copy()
             output_meta.update(
@@ -163,14 +163,14 @@ def mosaic_raster(mosaic_list, local_data_dir, mosaic_file):
                  "transform": output,
                 }
             )
-            with rasterio.open(f'{local_data_dir}/{mosaic_file}', 'w', **output_meta) as m:
+            with rasterio.open(f'{local_output_dir}/{mosaic_file}', 'w', **output_meta) as m:
                 m.write(mosaic)
         except MemoryError:
             print('MemoryError when merging raster files:')
             print(mosaic_list)
             print('Try downloading raw files from cloud storage and using GIS for merging.')
     elif len(mosaic_list) == 1:
-        os.rename(mosaic_list[0], f'{local_data_dir}/{mosaic_file}')
+        os.rename(mosaic_list[0], f'{local_output_dir}/{mosaic_file}')
 
 def reproject_raster(src_raster_path, dst_raster_path, dst_crs=None, target_raster_path=None):
     """
