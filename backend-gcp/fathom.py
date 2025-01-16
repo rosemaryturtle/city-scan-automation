@@ -1,3 +1,6 @@
+import rasterio.transform
+
+
 def set_flood_folder(local_data_dir):
     import os
 
@@ -152,9 +155,8 @@ def calculate_flood_osm_stats(osm_exists, local_output_dir, city_name_l, poi, fl
         # Function to check if a point is in a flood zone
         def is_in_flood_zone(point, flood_data, transform):
             # Convert point coordinates to row, col in raster space
-            row, col = ~transform * (point.x, point.y)
-            row, col = int(row), int(col)
-            
+            row, col = rasterio.transform.rowcol(transform, point.x, point.y)
+
             # Check if the point falls within the bounds of the raster
             if 0 <= row < flood_data.shape[0] and 0 <= col < flood_data.shape[1]:
                 # Return True if the value at that location is greater than 0 (flood zone)
