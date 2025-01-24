@@ -1,4 +1,4 @@
-def fwi(aoi_file, local_data_dir, data_bucket, fwi_first_year, fwi_last_year, fwi_source, local_output_dir, city_name_l, cloud_bucket, output_dir):
+def fwi(aoi_file, local_data_dir, data_bucket, fwi_first_year, fwi_last_year, fwi_dir, fwi_blob_prefix, local_output_dir, city_name_l, cloud_bucket, output_dir):
     print('run fwi')
     
     import os
@@ -25,12 +25,12 @@ def fwi(aoi_file, local_data_dir, data_bucket, fwi_first_year, fwi_last_year, fw
     fwi_raster_dict = {}
 
     # download FWI dataset ---------------------------
-    for blob in utils.list_blobs_with_prefix(data_bucket, f'{fwi_source}/'):
+    for blob in utils.list_blobs_with_prefix(data_bucket, f'{fwi_dir}/'):
         utils.download_blob(data_bucket, blob.name, f"{local_fwi_folder}/{blob.name.split('/')[-1]}")
 
     # clip raster and store in dict --------------------
     for year in range(fwi_first_year, fwi_last_year + 1):
-        for r in glob.glob(f"{local_fwi_folder}/FWI.GEOS-5.Daily.Default.{year}*.tif"):
+        for r in glob.glob(f"{local_fwi_folder}/{fwi_blob_prefix}{year}*.tif"):
             out_image, out_meta = raster_pro.raster_mask_file(r, features)
             
             if np.nansum(out_image) != 0:
@@ -56,8 +56,3 @@ def fwi(aoi_file, local_data_dir, data_bucket, fwi_first_year, fwi_last_year, fw
 
     week_95th.to_csv(f'{local_output_dir}/{city_name_l}_fwi.csv', index=True)
     utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_fwi.csv', f'{output_dir}/{city_name_l}_fwi.csv')
-
-    # delete data files ------------
-    for year in range(fwi_first_year, fwi_last_year + 1):
-        for r in glob.glob(f"{local_fwi_folder}/FWI.GEOS-5.Daily.Default.{year}*.tif"):
-            os.remove(r)

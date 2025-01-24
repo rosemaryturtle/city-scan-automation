@@ -96,19 +96,21 @@ def contour(city_name_l, local_output_dir, cloud_bucket, output_dir):
 
     contours = plt.contourf(elevation_data, levels=contour_levels)
 
-    # Create a list to hold all the contour polygons as shapely geometries
+    # Convert contours to Shapely geometries
     contour_polygons = []
-
-    # Iterate over all contour levels and their corresponding paths
-    for collection, level in zip(contours.collections, contour_levels):
-        for path in collection.get_paths():
-            for polygon in path.to_polygons():
-                if len(polygon) > 0:
-                    # Convert polygon coordinates from pixel space to geographic coordinates
-                    geographic_polygon = [
-                        (transform * (x, y)) for x, y in polygon
-                    ]
-                    poly = Polygon(geographic_polygon)
+    # Iterate over all contour levels and their corresponding segments
+    for level, segments in zip(contours.levels, contours.allsegs):
+        if len(segments) == 0:  # Skip levels with no segments
+            continue
+        
+        for segment in segments:  # Iterate over paths (segments) at this level
+            if len(segment) > 2:  # Ensure valid polygons with enough points
+                # Convert segment coordinates from pixel space to geographic coordinates
+                geographic_polygon = [
+                    (transform * (x, y)) for x, y in segment
+                ]
+                poly = Polygon(geographic_polygon)
+                if poly.is_valid:  # Ensure valid geometry before appending
                     contour_polygons.append((poly, float(level)))
 
     # Optionally save to a shapefile using Fiona

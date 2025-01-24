@@ -154,3 +154,12 @@ def download_blob_timed(bucket_name, source_blob_name, destination_file_name, ti
         time.sleep(attempt_interval)
     
     return False
+
+def check_dir_exists(bucket_name, dir_name):
+    """Check if a blob or directory exists in the Google Cloud Storage bucket."""
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    
+    # Check if any blobs exist with the given prefix (directory)
+    blobs = list(bucket.list_blobs(prefix=dir_name))
+    return len(blobs) > 0

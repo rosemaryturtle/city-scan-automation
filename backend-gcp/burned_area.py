@@ -1,4 +1,4 @@
-def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir):
+def burned_area(aoi_file, gf_dir, gf_blob_prefix, task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir):
     print('run burned_area')
 
     import os
@@ -28,10 +28,10 @@ def burned_area(aoi_file, gf_folder, task_index, data_bucket, local_data_dir, lo
     for year in years:
         for month in months:
             # Filter GlobFire ----------------
-            shp_names = [f'MODIS_BA_GLOBAL_1_{month}_{year}.{suf}' for suf in ['cpg', 'dbf', 'prj', 'shp', 'shx']]
+            shp_names = [f'{gf_blob_prefix}{month}_{year}.{suf}' for suf in ['cpg', 'dbf', 'prj', 'shp', 'shx']]
             for f in shp_names:
-                utils.download_blob(data_bucket, f'{gf_folder}/{f}', f'{local_gf_folder}/{f}')
-            gf_shp = gpd.read_file(f'{local_gf_folder}/MODIS_BA_GLOBAL_1_{month}_{year}.shp')
+                utils.download_blob(data_bucket, f'{gf_dir}/{f}', f'{local_gf_folder}/{f}')
+            gf_shp = gpd.read_file(f'{local_gf_folder}/{gf_blob_prefix}{month}_{year}.shp')
             gf_aoi = gf_shp[gf_shp.intersects(features)]
 
             # Find centroids ----------------

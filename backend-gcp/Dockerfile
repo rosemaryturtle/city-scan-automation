@@ -3,8 +3,8 @@ FROM python:3.10
 # Set the working directory
 WORKDIR /app
 
-# RUN apt-get update &&\
-#     apt-get install -y binutils libproj-dev gdal-bin
+RUN apt-get update &&\
+    apt-get install -y binutils libproj-dev gdal-bin
 
 # Copy the requirements.txt file and install dependencies
 COPY requirements.txt .

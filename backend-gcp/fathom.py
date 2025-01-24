@@ -37,16 +37,24 @@ def download_fathom_from_aws(download_list, aws_access_key_id, aws_secret_access
 
     return downloaded_list
 
-def apply_flood_threshold(out_image, out_meta, flood_threshold, multiplier):
+def apply_flood_threshold(out_image, out_meta, flood_threshold, prob):
     import numpy as np
 
-    out_image[out_image == out_meta['nodata']] = 0
-    out_image[out_image < flood_threshold] = 0
-    out_image[out_image >= flood_threshold] = 1
+    # Ensure out_image is a NumPy array
     out_image = np.asarray(out_image)
-    out_image = out_image * multiplier
 
-    out_meta.update({'nodata': 0})
+    # Replace nodata values with 0
+    out_image[out_image == out_meta['nodata']] = 0
+
+    # Apply flood threshold
+    out_image = np.where(out_image < flood_threshold, 0, out_image)
+    out_image = np.where(out_image >= flood_threshold, 1, out_image)
+
+    # Multiply by probability
+    out_image = out_image * prob
+
+    # Update metadata
+    out_meta.update({'nodata': 0, 'dtype': 'float32'})
 
     return out_image, out_meta
 
@@ -54,22 +62,32 @@ def composite_flood_raster(raster_arrays, out_meta, output_raster):
     import numpy as np
     import rasterio
 
-    out_image = np.squeeze(np.maximum.reduce(raster_arrays).astype(np.uint8))
-    out_meta.update(dtype = rasterio.uint8)
+    out_image = np.squeeze(np.maximum.reduce(raster_arrays)).astype(np.float32)
 
     with rasterio.open(output_raster, 'w', **out_meta) as dst:
         dst.write(out_image, 1)
 
-def calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, flood_raster):
+def check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, file_name, wait_minute=30):
     import utils
-    import raster_pro
-    import rasterio
-    import numpy as np
 
-    # download wsf evolution raster
-    if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_wsf_evolution_utm.tif", f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif', 30*60, 60):
+    if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_{file_name}", f'{local_output_dir}/{city_name_l}_{file_name}', wait_minute*60, 60):
+        return True
+    return False
+
+def conditional_assign(dictionary, key, value):
+    if value is not None:
+        dictionary[key] = value
+
+def calculate_flood_wsf_stats(wsf_exists, local_output_dir, city_name_l, flood_raster):
+    if wsf_exists:
+        import raster_pro
+        import rasterio
+        import numpy as np
+        from os.path import exists
+
         # reproject flood raster to match wsf raster grid
-        raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif')
+        if not exists(f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif'):
+            raster_pro.reproject_raster(f'{local_output_dir}/{flood_raster}', f'{local_output_dir}/{flood_raster[:-4]}_wsf.tif', target_raster_path=f'{local_output_dir}/{city_name_l}_wsf_evolution_utm.tif')
 
         # computer zonal stats
         flood_stats = {}
@@ -87,26 +105,27 @@ def calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_n
         return flood_stats
     return
 
-def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, flood_raster):
-    import utils
-    import rasterio
-    import numpy as np
-    import raster_pro
+def calculate_flood_pop_stats(pop_exists, local_output_dir, city_name_l, flood_raster):
+    if pop_exists:
+        import rasterio
+        import numpy as np
+        import raster_pro
+        from os.path import exists
 
-    # download population raster
-    if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_population.tif", f'{local_output_dir}/{city_name_l}_population.tif', 30*60, 60):
-        with rasterio.open(f'{local_output_dir}/{city_name_l}_population.tif') as pop:
-            pop_array = pop.read(1)
-            out_meta = pop.meta.copy()
-            out_meta.update({'nodata': np.nan})
-            pop_nodata = -99999
-            pop_array = np.where(pop_array == pop_nodata, np.nan, pop_array)
+        # open population raster
+        if not exists(f'{local_output_dir}/{city_name_l}_dense_population.tif'):
+            with rasterio.open(f'{local_output_dir}/{city_name_l}_population.tif') as pop:
+                pop_array = pop.read(1)
+                out_meta = pop.meta.copy()
+                out_meta.update({'nodata': np.nan})
+                pop_nodata = -99999
+                pop_array = np.where(pop_array == pop_nodata, np.nan, pop_array)
 
-            pop60 = np.nanpercentile(pop_array, 60)
-            pop_array_60 = np.where(pop_array >= pop60, 1, 0)
+                pop60 = np.nanpercentile(pop_array, 60)
+                pop_array_60 = np.where(pop_array >= pop60, 1, 0)
 
-            with rasterio.open(f'{local_output_dir}/{city_name_l}_dense_population.tif', 'w', **out_meta) as dst:
-                dst.write(pop_array_60, indexes = 1)
+                with rasterio.open(f'{local_output_dir}/{city_name_l}_dense_population.tif', 'w', **out_meta) as dst:
+                    dst.write(pop_array_60, indexes = 1)
         
         # reproject population raster to match flood raster grid
         raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_dense_population.tif', f'{local_output_dir}/{city_name_l}_dense_population_fld.tif',
@@ -123,13 +142,13 @@ def calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_n
             return exposed_pop
     return
 
-def calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, poi, flood_raster):
-    import geopandas as gpd
-    import rasterio
-    import utils
-
-    # download and load osm shapefile
-    if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_osm_{poi}.gpkg", f'{local_output_dir}/{city_name_l}_osm_{poi}.gpkg', 30*60, 60):
+def calculate_flood_osm_stats(osm_exists, local_output_dir, city_name_l, poi, flood_raster):
+    if osm_exists:
+        import geopandas as gpd
+        import rasterio
+        from rasterio.transform import rowcol
+        
+        # load osm shapefile
         osm_gdf = gpd.read_file(f'{local_output_dir}/{city_name_l}_osm_{poi}.gpkg', layer = poi)
 
         # Load the flood zone raster
@@ -140,9 +159,8 @@ def calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_n
         # Function to check if a point is in a flood zone
         def is_in_flood_zone(point, flood_data, transform):
             # Convert point coordinates to row, col in raster space
-            row, col = ~transform * (point.x, point.y)
-            row, col = int(row), int(col)
-            
+            row, col = rowcol(transform, point.x, point.y)
+
             # Check if the point falls within the bounds of the raster
             if 0 <= row < flood_data.shape[0] and 0 <= col < flood_data.shape[1]:
                 # Return True if the value at that location is greater than 0 (flood zone)
@@ -163,15 +181,13 @@ def calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_n
         return total_pois, pois_in_flood_zone, percentage_in_flood_zone
     return
 
-def calculate_flood_road_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, utm_crs, flood_raster):
-    import geopandas as gpd
-    import rasterio
-    from rasterio.features import geometry_mask
-    from shapely.geometry import LineString
-    import utils
+def calculate_flood_road_stats(road_exists, local_output_dir, city_name_l, utm_crs, flood_raster):
+    if road_exists:
+        import geopandas as gpd
+        import rasterio
+        from shapely.geometry import shape
 
-    # Step 1: Load the roads layer from the GeoPackage
-    if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_major_roads.gpkg", f'{local_output_dir}/{city_name_l}_major_roads.gpkg', 30*60, 60):
+        # Step 1: Load the roads layer from the GeoPackage
         major_roads_gdf = gpd.read_file(f'{local_output_dir}/{city_name_l}_major_roads.gpkg', layer='major_roads').to_crs(utm_crs)
 
         if major_roads_gdf.empty:
@@ -182,45 +198,155 @@ def calculate_flood_road_stats(cloud_bucket, output_dir, local_output_dir, city_
                 flood_data = src.read(1)  # Read first band (assuming single-band raster)
                 flood_transform = src.transform  # Get affine transformation
 
-            # Step 3: Function to clip a line to flood zones and calculate length
-            def clip_line_to_flood_zone(line, flood_data, transform):
-                # Convert line geometry to raster space and create a mask
-                mask = geometry_mask([line], transform=transform, invert=True, out_shape=flood_data.shape)
-                
-                # Check if any part of the line overlaps with a flood zone (value > 0)
-                if (flood_data[mask] > 0).any():
-                    # Create a polygon representing all flood zones in the raster
-                    flood_zone_mask = (flood_data > 0)
-                    flood_zone_polygons = []
-                    
-                    for shape, value in rasterio.features.shapes(flood_zone_mask.astype('uint8'), transform=transform):
-                        if value == 1:
-                            flood_zone_polygons.append(shape)
-                    
-                    # Convert polygons to GeoDataFrame for intersection
-                    flood_zones_gdf = gpd.GeoDataFrame(geometry=[LineString(p['coordinates']) for p in flood_zone_polygons], crs=major_roads_gdf.crs)
-                    
-                    # Clip the line by intersecting it with flood zones
-                    clipped_line = line.intersection(flood_zones_gdf.unary_union)
-                    
-                    # Return total length of clipped line if it intersects with any flood zone
-                    return clipped_line.length if not clipped_line.is_empty else 0
-                
-                return 0
+            # Step 3: Create a mask for the flood zones
+            flood_zone_mask = flood_data > 0
 
-            # Step 4: Apply clipping function to each major road segment and calculate total length in flood zones
-            major_roads_gdf['flood_zone_length'] = major_roads_gdf['geometry'].apply(lambda line: clip_line_to_flood_zone(line, flood_data, flood_transform))
+            # Step 4: Convert the flood zone mask to polygons
+            flood_zone_polygons = [
+                shape(geom) for geom, value in rasterio.features.shapes(flood_zone_mask.astype('uint8'), transform=flood_transform) if value == 1
+            ]
 
-            # Calculate total length of major roads and those in flood zones
+            # Step 5: Create a GeoDataFrame for the flood zones
+            flood_zones_gdf = gpd.GeoDataFrame(geometry=flood_zone_polygons, crs=utm_crs)
+
+            # Step 6: Clip the major roads to the flood zones
+            clipped_roads_gdf = gpd.overlay(major_roads_gdf, flood_zones_gdf, how='intersection')
+
+            # Step 7: Calculate the total length of major roads and those in flood zones
             total_major_road_length = major_roads_gdf.length.sum()
-            length_in_flood_zones = major_roads_gdf['flood_zone_length'].sum()
+            length_in_flood_zones = clipped_roads_gdf.length.sum()
 
             # Calculate percentage of major roads in flood zones
             percentage_in_flood_zones = (length_in_flood_zones / total_major_road_length) * 100
 
         # Return results
         return total_major_road_length, length_in_flood_zones, percentage_in_flood_zones
-    return
+    return 0, 0, 0
+
+def calculate_flood_stats(menu, flood_types, flood_years, flood_ssps, cloud_bucket, output_dir, local_output_dir, city_name_l, osm_pois, utm_crs):
+    from os.path import exists
+    import pandas as pd
+    import utils
+    import numpy as np
+
+    wsf_exists = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, 'wsf_evolution_utm.tif')
+    pop_exists = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, 'population.tif')
+    road_exists = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, 'major_roads.gpkg')
+    osm_exists = {}
+    if osm_pois is not None:
+        for poi in osm_pois:
+            osm_exists[poi] = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, f'osm_{poi}.gpkg')
+
+    flood_wsf_stats = {}
+    flood_pop_stats = {}
+    flood_osm_stats = {}
+    flood_road_stats = {}
+
+    for ft in flood_types+['comb']:
+        if menu[f'flood_{ft}']:
+            flood_wsf_stats[ft] = {}
+            flood_pop_stats[ft] = {}
+            flood_osm_stats[ft] = {}
+            flood_road_stats[ft] = {}
+            for year in flood_years:
+                flood_osm_stats[ft][year] = {}
+                if year <= 2020:
+                    if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif'):
+                        conditional_assign(flood_wsf_stats[ft], year, calculate_flood_wsf_stats(wsf_exists, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif'))
+                        conditional_assign(flood_pop_stats[ft], year, calculate_flood_pop_stats(pop_exists, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif'))
+                        conditional_assign(flood_road_stats[ft], year, calculate_flood_road_stats(road_exists, local_output_dir, city_name_l, utm_crs, f'{city_name_l}_{ft}_{year}_utm.tif'))
+                        if osm_pois is not None:
+                            for poi in osm_pois:
+                                conditional_assign(flood_osm_stats[ft][year], poi, calculate_flood_osm_stats(osm_exists.get(poi, False), local_output_dir, city_name_l, poi, f'{city_name_l}_{ft}_{year}.tif'))
+                elif year > 2020:
+                    flood_wsf_stats[ft][year] = {}
+                    flood_pop_stats[ft][year] = {}
+                    flood_road_stats[ft][year] = {}
+                    for ssp in flood_ssps:
+                        if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif'):
+                            conditional_assign(flood_wsf_stats[ft][year], ssp, calculate_flood_wsf_stats(wsf_exists, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif'))
+                            conditional_assign(flood_pop_stats[ft][year], ssp, calculate_flood_pop_stats(pop_exists, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif'))
+                            conditional_assign(flood_road_stats[ft][year], ssp, calculate_flood_road_stats(road_exists, local_output_dir, city_name_l, utm_crs, f'{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif'))
+                            flood_osm_stats[ft][year][ssp] = {}
+                            if osm_pois is not None:
+                                for poi in osm_pois:
+                                    conditional_assign(flood_osm_stats[ft][year][ssp], poi, calculate_flood_osm_stats(osm_exists.get(poi, False), local_output_dir, city_name_l, poi, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif'))
+    
+    # save flood stats as csv and upload
+    # wsf
+    rows = []
+
+    for ft in flood_wsf_stats:
+        for year in flood_wsf_stats[ft]:
+            if list(flood_wsf_stats[ft][year].values()):
+                if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
+                    for ssp in flood_wsf_stats[ft][year]:
+                        for yr in range(1985, 2016):
+                            rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
+                else:
+                    for yr in range(1985, 2016):
+                        rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
+
+    df = pd.DataFrame(rows, columns=['year', 'type', 'exposed_built_up_sqkm'])
+    df_pivot = df.pivot(index='year', columns='type', values='exposed_built_up_sqkm')
+
+    df_pivot.to_csv(f'{local_output_dir}/{city_name_l}_flood_wsf.csv')
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_wsf.csv', f'{output_dir}/{city_name_l}_flood_wsf.csv')
+
+    # pop
+    rows = []
+    
+    for ft in flood_pop_stats:
+        for year in flood_pop_stats[ft]:
+            if isinstance(flood_pop_stats[ft][year], (int, float, np.float32)):
+                rows.append([f'{ft}_{year}', flood_pop_stats[ft][year]])
+            elif isinstance(flood_pop_stats[ft][year], dict):
+                for ssp in flood_pop_stats[ft][year]:
+                    rows.append([f'{ft}_{year}_ssp{ssp}', flood_pop_stats[ft][year][ssp]])
+    
+    df = pd.DataFrame(rows, columns=['type', 'exposed_dense_pop_pct'])
+
+    df.to_csv(f'{local_output_dir}/{city_name_l}_flood_pop.csv', index=False)
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_pop.csv', f'{output_dir}/{city_name_l}_flood_pop.csv')
+
+    # osm
+    rows = []
+    
+    for ft in flood_osm_stats:
+        for year in flood_osm_stats[ft]:
+            if list(flood_osm_stats[ft][year].values()):
+                if isinstance(list(flood_osm_stats[ft][year].values())[0], dict):
+                    for ssp in flood_osm_stats[ft][year]:
+                        for poi in flood_osm_stats[ft][year][ssp]:
+                            total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][ssp][poi]
+                            rows.append([poi, f'{ft}_{year}_ssp{ssp}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
+                else:
+                    for poi in flood_osm_stats[ft][year]:
+                        total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][poi]
+                        rows.append([poi, f'{ft}_{year}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
+
+    df = pd.DataFrame(rows, columns=['poi', 'type', 'total_pois', 'pois_in_flood_zone', 'percentage_in_flood_zone'])
+
+    df.to_csv(f'{local_output_dir}/{city_name_l}_flood_osm.csv', index=False)
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_osm.csv', f'{output_dir}/{city_name_l}_flood_osm.csv')
+
+    # road
+    rows = []
+
+    for ft in flood_road_stats:
+        for year in flood_road_stats[ft]:
+            if isinstance(flood_road_stats[ft][year], tuple):
+                total_major_road_length, length_in_flood_zones, percentage_in_flood_zones = flood_road_stats[ft][year]
+                rows.append([f'{ft}_{year}', total_major_road_length, length_in_flood_zones, percentage_in_flood_zones])
+            elif isinstance(flood_road_stats[ft][year], dict):
+                for ssp in flood_road_stats[ft][year]:
+                    total_major_road_length, length_in_flood_zones, percentage_in_flood_zones = flood_road_stats[ft][year][ssp]
+                    rows.append([f'{ft}_{year}_ssp{ssp}', total_major_road_length, length_in_flood_zones, percentage_in_flood_zones])
+    
+    df = pd.DataFrame(rows, columns=['type', 'total_major_road_meter', 'meter_in_flood_zones', 'percentage_in_flood_zones'])
+
+    df.to_csv(f'{local_output_dir}/{city_name_l}_flood_road.csv', index=False)
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_road.csv', f'{output_dir}/{city_name_l}_flood_road.csv')
 
 def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws_access_key_id, aws_secret_access_key, aws_bucket, data_bucket, data_bucket_dir, local_output_dir, cloud_bucket, output_dir):
     print('run process_fathom')
@@ -228,7 +354,6 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     import raster_pro
     import numpy as np
     import utils
-    import pandas as pd
     from os.path import exists
     import rasterio
 
@@ -236,21 +361,16 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     flood_threshold = city_inputs['flood']['threshold']
     flood_years = city_inputs['flood']['year']
     flood_ssps = city_inputs['flood']['ssp']
-    flood_prob_cutoff = city_inputs['flood']['prob_cutoff']
+    flood_rps = city_inputs['flood']['return_period']
     flood_types = ['coastal', 'fluvial', 'pluvial']
     osm_pois = None
     if ('osm_query' in city_inputs) and bool(city_inputs['osm_query']):
         osm_pois = city_inputs['osm_query']
 
-    rps = [10, 100, 1000, 20, 200, 5, 50, 500]
     flood_ssp_labels = {1: '1_2.6', 2: '2_4.5', 3: '3_7.0', 5: '5_8.5'}
     flood_type_folder_dict = {'coastal': 'COASTAL-UNDEFENDED',
                               'fluvial': 'FLUVIAL-UNDEFENDED',
                               'pluvial': 'PLUVIAL-DEFENDED'}
-    if not len(flood_prob_cutoff) == 2:
-        print('exactly 2 cutoffs required for flood')
-        exit()
-    
     local_flood_folder = set_flood_folder(local_data_dir)
     
     # find relevant tiles
@@ -259,17 +379,6 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     lat_tiles = raster_pro.tile_finder(buffer_aoi, 'lat')
     lon_tiles = raster_pro.tile_finder(buffer_aoi, 'lon')
     utm_crs = aoi_file.estimate_utm_crs()
-    
-    # translate the annual probability cutoffs to bins of return periods
-    rp_multipliers = {}
-    for rp in rps:
-        annual_prob = 1/rp*100
-        if annual_prob < flood_prob_cutoff[0]:
-            rp_multipliers[rp] = 1
-        elif annual_prob >= flood_prob_cutoff[0] and annual_prob <= flood_prob_cutoff[1]:
-            rp_multipliers[rp] = 2
-        elif annual_prob > flood_prob_cutoff[1]:
-            rp_multipliers[rp] = 3
     
     flood_wsf_stats = {}
     flood_pop_stats = {}
@@ -287,7 +396,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                 flood_osm_stats[ft][year] = {}
                 if year <= 2020:
                     out_image_arrays = []
-                    for rp in rps:
+                    for rp in flood_rps:
                         download_list = []
                         for lat in lat_tiles:
                             for lon in lon_tiles:
@@ -297,7 +406,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
                             raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
                             out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
-                            out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
+                            out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, 100/rp)
                             out_image_arrays.append(out_image)
                     if out_image_arrays:
                         composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')
@@ -306,19 +415,12 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}.tif')
                         utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_utm.tif')
 
-                        flood_wsf_stats[ft][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif')
-                        flood_pop_stats[ft][year] = calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}.tif')
-                        flood_road_stats[ft][year] = calculate_flood_road_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, utm_crs, f'{city_name_l}_{ft}_{year}.tif')
-                        if osm_pois is not None:
-                            for poi in osm_pois:
-                                flood_osm_stats[ft][year][poi] = calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, poi, f'{city_name_l}_{ft}_{year}.tif')
-
                 elif year > 2020:
                     flood_pop_stats[ft][year] = {}
                     flood_road_stats[ft][year] = {}
                     for ssp in flood_ssps:
                         out_image_arrays = []
-                        for rp in rps:
+                        for rp in flood_rps:
                             download_list = []
                             for lat in lat_tiles:
                                 for lon in lon_tiles:
@@ -328,7 +430,7 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                                 mosaic_file = f"{downloaded_list[0].split('/')[3]}.tif"
                                 raster_pro.mosaic_raster(downloaded_list, local_flood_folder, mosaic_file)
                                 out_image, out_meta = raster_pro.raster_mask_file(f'{local_flood_folder}/{mosaic_file}', buffer_aoi.geometry)
-                                out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, rp_multipliers[rp])
+                                out_image, out_meta = apply_flood_threshold(out_image, out_meta, flood_threshold, 100/rp)
                                 out_image_arrays.append(out_image)
                         if out_image_arrays:
                             composite_flood_raster(out_image_arrays, out_meta, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
@@ -337,142 +439,25 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
                             utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}_utm.tif')
                             
-                            flood_wsf_stats[ft][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
-                            flood_pop_stats[ft][year][ssp] = calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
-                            flood_road_stats[ft][year][ssp] = calculate_flood_road_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, utm_crs, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
-                            flood_osm_stats[ft][year][ssp] = {}
-                            if osm_pois is not None:
-                                for poi in osm_pois:
-                                    flood_osm_stats[ft][year][ssp][poi] = calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, poi, f'{city_name_l}_{ft}_{year}_ssp{ssp}.tif')
+    if menu['flood_comb']:
+        for year in flood_years:
+            if year <= 2020:
+                comb_list = [f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif' for ft in flood_types if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif')]
+                if comb_list:
+                    raster_pro.mosaic_raster(comb_list, local_output_dir, f'{city_name_l}_comb_{year}.tif', method='max')
+                    raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_comb_{year}.tif', f'{local_output_dir}/{city_name_l}_comb_{year}_utm.tif', dst_crs=utm_crs)
 
-    # combine flood raster of different types
-    flood_wsf_stats['comb'] = {}
-    flood_pop_stats['comb'] = {}
-    flood_osm_stats['comb'] = {}
-    flood_road_stats['comb'] = {}
+                    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}.tif', f'{output_dir}/{city_name_l}_comb_{year}.tif')
+                    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_utm.tif', f'{output_dir}/{city_name_l}_comb_{year}_utm.tif')
 
-    for year in flood_years:
-        flood_osm_stats['comb'][year] = {}
-        if year <= 2020:
-            comb_array = []
-            for ft in flood_types:
-                if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif'):
-                    with rasterio.open(f'{local_output_dir}/{city_name_l}_{ft}_{year}.tif') as src:
-                        comb_array.append(src.read(1))
-                        out_meta = src.meta.copy()
-            if comb_array:
-                composite_flood_raster(comb_array, out_meta, f'{local_output_dir}/{city_name_l}_comb_{year}.tif')
-                raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_comb_{year}.tif', f'{local_output_dir}/{city_name_l}_comb_{year}_utm.tif', dst_crs=utm_crs)
-
-                utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}.tif', f'{output_dir}/{city_name_l}_comb_{year}.tif')
-                utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_utm.tif', f'{output_dir}/{city_name_l}_comb_{year}_utm.tif')
-
-                flood_wsf_stats['comb'][year] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_comb_{year}.tif')
-                flood_pop_stats['comb'][year] = calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_comb_{year}.tif')
-                flood_road_stats['comb'][year] = calculate_flood_road_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, utm_crs, f'{city_name_l}_comb_{year}.tif')
-                if osm_pois is not None:
-                    for poi in osm_pois:
-                        flood_osm_stats['comb'][year][poi] = calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, poi, f'{city_name_l}_comb_{year}.tif')
-        elif year > 2020:
-            flood_wsf_stats['comb'][year] = {}
-            flood_pop_stats['comb'][year] = {}
-            flood_road_stats['comb'][year] = {}
-            for ssp in flood_ssps:
-                comb_array = []
-                for ft in flood_types:
-                    if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif'):
-                        with rasterio.open(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif') as src:
-                            comb_array.append(src.read(1))
-                            out_meta = src.meta.copy()
-                if comb_array:
-                    composite_flood_raster(comb_array, out_meta, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif')
-                    raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif', f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}_utm.tif', dst_crs=utm_crs)
-
-                    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif', f'{output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif')
-                    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_comb_{year}_ssp{ssp}_utm.tif')
-
-                    flood_wsf_stats['comb'][year][ssp] = calculate_flood_wsf_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_comb_{year}_ssp{ssp}.tif')
-                    flood_pop_stats['comb'][year][ssp] = calculate_flood_pop_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, f'{city_name_l}_comb_{year}_ssp{ssp}.tif')
-                    flood_road_stats['comb'][year][ssp] = calculate_flood_road_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, utm_crs, f'{city_name_l}_comb_{year}_ssp{ssp}.tif')
-                    flood_osm_stats['comb'][year][ssp] = {}
-                    if osm_pois is not None:
-                        for poi in osm_pois:
-                            flood_osm_stats['comb'][year][ssp][poi] = calculate_flood_osm_stats(cloud_bucket, output_dir, local_output_dir, city_name_l, poi, f'{city_name_l}_comb_{year}_ssp{ssp}.tif')
-    
-    # save flood stats as csv and upload
-    # wsf
-    rows = []
-
-    for ft in flood_wsf_stats:
-        for year in flood_wsf_stats[ft]:
-            if list(flood_wsf_stats[ft][year].values()):
-                if isinstance(list(flood_wsf_stats[ft][year].values())[0], dict):
-                    for ssp in flood_ssps:
-                        for yr in range(1985, 2016):
-                            rows.append([yr, f'{ft}_{year}_ssp{ssp}', flood_wsf_stats[ft][year][ssp][yr]])
-                else:
-                    for yr in range(1985, 2016):
-                        rows.append([yr, f'{ft}_{year}', flood_wsf_stats[ft][year][yr]])
-
-    df = pd.DataFrame(rows, columns=['year', 'type', 'exposed_built_up_sqkm'])
-    df_pivot = df.pivot(index='year', columns='type', values='exposed_built_up_sqkm')
-
-    df_pivot.to_csv(f'{local_output_dir}/{city_name_l}_flood_wsf.csv')
-    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_wsf.csv', f'{output_dir}/{city_name_l}_flood_wsf.csv')
-
-    # pop
-    rows = []
-
-    for ft in flood_pop_stats:
-        for year in flood_pop_stats[ft]:
-            if isinstance(flood_pop_stats[ft][year], (int, float)):
-                rows.append([f'{ft}_{year}', flood_pop_stats[ft][year]])
-            elif isinstance(flood_pop_stats[ft][year], dict):
+            elif year > 2020:
                 for ssp in flood_ssps:
-                    rows.append([f'{ft}_{year}_ssp{ssp}', flood_pop_stats[ft][year][ssp]])
-    
-    df = pd.DataFrame(rows, columns=['type', 'exposed_dense_pop_pct'])
+                    comb_list = [f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif' for ft in flood_types if exists(f'{local_output_dir}/{city_name_l}_{ft}_{year}_ssp{ssp}.tif')]
+                    if comb_list:
+                        raster_pro.mosaic_raster(comb_list, local_output_dir, f'{city_name_l}_comb_{year}_ssp{ssp}.tif', method='max')
+                        raster_pro.reproject_raster(f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif', f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}_utm.tif', dst_crs=utm_crs)
 
-    df.to_csv(f'{local_output_dir}/{city_name_l}_flood_pop.csv', index=False)
-    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_pop.csv', f'{output_dir}/{city_name_l}_flood_pop.csv')
+                        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif', f'{output_dir}/{city_name_l}_comb_{year}_ssp{ssp}.tif')
+                        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_comb_{year}_ssp{ssp}_utm.tif', f'{output_dir}/{city_name_l}_comb_{year}_ssp{ssp}_utm.tif')
 
-    # osm
-    rows = []
-    
-    for ft in flood_osm_stats:
-        for year in flood_osm_stats[ft]:
-            if list(flood_osm_stats[ft][year].values()):
-                if isinstance(list(flood_osm_stats[ft][year].values())[0], dict):
-                    for ssp in flood_ssps:
-                        for poi in flood_osm_stats[ft][year][ssp]:
-                            if flood_osm_stats[ft][year][ssp][poi] is not None:
-                                total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][ssp][poi]
-                                rows.append([poi, f'{ft}_{year}_ssp{ssp}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
-                else:
-                    for poi in flood_osm_stats[ft][year]:
-                        if flood_osm_stats[ft][year][poi] is not None:
-                            total_pois, pois_in_flood_zone, percentage_in_flood_zone = flood_osm_stats[ft][year][poi]
-                            rows.append([poi, f'{ft}_{year}', total_pois, pois_in_flood_zone, percentage_in_flood_zone])
-
-    df = pd.DataFrame(rows, columns=['poi', 'type', 'total_pois', 'pois_in_flood_zone', 'percentage_in_flood_zone'])
-
-    df.to_csv(f'{local_output_dir}/{city_name_l}_flood_osm.csv', index=False)
-    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_osm.csv', f'{output_dir}/{city_name_l}_flood_osm.csv')
-
-    # road
-    rows = []
-
-    for ft in flood_road_stats:
-        for year in flood_road_stats[ft]:
-            if isinstance(flood_road_stats[ft][year], tuple):
-                total_major_road_length, length_in_flood_zones, percentage_in_flood_zones = flood_road_stats[ft][year]
-                rows.append([f'{ft}_{year}', total_major_road_length, length_in_flood_zones, percentage_in_flood_zones])
-            elif isinstance(flood_road_stats[ft][year], dict):
-                for ssp in flood_ssps:
-                    total_major_road_length, length_in_flood_zones, percentage_in_flood_zones = flood_road_stats[ft][year][ssp]
-                    rows.append([f'{ft}_{year}_ssp{ssp}', total_major_road_length, length_in_flood_zones, percentage_in_flood_zones])
-    
-    df = pd.DataFrame(rows, columns=['type', 'total_major_road_meter', 'meter_in_flood_zones', 'percentage_in_flood_zones'])
-
-    df.to_csv(f'{local_output_dir}/{city_name_l}_flood_road.csv', index=False)
-    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_flood_road.csv', f'{output_dir}/{city_name_l}_flood_road.csv')
+    calculate_flood_stats(menu, flood_types, flood_years, flood_ssps, cloud_bucket, output_dir, local_output_dir, city_name_l, osm_pois, utm_crs)
