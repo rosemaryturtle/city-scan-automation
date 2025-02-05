@@ -3,6 +3,9 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: ['-c', 'docker pull us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nalgene:latest || exit 0']
+  id: 'pull'
+  waitFor: ['-']  # Start immediately
+
 # Docker Build
 - name: 'gcr.io/cloud-builders/docker'
   args: [
@@ -11,8 +14,16 @@ steps:
             '--cache-from', 'us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nalgene:latest',
             '.'
         ]
+  id: 'build'
+  waitFor: ['pull']
+  timeout: '1200s'  # 20 minute timeout
+
 # Docker Push (see https://cloud.google.com/build/docs/configuring-builds/create-basic-configuration)
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/nalgene']
+  id: 'push'
+  waitFor: ['build']
+
 # This may be the same as docker push above
-# images: ['us-central1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/nalgene:latest']
+# images: ['us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/nalgene:latest']
+timeout: '3600s'  # 30 minute total pipeline timeout
