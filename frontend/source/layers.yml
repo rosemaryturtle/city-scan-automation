@@ -305,6 +305,7 @@ burnt_area:
   palette: ['#4B90C1', '#A6C19D', '#FBFA7C', '#EB9148', '#D63228']
   breaks: [0.008, 0.064, 0.216, 0.512, 1.000]
   labels: ['Lowest', 'Low', 'Medium', 'High', 'Highest']
+  group_id: History of fire
 drought:
   fuzzy_string: ndmi_season.*.tif$
   title: NDMI
