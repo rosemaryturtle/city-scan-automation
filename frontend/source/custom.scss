@@ -19,7 +19,6 @@
 $presentation-font-size-root: 11pt;
 $font-size-root: 11pt;
 $pale-color: #5a6570;
-$topbar-height: 2rem;
 $side-padding: 1.5rem;
 
 // Print variables
@@ -400,9 +399,9 @@ $page-margin-right: 0.5in;
     grid-column: 2 / 3;
     grid-row: 3 / 4;
     // position: sticky;
-    // top: calc($topbar-height - 100vh);
+    // top: calc(var(--topbar-height) - 100vh);
     min-height: calc(100vh - var(--topbar-height));
-    margin-bottom: calc($topbar-height/2); // Not quite sure why this is half and not fully topbar-height
+    margin-bottom: calc(var(--topbar-height)/2); // Not quite sure why this is half and not fully topbar-height
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: 10px 10px;
   
@@ -455,7 +454,7 @@ $page-margin-right: 0.5in;
   // TOP BAR 
   .topbar {
     width: 100%;
-    height: $topbar-height;
+    height: var(--topbar-height);
     background-color: white;
     display: grid;
     grid-template-columns: 2fr 2.5fr 1.5fr;
