@@ -3,6 +3,7 @@ import yaml
 import utils
 import geopandas as gpd
 from datetime import datetime as dt
+import aoi_helper
 
 ########################################################
 # CONFIGS ##############################################
@@ -31,19 +32,35 @@ utils.download_blob(cloud_bucket, f"{input_dir}/city_inputs.yml", 'city_inputs.y
 utils.download_blob(cloud_bucket, f"{input_dir}/global_inputs.yml", 'global_inputs.yml')
 utils.download_blob(cloud_bucket, f"{input_dir}/menu.yml", 'menu.yml')
 
-# Download the AOI and get city name
-print('Download the AOI and get city name')
-with open('city_inputs.yml', 'r') as f:
-    city_inputs = yaml.safe_load(f)
-downloaded_aoi = utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_shp_name'], local_aoi_dir)
-aoi_file = gpd.read_file(f"{local_aoi_dir}/{city_inputs['AOI_shp_name']}.shp").to_crs(epsg = 4326)
-features = aoi_file.geometry
-city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
-
 # Load global inputs, such as data sources that generally remain the same across scans
 print('Load global inputs')
 with open("global_inputs.yml", 'r') as f:
     global_inputs = yaml.safe_load(f)
+
+# Download the AOI and get city name
+print('Download the AOI and get city name')
+with open('city_inputs.yml', 'r') as f:
+    city_inputs = yaml.safe_load(f)
+
+city_name = city_inputs['city_name']
+city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
+
+if city_inputs.get('AOI_shp_name', None):
+    downloaded_aoi = utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_shp_name'], local_aoi_dir)
+    aoi_file = gpd.read_file(f"{local_aoi_dir}/{city_inputs['AOI_shp_name']}.shp").to_crs(epsg = 4326)
+else:
+    if not os.path.exists(f"{local_aoi_dir}/{city_name_l}.shp"):
+        ucdb_gpkg = "ucdb.gpkg"
+        utils.download_blob(data_bucket, global_inputs['ucdb_blob'], ucdb_gpkg, check_exists=True)
+        
+        city_boundary_gdf = aoi_helper.get_city_boundary(city_name, ucdb_gpkg, data_bucket, global_inputs, local_data_dir)
+        aoi_helper.save_to_shp(city_boundary_gdf, f"{local_aoi_dir}/{city_name_l}.shp")
+
+        print(f"Boundary successfully saved for {city_name}.")
+
+        aoi_file = gpd.read_file(f"{local_aoi_dir}/{city_name_l}.shp")
+
+features = aoi_file.geometry
 
 # Load menu
 print('Load menu')
@@ -51,20 +68,7 @@ with open('menu.yml', 'r') as f:
     menu = yaml.safe_load(f)
 
 # Checks country based on which country aoi_file overlaps with the most
-# Load global countries shapefile
-for blob in utils.list_blobs_with_prefix(data_bucket, f"{global_inputs['countries_shp_dir']}/{global_inputs['countries_shp_blob']}"):
-    utils.download_blob(data_bucket, blob.name, f"{local_data_dir}/{blob.name.split('/')[-1]}")
-countries = gpd.read_file(f"{local_data_dir}/{global_inputs['countries_shp_blob']}.shp")
-# Perform spatial join to find intersections
-intersection = gpd.overlay(aoi_file, countries, how='intersection')
-# Calculate the area of each intersection
-intersection['area'] = intersection.geometry.area
-# Find the country with the largest intersection area
-max_area_country = intersection.loc[intersection['area'].idxmax()]
-# Get the ISO3 code and name of the country with the largest intersection area
-country_iso3 = max_area_country['ISO_A3']
-country_name = max_area_country['NAME_EN']
-country_name_l = country_name.replace(' ', '_').replace("'", "").lower()
+country_iso3, country_name, country_name_l = aoi_helper.find_country(data_bucket, global_inputs, local_data_dir, aoi_file = aoi_file)
 
 # Update directories and make a copy of city inputs and menu in city-specific directory
 if city_inputs.get('prev_run_date', None) is not None:
@@ -79,7 +83,9 @@ input_dir = f'{city_dir}/{input_dir}'
 output_dir = f'{city_dir}/{output_dir}'
 utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', output = False)
 utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', output = False)
-for f in downloaded_aoi:
+
+aoi_files = [f for f in os.listdir(local_aoi_dir) if os.path.isfile(os.path.join(local_aoi_dir, f))]
+for f in aoi_files:
     utils.upload_blob(cloud_bucket, f, f"{input_dir}/AOI/{f.split('/')[-1]}", output = False, check_exists=True)
 
 
