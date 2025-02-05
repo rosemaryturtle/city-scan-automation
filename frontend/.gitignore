@@ -19,6 +19,7 @@ styled-maps
 rosm.cache/
 .Rproj.user
 index_cache
+pdf_cache
 .sass-cache
 source/custom.css*
 spatial-statistics
@@ -27,3 +28,5 @@ alternative-index-files
 auto-index.qmd
 \#*
 _publish.yml
+/.quarto/
+.Renviron

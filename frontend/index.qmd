@@ -25,10 +25,12 @@ title: "`r paste(city, country, sep = ', ')`"
 
 ```{r}
 #| label: get-text
-city_text <- read_md(file.path(user_input_dir, "text-files/manual-text.md"))
+city_text_file <- file.path(user_input_dir, "text-files/manual-text.md")
+city_text <- if (file.exists(city_text_file)) read_md(city_text_file) else NULL
 generic_text <- read_yaml("source/generic-text.yml") %>% rapply(double_space, how = "replace") # Do I only want this for print?
 slide_texts <- merge_lists(city_text, generic_text)
-slide_texts <- unlist(slide_texts, recursive = F) %>% setNames(str_extract(names(.), "\\.(.*)$", group = T))
+slide_texts <- unlist(slide_texts, recursive = F) %>%
+  setNames(str_extract(names(.), "\\.(.*)$", group = T))
 ```
 
 :::
