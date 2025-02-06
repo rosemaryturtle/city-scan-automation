@@ -67,12 +67,14 @@ def composite_flood_raster(raster_arrays, out_meta, output_raster):
     with rasterio.open(output_raster, 'w', **out_meta) as dst:
         dst.write(out_image, 1)
 
-def check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, file_name, wait_minute=30):
+def check_asset_exists(menu, menu_item, cloud_bucket, output_dir, local_output_dir, city_name_l, file_name, wait_minute=30):
     import utils
 
-    if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_{file_name}", f'{local_output_dir}/{city_name_l}_{file_name}', wait_minute*60, 60):
-        return True
-    return False
+    if menu[menu_item]:
+        if utils.download_blob_timed(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_{file_name}", f'{local_output_dir}/{city_name_l}_{file_name}', wait_minute*60, 60):
+            return True
+    else:
+        return utils.download_blob(cloud_bucket, f"{output_dir}/spatial/{city_name_l}_{file_name}", f'{local_output_dir}/{city_name_l}_{file_name}')
 
 def conditional_assign(dictionary, key, value):
     if value is not None:
@@ -229,13 +231,13 @@ def calculate_flood_stats(menu, flood_types, flood_years, flood_ssps, cloud_buck
     import utils
     import numpy as np
 
-    wsf_exists = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, 'wsf_evolution_utm.tif')
-    pop_exists = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, 'population.tif')
-    road_exists = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, 'major_roads.gpkg')
+    wsf_exists = check_asset_exists(menu, 'wsf', cloud_bucket, output_dir, local_output_dir, city_name_l, 'wsf_evolution_utm.tif')
+    pop_exists = check_asset_exists(menu, 'population', cloud_bucket, output_dir, local_output_dir, city_name_l, 'population.tif')
+    road_exists = check_asset_exists(menu, 'road_network', cloud_bucket, output_dir, local_output_dir, city_name_l, 'major_roads.gpkg')
     osm_exists = {}
     if osm_pois is not None:
         for poi in osm_pois:
-            osm_exists[poi] = check_asset_exists(cloud_bucket, output_dir, local_output_dir, city_name_l, f'osm_{poi}.gpkg')
+            osm_exists[poi] = check_asset_exists(menu, 'accessibility', cloud_bucket, output_dir, local_output_dir, city_name_l, f'osm_{poi}.gpkg')
 
     flood_wsf_stats = {}
     flood_pop_stats = {}
