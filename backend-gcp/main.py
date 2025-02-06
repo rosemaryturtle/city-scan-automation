@@ -7,6 +7,7 @@ import aoi_helper
 from google.cloud import firestore
 from google.cloud import run_v2
 import logging
+import time
 
 ########################################################
 # CONFIGS ##############################################
@@ -286,36 +287,37 @@ def main():
                     del raster_bytes
                     gc.collect()
         elif task_index == 16:
+            import gee_fun
+            gee_outputs = []
+
             if menu['forest']:  # processing time (all GEE): 1m
-                import gee_fun
-                gee_fun.gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir)
+                gee_outputs += gee_fun.gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir)
 
             if menu['green']:
-                import gee_fun
-                gee_fun.gee_ndxi(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, index_type = 'ndvi')
+                gee_outputs += gee_fun.gee_ndxi(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, index_type = 'ndvi')
 
             if menu['landcover']:
-                import gee_fun
-                gee_fun.gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_dir)
+                gee_outputs += gee_fun.gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_dir)
                 utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_lc.csv", f'{output_dir}/{city_name_l}_lc.csv')
 
             if menu['lst_summer']:
-                import gee_fun
-                gee_fun.gee_lst(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, season = 'summer')
+                gee_outputs += gee_fun.gee_lst(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, season = 'summer')
 
             if menu['lst_winter']:
-                import gee_fun
-                gee_fun.gee_lst(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, season = 'winter')
+                gee_outputs += gee_fun.gee_lst(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, season = 'winter')
 
             if menu['ndmi']:
-                import gee_fun
-                gee_fun.gee_ndxi(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, index_type = 'ndmi')
+                gee_outputs += gee_fun.gee_ndxi(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, index_type = 'ndmi')
 
             if menu['nightlight']:
-                import gee_fun
-                gee_fun.gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir)
+                gee_outputs += gee_fun.gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir)
             
-            # TODO: Check outputs exist before closing task
+            for blob in gee_outputs:
+                # Check every blob exists and only move on to the next blob if the current blob exists
+                while not utils.check_blob_exists(cloud_bucket, blob):
+                    time.sleep(60)
+            print('All GEE outputs are ready.')
+            
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 
         # Update completion counter
