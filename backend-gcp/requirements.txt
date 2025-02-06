@@ -17,3 +17,5 @@ scipy==1.11.2
 xarray==2023.8.0
 fiona==1.9.4
 geopy==2.4.1
+google-cloud-firestore==2.20.0
+google-cloud-run==0.10.14
