@@ -4,6 +4,7 @@ cloud:
   bucket: 'crp-city-scan'
   input_dir: '01-user-input'
   output_dir: '02-process-output'
+  render_dir: '03-render-output'
 
 # container directories
 local:

@@ -30,7 +30,7 @@ def download_fathom_from_aws(download_list, aws_access_key_id, aws_secret_access
             try:
                 for obj in bucket.objects.filter(Prefix = f):
                     bucket.download_file(obj.key, f'{local_flood_folder}/{f[7:]}')
-                if utils.upload_blob(data_bucket, f'{local_flood_folder}/{f[7:]}', f'{data_bucket_dir}/{f[7:]}', output=False):
+                if utils.upload_blob(data_bucket, f'{local_flood_folder}/{f[7:]}', f'{data_bucket_dir}/{f[7:]}', type = 'data'):
                     downloaded_list.append(f'{local_flood_folder}/{f[7:]}')
             except Exception as e:
                 print(f'{f} download exception: {e}')

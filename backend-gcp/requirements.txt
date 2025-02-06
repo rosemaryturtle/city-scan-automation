@@ -19,3 +19,5 @@ fiona==1.9.4
 geopy==2.4.1
 google-cloud-firestore==2.20.0
 google-cloud-run==0.10.14
+seaborn==0.12.2
+plotly==5.17.0

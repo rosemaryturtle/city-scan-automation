@@ -17,24 +17,46 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def trigger_job2(project_id, region, job2_name, execution_id):
-    """Trigger job2 with error handling"""
-    try:
-        client = run_v2.JobsClient()
-        request = {
-            "name": f"projects/{project_id}/locations/{region}/jobs/{job2_name}",
-            "override_environment_vars": {
-                "PARENT_EXECUTION_ID": execution_id
-            }
-        }
-        operation = client.run_job(request=request)
-        logger.info(f"Successfully triggered job2: {job2_name}")
-        return True
-    except Exception as e:
-        logger.error(f"Failed to trigger job2: {e}")
-        return False
+def trigger_job2(project_id, region, job2_name, execution_id, GCS_CITY_DIR):
+    # Create a client
+    client = run_v2.JobsClient()
 
-def update_completion_counter(counter_ref, task_count, db):
+    # Define the job name
+    job_name = f"projects/{project_id}/locations/{region}/jobs/{job2_name}"
+    # job_name = "projects/YOUR_PROJECT_ID/locations/YOUR_LOCATION/jobs/YOUR_JOB_NAME"
+
+    # Define environment variable overrides
+    env_vars = [
+        run_v2.EnvVar(name="PARENT_EXECUTION_ID", value=execution_id),
+        run_v2.EnvVar(name="GCS_CITY_DIR", value=GCS_CITY_DIR)
+    ]
+
+    # Create container overrides
+    container_override = run_v2.RunJobRequest.Overrides.ContainerOverride(
+        env=env_vars
+    )
+
+    # Create the overrides object
+    overrides = run_v2.RunJobRequest.Overrides(
+        container_overrides=[container_override]
+    )
+
+    # Construct the request
+    request = run_v2.RunJobRequest(
+        name=job_name,
+        overrides=overrides,
+    )
+
+    try:
+        # Execute the job
+        operation = client.run_job(request=request)
+        print(f"Successfully triggered job2: {job2_name}")
+        response = operation.result()  # Wait for the operation to complete
+        print(f"Job executed successfully: {response}")
+    except Exception as e:
+        print(f"Failed to execute job: {e}")
+
+def update_completion_counter(counter_ref, db):
     """Update completion counter with transaction and return completion status"""
     @firestore.transactional
     def update_counter(transaction, ref):
@@ -51,17 +73,6 @@ def update_completion_counter(counter_ref, task_count, db):
         
         transaction.update(ref, {'count': current + 1})
         return current + 1
-    # def update_counter(transaction, ref):
-    #     snapshot = ref.get(transaction=transaction)
-    #     if not snapshot.exists:
-    #         transaction.set(ref, {
-    #             'count': 1,
-    #             'task_count': task_count
-    #         })
-    #         return 1
-    #     current = snapshot.get('count', 0)
-    #     transaction.update(ref, {'count': current + 1})
-    #     return current + 1
 
     transaction = db.transaction()
     return update_counter(transaction, counter_ref)
@@ -94,6 +105,7 @@ def main():
         data_bucket = config['cloud']['data_bucket']
         input_dir = config['cloud']['input_dir']
         output_dir = config['cloud']['output_dir']
+        render_dir = config['cloud']['render_dir']
         local_aoi_dir = config['local']['aoi_dir']
         local_data_dir = config['local']['data_dir']
         local_output_dir = config['local']['output_dir']
@@ -119,7 +131,7 @@ def main():
             city_inputs = yaml.safe_load(f)
 
         city_name = city_inputs['city_name']
-        city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", "").lower()
+        city_name_l = city_name.replace(' ', '_').replace("'", "").lower()
 
         if city_inputs.get('AOI_shp_name', None):
             utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_shp_name'], local_aoi_dir)
@@ -157,12 +169,22 @@ def main():
             city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
         input_dir = f'{city_dir}/{input_dir}'
         output_dir = f'{city_dir}/{output_dir}'
-        utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', output = False)
-        utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', output = False)
+        render_dir = f'{city_dir}/{render_dir}'
+        utils.upload_blob(cloud_bucket, 'city_inputs.yml', f'{input_dir}/city_inputs.yml', type='input')
+        utils.upload_blob(cloud_bucket, 'menu.yml', f'{input_dir}/menu.yml', type='input')
 
         aoi_files = [f for f in os.listdir(local_aoi_dir) if os.path.isfile(os.path.join(local_aoi_dir, f))]
         for f in aoi_files:
-            utils.upload_blob(cloud_bucket, f"{local_aoi_dir}/{f}", f"{input_dir}/AOI/{f}", output = False, check_exists=True)
+            utils.upload_blob(cloud_bucket, f"{local_aoi_dir}/{f}", f"{input_dir}/AOI/{f}", type='input', check_exists=True)
+
+        # Configure plot fonts
+        font_dict = {
+            'family': 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, '
+                    '"Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", '
+                    '"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+            'size': 12,  
+            'color': 'black'  
+        }
 
 
         ########################################################
@@ -178,39 +200,9 @@ def main():
                 burned_area.burned_area(aoi_file, global_inputs['burned_area_dir'], global_inputs['burned_area_blob_prefix'], task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir)
         elif task_index == 6:
             if menu['demographics']:  # processing time: 19m
-                import raster_pro
-                import requests
-
-                local_demo_folder = f'{local_data_dir}/demographics'
-                os.makedirs(local_demo_folder, exist_ok=True)
-
-                wp_file_json = requests.get(f"https://www.worldpop.org/rest/data/age_structures/ascic_2020?iso3={country_iso3}").json()
-                wp_file_list = wp_file_json['data'][0]['files']
-
-                raster_pro.download_raster(wp_file_list, local_demo_folder, data_bucket, data_bucket_dir='WorldPop age structures')
-
-                sexes = ['f', 'm']
-
-                with open(f'{local_output_dir}/{city_name_l}_demographics.csv', 'w') as f:
-                    f.write('age_group,sex,population\n')
-
-                    for i in [1] + list(range(0, 85, 5)):
-                        for s in sexes:
-                            out_image, out_meta = raster_pro.raster_mask_file(f'{local_demo_folder}/{country_iso3.lower()}_{s}_{i}_2020_constrained.tif', features)
-                            out_image[out_image == out_meta['nodata']] = 0
-
-                            if i == 0:
-                                age_group_label = '0-1'
-                            elif i == 1:
-                                age_group_label = '1-4'
-                            elif i == 80:
-                                age_group_label = '80+'
-                            else:
-                                age_group_label = f'{i}-{i+4}'
-                            
-                            f.write('%s,%s,%s\n' % (age_group_label, s, sum(sum(sum(out_image)))))
-                
-                utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_demographics.csv', f'{output_dir}/{city_name_l}_demographics.csv')
+                import demographics
+                demographics.demographics(local_data_dir, local_output_dir, data_bucket, cloud_bucket, city_name_l, country_iso3, features, output_dir)
+                demographics.demo_plot(city_name, city_name_l, render_dir, font_dict, local_output_dir, cloud_bucket, output_dir)
         elif task_index == 7:
             if menu['population']:  # processing time: 20s
                 import raster_pro
@@ -321,13 +313,13 @@ def main():
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 
         # Update completion counter
-        completed_tasks = update_completion_counter(counter_ref, task_count, db)
+        completed_tasks = update_completion_counter(counter_ref, db)
         logger.info(f"Task {task_index} completed. Total completed: {completed_tasks}/{task_count}")
 
         # If all tasks are done, trigger job2
         if completed_tasks == task_count:
             logger.info("All tasks completed. Triggering job2...")
-            if trigger_job2(project_id, region, job2_name, execution_id):
+            if trigger_job2(project_id, region, job2_name, execution_id, city_dir):
                 logger.info("Job2 triggered successfully")
             else:
                 logger.error("Failed to trigger job2")
