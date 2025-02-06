@@ -181,6 +181,8 @@ def gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_
                                                         'noData': no_data_val
                                                     }})
     task0.start()
+    
+    return [f"{output_dir}/spatial/{city_name_l}_lc.tif"]
 
 def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
     print('run gee_elevation')
@@ -227,6 +229,8 @@ def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
                                                         'noData': no_data_val
                                                     }})
     task1.start()
+
+    return [f"{output_dir}/spatial/{city_name_l}_elevation.tif", f"{output_dir}/spatial/{city_name_l}_elevation_buf.tif"]
 
 def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
     print('run gee_forest')
@@ -275,6 +279,8 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
                                                     }})
     task1.start()
 
+    return [f"{output_dir}/spatial/{city_name_l}_forest_cover23.tif", f"{output_dir}/spatial/{city_name_l}_deforestation.tif"]
+
 def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data_bucket, cloud_bucket, output_dir, season):
     print('run gee_lst')
     
@@ -320,6 +326,8 @@ def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data
         }
     })
     task.start()
+
+    return [f"{output_dir}/spatial/{city_name_l}_{season}.tif"]
 
 def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, data_bucket, cloud_bucket, output_dir, index_type):
     print(f'run gee_{index_type}')
@@ -377,6 +385,8 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         }
     })
     task.start()
+
+    return [f"{output_dir}/spatial/{city_name_l}_{index_type}_season.tif"]
 
 def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
     print('run gee_nightlight')
@@ -437,3 +447,5 @@ def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
         }
     })
     task1.start()
+
+    return [f"{output_dir}/spatial/{city_name_l}_linfit.tif", f"{output_dir}/spatial/{city_name_l}_avg_rad_sum.tif"]

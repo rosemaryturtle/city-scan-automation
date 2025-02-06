@@ -2,6 +2,13 @@ import os
 from google.cloud import storage
 from os.path import exists
 
+def check_blob_exists(bucket_name, blob_name):
+    """Check if a blob exists in the Google Cloud Storage bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    return blob.exists()
+
 def download_blob(bucket_name, source_blob_name, destination_file_name, check_exists = False):
     """Downloads a blob from the bucket."""
     if check_exists:
