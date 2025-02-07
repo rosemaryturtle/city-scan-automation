@@ -61,8 +61,26 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name, type = 'ou
 
             # Construct the new destination_blob_name
             destination_blob_name = f'{os.path.dirname(destination_blob_name)}/{target_folder}/{os.path.basename(destination_blob_name)}'
-        # elif type == 'render':
-        # TODO
+        elif type == 'render':
+            # Mapping of file extensions to folder names
+            folder_map = {
+                ('.html'): 'plots/html',
+                ('.png'): 'plots/png'
+            }
+
+            # Default folder name for other file types
+            default_folder = 'other'
+
+            # Get the folder name based on file extension
+            for extensions, folder_name in folder_map.items():
+                if any(destination_blob_name.endswith(ext) for ext in extensions):
+                    target_folder = folder_name
+                    break
+            else:
+                target_folder = default_folder
+
+            # Construct the new destination_blob_name
+            destination_blob_name = f'{os.path.dirname(destination_blob_name)}/{target_folder}/{os.path.basename(destination_blob_name)}'
 
         blob = bucket.blob(destination_blob_name)
         if check_exists:

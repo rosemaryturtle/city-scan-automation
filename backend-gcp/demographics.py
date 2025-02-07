@@ -38,7 +38,6 @@ def demographics(local_data_dir, local_output_dir, data_bucket, cloud_bucket, ci
 def demo_plot(city_name, city_name_l, render_dir, font_dict, local_output_dir, cloud_bucket, output_dir):
     import pandas as pd
     import matplotlib.pyplot as plt
-    import seaborn as sns
     import plotly.express as px
     import yaml
     import utils
@@ -60,7 +59,6 @@ def demo_plot(city_name, city_name_l, render_dir, font_dict, local_output_dir, c
 
     colors = {'f': 'red', 'm': 'blue'}
     plt.figure(figsize=(8, 6))
-    ax = sns.barplot(data=pop_dist_group_wp, x='Age_Bracket', y='Percentage', hue='Sex', dodge=True, palette=colors)
 
     plt.title(f"Population distribution in {city_name} by sex")
     plt.xlabel("Age Bracket")

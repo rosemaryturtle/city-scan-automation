@@ -132,6 +132,7 @@ def main():
 
         city_name = city_inputs['city_name']
         city_name_l = city_name.replace(' ', '_').replace("'", "").lower()
+        country_iso3, country_name, country_name_l = None, None, None
 
         if city_inputs.get('AOI_shp_name', None):
             utils.download_aoi(cloud_bucket, input_dir, city_inputs['AOI_shp_name'], local_aoi_dir)
@@ -141,7 +142,7 @@ def main():
                 ucdb_gpkg = "ucdb.gpkg"
                 utils.download_blob(data_bucket, global_inputs['ucdb_blob'], ucdb_gpkg, check_exists=True)
                 
-                city_boundary_gdf = aoi_helper.get_city_boundary(city_name, ucdb_gpkg, data_bucket, global_inputs, local_data_dir)
+                city_boundary_gdf, country_iso3, country_name, country_name_l = aoi_helper.get_city_boundary(city_name, ucdb_gpkg, data_bucket, global_inputs['countries_shp_dir'], global_inputs['countries_shp_blob'], local_data_dir)
                 aoi_helper.save_to_shp(city_boundary_gdf, f"{local_aoi_dir}/{city_name_l}.shp")
 
                 print(f"Boundary successfully saved for {city_name}.")
@@ -156,7 +157,8 @@ def main():
             menu = yaml.safe_load(f)
 
         # Checks country based on which country aoi_file overlaps with the most
-        country_iso3, country_name, country_name_l = aoi_helper.find_country(data_bucket, global_inputs, local_data_dir, aoi_file = aoi_file)
+        if country_iso3 is None:
+            country_iso3, country_name, country_name_l = aoi_helper.find_country(data_bucket, global_inputs['countries_shp_dir'], global_inputs['countries_shp_blob'], local_data_dir, aoi_file = aoi_file)
 
         # Update directories and make a copy of city inputs and menu in city-specific directory
         if city_inputs.get('prev_run_date', None) is not None:
@@ -309,6 +311,23 @@ def main():
                 while not utils.check_blob_exists(cloud_bucket, blob):
                     time.sleep(60)
             print('All GEE outputs are ready.')
+        elif task_index == 17:
+            if menu['basic_info']:
+                import basic_info
+
+                basic_info_dict = {
+                    'aoi_area': basic_info.calculate_aoi_area(aoi_file),
+                    'koeppen': basic_info.get_koeppen_classification(features, data_bucket, global_inputs['koeppen_blob'], local_data_dir)
+                }
+
+                with open(f'{local_output_dir}/{city_name_l}_basic_info.yml', 'w') as f:
+                    yaml.dump(basic_info_dict, f)
+                utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_basic_info.yml', f'{output_dir}/{city_name_l}_basic_info.yml')
+        elif task_index == 18:
+            if menu['oe_plot']:
+                import oe_plot
+                oe_plot.plot_pop_growth(data_bucket, cloud_bucket, global_inputs['oe_dir'], global_inputs['oe_locations_blob'], global_inputs['oegc_blob'], global_inputs['countries_shp_blob'], local_data_dir, 
+                                        country_name, country_name_l, city_name, city_name_l, city_inputs.get('alternate_city_name', None), local_output_dir, output_dir, render_dir, font_dict)
             
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 
