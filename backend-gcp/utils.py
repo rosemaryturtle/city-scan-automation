@@ -25,18 +25,47 @@ def download_blob(bucket_name, source_blob_name, destination_file_name, check_ex
     print(f"Blob {source_blob_name} does not exist.")
     return False
 
-def upload_blob(bucket_name, source_file_name, destination_blob_name, output = True, check_exists = False):
-    """Uploads a file to the bucket."""
+def upload_blob(bucket_name, source_file_name, destination_blob_name, type = 'output', check_exists = False):
+    """
+    Uploads a file to the bucket.
+
+    Args:
+        bucket_name: Name of the bucket.
+        source_file_name: Path to the file to upload.
+        destination_blob_name: Destination name of the file in the bucket.
+        type: Type of the file (output (default), render, input, data)
+        check_exists: Check if the file already exists in the bucket.
+    """
     if exists(source_file_name):
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
 
-        if output:
+        if type == 'output':
             # Mapping of file extensions to folder names
             folder_map = {
                 ('.tif', '.gpkg'): 'spatial',
-                ('.csv', '.txt'): 'tabular',
+                ('.csv', '.txt', '.yml'): 'tabular',
                 ('.png'): 'images'
+            }
+
+            # Default folder name for other file types
+            default_folder = 'other'
+
+            # Get the folder name based on file extension
+            for extensions, folder_name in folder_map.items():
+                if any(destination_blob_name.endswith(ext) for ext in extensions):
+                    target_folder = folder_name
+                    break
+            else:
+                target_folder = default_folder
+
+            # Construct the new destination_blob_name
+            destination_blob_name = f'{os.path.dirname(destination_blob_name)}/{target_folder}/{os.path.basename(destination_blob_name)}'
+        elif type == 'render':
+            # Mapping of file extensions to folder names
+            folder_map = {
+                ('.html'): 'plots/html',
+                ('.png'): 'plots/png'
             }
 
             # Default folder name for other file types

@@ -1,16 +1,16 @@
 import geopandas as gpd
 from shapely.geometry import Point
 
-def find_country(data_bucket, global_inputs, local_data_dir, aoi_file = None, aoi_point = None):
+def find_country(data_bucket, countries_shp_dir, countries_shp_blob, local_data_dir, aoi_file = None, aoi_point = None):
     """
     Checks country based on which country aoi_file overlaps with the most or which country aoi_point is located in.
     """
     import utils
-
+    
     # Load global countries shapefile
-    for blob in utils.list_blobs_with_prefix(data_bucket, f"{global_inputs['countries_shp_dir']}/{global_inputs['countries_shp_blob']}"):
-        utils.download_blob(data_bucket, blob.name, f"{local_data_dir}/{blob.name.split('/')[-1]}")
-    countries = gpd.read_file(f"{local_data_dir}/{global_inputs['countries_shp_blob']}.shp")
+    for blob in utils.list_blobs_with_prefix(data_bucket, f"{countries_shp_dir}/{countries_shp_blob}"):
+        utils.download_blob(data_bucket, blob.name, f"{local_data_dir}/{blob.name.split('/')[-1]}", check_exists=True)
+    countries = gpd.read_file(f"{local_data_dir}/{countries_shp_blob}.shp").to_crs(epsg=4326)
 
     if aoi_file is not None:
         # Perform spatial join to find intersections
@@ -44,7 +44,7 @@ def find_country(data_bucket, global_inputs, local_data_dir, aoi_file = None, ao
 
     return country_iso3, country_name, country_name_l
 
-def standardize_location(city_name, data_bucket, global_inputs, local_data_dir):
+def standardize_location(city_name, data_bucket, countries_shp_dir, countries_shp_blob, local_data_dir):
     """
     Geocode the city name to get standardized city and country names, along with ISO3 country code.
     """
@@ -62,14 +62,15 @@ def standardize_location(city_name, data_bucket, global_inputs, local_data_dir):
     country = address_parts[-1]  # Last part is usually the country
     
     # Get ISO3 code for the country
-    iso3_code = find_country(data_bucket, global_inputs, local_data_dir, aoi_point=Point(location.longitude, location.latitude))
+    country_iso3, country_name, country_name_l = find_country(data_bucket, countries_shp_dir, countries_shp_blob, local_data_dir, aoi_point=Point(location.longitude, location.latitude))
     
     return {
         'city': city,
-        'country': country,
-        'iso3_code': iso3_code,
+        'country': country_name,
+        'iso3_code': country_iso3,
         'latitude': location.latitude,
-        'longitude': location.longitude
+        'longitude': location.longitude,
+        'country_name_l': country_name_l
     }
 
 def check_osm_boundary_area(city_name, country_name):
@@ -128,14 +129,16 @@ def create_buffer(lat, lon, buffer_distance_km, city_name):
     
     return buffered_gdf
 
-def get_city_boundary(city_name, local_gpkg_path, data_bucket, global_inputs, local_data_dir):
+def get_city_boundary(city_name, local_gpkg_path, data_bucket, countries_shp_dir, countries_shp_blob, local_data_dir):
     """
     Retrieve the boundary of a city using a local GeoPackage or OpenStreetMap.
     If both fail or OSM boundary is too large, create a buffer around the city's coordinates.
     """
-    standardized_location = standardize_location(city_name, data_bucket, global_inputs, local_data_dir)
+    standardized_location = standardize_location(city_name, data_bucket, countries_shp_dir, countries_shp_blob, local_data_dir)
     city = standardized_location['city']
     country = standardized_location['country']
+    iso3_code = standardized_location['iso3_code']
+    country_name_l = standardized_location['country_name_l']
     lat, lon = standardized_location['latitude'], standardized_location['longitude']
     point = Point(lon, lat)  # Create a Point geometry from the coordinates
     
@@ -174,7 +177,7 @@ def get_city_boundary(city_name, local_gpkg_path, data_bucket, global_inputs, lo
     
     print(f"Buffered polygon created with {buffer_distance_km} km radius.")
     
-    return buffered_gdf
+    return buffered_gdf, iso3_code, country, country_name_l
 
 def save_to_shp(gdf, output_path):
     """
