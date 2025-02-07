@@ -63,7 +63,7 @@ check_gcs_object_variable() {
 # Check if running on Google Cloud Run
 # If so, enable download and upload by default
 if [ -n "${CLOUD_RUN_EXECUTION:-}" ]; then
-    log "Running on Google Cloud Run. Job: ${CLOUD_RUN_JOB:-}; Execution: ${CLOUD_RUN_EXECUTION:-}"
+    log "Running on Google Cloud Run. Location: ${GCS_CITY_DIR:-}; Job: ${CLOUD_RUN_JOB:-}; Execution: ${CLOUD_RUN_EXECUTION:-}"
     DOWNLOAD=true
     UPLOAD=true
 fi
@@ -188,7 +188,7 @@ if [ -z "${CLOUD_RUN_EXECUTION:-}" ]; then
     if [ "$DOWNLOAD" = true ] || [ "$UPLOAD" = true ]; then
         check_mount /home/service-account.json
         log "Not running in Google Cloud Run. Authenticating with gcloud..."
-        gcloud auth login --cred-file=/home/service-account.json
+        gcloud auth activate-service-account --key-file=/home/service-account.json
         gcloud config set project city-scan-gee-test
     fi
 
@@ -245,7 +245,7 @@ if [ "$STATICMAPS" = true ]; then
     Rscript R/maps-static.R
     if [ "$UPLOAD" = true ]; then
         log "Uploading static maps..."
-        gcloud storage cp -R $MNT_DIR/03-render-output/maps gs://crp-city-scan/$GCS_CITY_DIR/03-render-output/maps
+        gcloud storage cp -R $MNT_DIR/03-render-output/maps/** gs://crp-city-scan/$GCS_CITY_DIR/03-render-output/maps/
     fi
 fi
 
@@ -275,8 +275,9 @@ if [ "$HTML" = true ]; then
     log "Generating HTML..."
     quarto render index.qmd --cache-refresh
     # Do I actually want to keep cache?
-    mv -f index.html index_files index_cache $MNT_DIR/03-render-output/
+    # Don't/can't move index.html, etc., to $MNT_DIR if $MNT_DIR is working dir
+    # mv -f index.html index_files index_cache $MNT_DIR/03-render-output/
     if [ "$UPLOAD" = true ]; then
-        gcloud storage cp -R $MNT_DIR/03-render-output/index.html $MNT_DIR/03-render-output/index_files gs://crp-city-scan/$GCS_CITY_DIR/03-render-output
+        gcloud storage cp -R $MNT_DIR/03-render-output/index.html $MNT_DIR/03-render-output/index_files gs://crp-city-scan/$GCS_CITY_DIR/03-render-output/
     fi
 fi

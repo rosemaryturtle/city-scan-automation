@@ -98,7 +98,10 @@ RUN set -e \
       ggtext \
       plotly \
       prettymapr
-
+# as.polygons() behaves differently in 1.7-71 and 1.7-78; ideally should raise R
+# version to 4.4, but might have other consequences
+RUN Rscript -e "remotes::install_version('terra', version = '1.7-78', repos = 'https://cran.r-project.org')"
+      
 # Set and create mount directory
 # This depends on the user setting `-v host_dir:/home/mnt in docker run command
 # Maybe explore making a shell script or docker compose file?
