@@ -111,7 +111,10 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
     params <- prepare_parameters(yaml_key, ...)
   }
   if (!is.null(params$data_variable)) data <- data[params$data_variable]
-
+  
+  if (nrow(data) == 0) stop("Data object has no rows (0 geometries or 0 cells)")
+  if (inherits(data, "SpatVector") && all(is.na(values(data)))) stop("Data object has no rows (0 geometries or 0 cells)")
+  
   if (exists_and_true(params$factor)) {
     layer_values <- ordered(
       get_layer_values(data),
@@ -984,4 +987,11 @@ density_rast <- \(points, n = 100) {
   # Rotate density, because top left is lowest x and lowest y, instead of lowest x and highest y
   density$z <- rotate_ccw(density$z)
   rast(scales::rescale((density$z)), crs = crs, extent = density_extent)
+}
+
+tryCatch_named <- \(name, expr) {
+  tryCatch(expr, error = \(e) {
+    message(paste("Failure:", name))
+    warning(glue("Error on {name}: {e}"))
+  })
 }

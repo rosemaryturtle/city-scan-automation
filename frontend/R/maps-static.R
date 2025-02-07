@@ -64,17 +64,13 @@ if (inherits(landmarks, "SpatVector")) {
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   discard_at(c("fluvial", "pluvial", "coastal", "combined_flooding", "burnt_area", "elevation")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
-    tryCatch({
+    tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
         vectorize_if_coarse()
       plot <- plot_static_layer(
         data = data, yaml_key = yaml_key,
         plot_aoi = T, plot_wards = !is.null(wards))
       plots[[yaml_key]] <<- plot
-      message(paste("Success:", yaml_key))
-    },
-    error = \(e) {
-      warning(glue("Error on {yaml_key}: {e}"))
     })
   }) %>% unlist() -> plot_log
 
