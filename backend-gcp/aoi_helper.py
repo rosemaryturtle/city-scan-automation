@@ -153,7 +153,7 @@ def get_city_boundary(city_name, local_gpkg_path, data_bucket, countries_shp_dir
         
         if not containing_polygon.empty:
             print("Polygon found in local GeoPackage.")
-            return containing_polygon
+            return containing_polygon, iso3_code, country, country_name_l
         else:
             print("No polygon found in local GeoPackage for the given coordinates.")
     
@@ -166,7 +166,7 @@ def get_city_boundary(city_name, local_gpkg_path, data_bucket, countries_shp_dir
             print(f"OSM boundary is too large ({osm_result['area_sq_km']} sq km). Proceeding to create buffer.")
         else:
             print(f"OSM boundary retrieved successfully with area {osm_result['area_sq_km']} sq km.")
-            return osm_result['boundary']
+            return osm_result['boundary'], iso3_code, country, country_name_l
     
     print("Creating buffered polygon as fallback...")
     
