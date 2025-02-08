@@ -1,3 +1,4 @@
+# No longer needed, because pre-mapping.R now calculates density
 intersection_nodes <- fuzzy_read(spatial_dir, layer_params$intersections$fuzzy_string, layer = "nodes")
 if (inherits(intersection_nodes, "SpatVector")) {
   intersection_nodes <- intersection_nodes %>%
@@ -6,7 +7,7 @@ if (inherits(intersection_nodes, "SpatVector")) {
   intersection_params <- prepare_parameters("intersections")
   p <- ggplot() +
     geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
-    annotation_map_tile(type = "cartolight", zoom = zoom_level) +
+    annotation_map_tile(type = "cartolight", zoom = get_zoom_level(static_map_bounds)) +
     stat_density_2d(
       data = intersection_nodes,
       geom = "raster",

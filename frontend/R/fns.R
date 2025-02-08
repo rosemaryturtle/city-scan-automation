@@ -86,6 +86,7 @@ prepare_parameters <- function(yaml_key, ...) {
   params$palette <- sapply(params$palette, \(p) {
     # If palette has no alpha, add
     layer_alpha <- params$alpha %||% layer_alpha
+    if (p == "transparent") return("#FFFFFF00")
     if (nchar(p) == 7 | substr(p, 1, 1) != "#") return(scales::alpha(p, layer_alpha))
     # If palette already has alpha, multiply
     if (nchar(p) == 9) {
@@ -110,7 +111,10 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
     params <- prepare_parameters(yaml_key, ...)
   }
   if (!is.null(params$data_variable)) data <- data[params$data_variable]
-
+  
+  if (nrow(data) == 0) stop("Data object has no rows (0 geometries or 0 cells)")
+  if (inherits(data, "SpatVector") && all(is.na(values(data)))) stop("Data object has no rows (0 geometries or 0 cells)")
+  
   if (exists_and_true(params$factor)) {
     layer_values <- ordered(
       get_layer_values(data),
@@ -240,7 +244,10 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   return(layer_function)
 }
 
-plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
+plot_static_layer <- function(
+    data, yaml_key, baseplot = NULL, static_map_bounds, zoom_adj = 0,
+    expansion, aoi_stroke = list(color = "grey30", linewidth = 0.4),
+    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -272,23 +279,46 @@ plot_static_layer <- function(data, yaml_key, baseplot = NULL, plot_aoi = T, aoi
     layer <- list(geom = geom, scale = scales, theme = theme)
   }
 
+  # I should make all these functions into a package and then define city_dir,
+  # map_width, static_map_bounds, etc., as package level variables that get set
+  # with set_.*() variables
+
+  if ("static_map_bounds" %in% ls() && missing(static_map_bounds)) remove(static_map_bounds, inherits = F)
+  if (!exists("static_map_bounds")) {
+    warning(paste("static_map_bounds does not exist. Define one globally or as an",
+      "argument to plot_static_layer. A plot extent will be defined using `aoi`."))
+    if (exists("aoi")) {
+      static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
+  } else stop("No object `aoi` exists.")
+  }
+
+  if (!missing(expansion)) {
+    aspect_ratio <- as.vector(ext(project(static_map_bounds, "epsg:3857"))) %>%
+      { diff(.[1:2])/diff(.[3:4]) }
+    static_map_bounds <- aspect_buffer(static_map_bounds, aspect_ratio, buffer_percent = expansion - 1)
+  }
+
   # Plot geom and scales on baseplot
-  baseplot <- if (is.null(baseplot)) {
+  baseplot <- if (is.null(baseplot) || identical(baseplot, "vector")) {
     ggplot() +
       geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
-      annotation_map_tile(type = "cartolight", zoom = zoom_level, progress = "none")
+      annotation_map_tile(type = "cartolight", zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
+  } else if (is.character(baseplot)) {
+    ggplot() +
+      geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
+      annotation_map_tile(type = baseplot, zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
   } else { baseplot + ggnewscale::new_scale_fill() }
   p <- baseplot +
     layer + 
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
-if (plot_roads) p <- p +
+  if (plot_roads) p <- p +
     geom_spatvector(data = roads, aes(linewidth = road_type), color = "white") +
     scale_linewidth_manual(values = c("Secondary" = 0.25, "Primary" = 1), guide = "none")
-  if (plot_aoi) p <- p + geom_spatvector(data = aoi, color = "grey30", fill = NA, linetype = "solid", linewidth = .4)
+  if (plot_aoi) p <- p + geom_spatvector(data = aoi, color = aoi_stroke$color, fill = NA, linetype = "solid", linewidth = aoi_stroke$linewidth)
   if (plot_wards) {
-    p <- p + geom_spatvector(data = wards, color = "grey30", fill = NA, linetype = "solid", linewidth = .25)
+    p <- p + geom_spatvector(data = wards, color = aoi_stroke$color, fill = NA, linetype = "solid", linewidth = .25)
     if (exists("ward_labels")) p <- p +
       geom_spatvector_text(data = ward_labels, aes(label = WARD_NO), size = 2, fontface = "bold")
   }
@@ -916,4 +946,52 @@ Mode <- \(x, na.rm = F) {
   if (na.rm) x <- na.omit(x)
   unique_values <- unique(x)
   unique_values[which.max(tabulate(match(x, unique_values)))]
+}
+
+prepare_html <- \(in_file, out_file, css_file) {
+  library(rvest)
+  library(xml2)
+  pdf <- read_html(in_file)
+  # browser()
+  stylesheet_nodes <- html_elements(pdf, "link[rel=stylesheet]")
+  xml_attr(stylesheet_nodes[1], "href") <- css_file
+  xml2::xml_remove(stylesheet_nodes[-1])
+  setup_node <- html_elements(pdf, ".setup")
+  xml2::xml_remove(setup_node)
+  # Do I want to remove all div.cell? NO
+  # xml2::xml_remove(html_nodes(pdf, ".cell"))
+  ojs_script_node <- html_element(pdf, "script[src='index_files/libs/quarto-ojs/quarto-ojs-runtime.js']")
+  xml2::xml_remove(ojs_script_node)
+  module_nodes <- html_elements(pdf, "script[type=module]")
+  xml2::xml_remove(module_nodes)
+  ojs_module_node <- html_element(pdf, "script[type=ojs-module-contents]")
+  xml2::xml_remove(ojs_module_node)
+  js_nodes <- html_elements(pdf, "script[type='text/javascript']")
+  xml2::xml_remove(js_nodes)
+  json_node <- html_elements(pdf, "script[type='application/json']")
+  xml2::xml_remove(json_node)
+  nav_node <- html_element(pdf, ".navigation")
+  xml2::xml_remove(nav_node)
+  xml2::xml_remove(html_nodes(pdf, "script#quarto-html-after-body"))
+  write_html(pdf, out_file)
+}
+
+rotate_ccw <- \(x) t(x)[ncol(x):1,]
+
+density_rast <- \(points, n = 100) {
+  crs <- crs(points)
+  density_extent <- ext(aspect_buffer(vect(ext(points), crs = crs), aspect_ratio = aspect_ratio))
+  points_df <- as_tibble(mutate(points, x = geom(points, df = T)$x, y = geom(points, df = T)$y))
+  density <-  MASS::kde2d(points_df$x, points_df$y, n = n, lims = as.vector(density_extent))
+  dimnames(density$z) <- list(x = density$x, y = density$y)
+  # Rotate density, because top left is lowest x and lowest y, instead of lowest x and highest y
+  density$z <- rotate_ccw(density$z)
+  rast(scales::rescale((density$z)), crs = crs, extent = density_extent)
+}
+
+tryCatch_named <- \(name, expr) {
+  tryCatch(expr, error = \(e) {
+    message(paste("Failure:", name))
+    warning(glue("Error on {name}: {e}"))
+  })
 }
