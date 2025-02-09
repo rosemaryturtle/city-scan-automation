@@ -339,6 +339,10 @@ def main():
             if menu['earthquake']:
                 import earthquake_event
                 earthquake_event.plot_earthquake_event(features, city_name_l, local_output_dir, cloud_bucket, output_dir, render_dir, font_dict)
+        elif task_index == 20:
+            if menu['flood_event']:
+                import flood_event
+                flood_event.plot_flood_event(data_bucket, cloud_bucket, global_inputs['flood_archive_dir'], global_inputs['flood_archive_blob'], features, local_data_dir, local_output_dir, city_name_l, output_dir, render_dir, font_dict)
             
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 
