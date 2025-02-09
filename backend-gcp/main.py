@@ -226,11 +226,11 @@ def main():
         elif task_index == 8:
             if menu['wsf']:  # processing time: 30s
                 import wsf
-                wsf.wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cloud_bucket, output_dir)
+                wsf.wsf(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cloud_bucket, output_dir, render_dir, font_dict)
         elif task_index == 9:
             if menu['elevation']:  # processing time: 6m
                 import elevation
-                elevation.elevation(aoi_file, local_data_dir, data_bucket, city_name_l, local_output_dir, cloud_bucket, output_dir)
+                elevation.elevation(aoi_file, local_data_dir, data_bucket, city_name, city_name_l, local_output_dir, cloud_bucket, output_dir, render_dir, font_dict)
 
             if menu['slope']:  # processing time: 20s
                 import raster_pro
@@ -293,6 +293,7 @@ def main():
             if menu['landcover']:
                 gee_outputs += gee_fun.gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_dir)
                 utils.upload_blob(cloud_bucket, f"{local_output_dir}/{city_name_l}_lc.csv", f'{output_dir}/{city_name_l}_lc.csv')
+                gee_fun.gee_landcover_stats(cloud_bucket, city_name, city_name_l, local_output_dir, output_dir, render_dir, font_dict)
 
             if menu['lst_summer']:
                 gee_outputs += gee_fun.gee_lst(city_name_l, aoi_file, local_output_dir, city_inputs['first_year'], city_inputs['last_year'], data_bucket, cloud_bucket, output_dir, season = 'summer')
@@ -326,8 +327,8 @@ def main():
         elif task_index == 18:
             if menu['oe_plot']:
                 import oe_plot
-                oe_plot.plot_pop_growth(data_bucket, cloud_bucket, global_inputs['oe_dir'], global_inputs['oe_locations_blob'], global_inputs['oegc_blob'], global_inputs['countries_shp_blob'], local_data_dir, 
-                                        country_name, country_name_l, city_name, city_name_l, city_inputs.get('alternate_city_name', None), local_output_dir, output_dir, render_dir, font_dict)
+                oe_plot.oe_plot(data_bucket, cloud_bucket, global_inputs['oe_dir'], global_inputs['oe_locations_blob'], global_inputs['oegc_blob'], global_inputs['countries_shp_blob'], local_data_dir, 
+                                country_name, country_name_l, city_name, city_name_l, city_inputs.get('alternate_city_name', None), local_output_dir, output_dir, render_dir, font_dict)
             
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 
