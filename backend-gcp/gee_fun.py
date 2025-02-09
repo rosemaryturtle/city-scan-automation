@@ -184,6 +184,76 @@ def gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_
     
     return [f"{output_dir}/spatial/{city_name_l}_lc.tif"]
 
+#Landcover graph Tree
+def gee_landcover_stats(cloud_bucket, city_name, city_name_l, local_output_dir, output_dir, render_dir, font_dict):
+    from os.path import exists
+    lc_stats_file = f"{local_output_dir}/{city_name_l}_lc.csv"
+    
+    if exists(lc_stats_file):
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        import plotly.express as px
+        import squarify
+        import utils
+        import yaml
+
+        lc_stats = pd.read_csv(lc_stats_file)
+        
+        lc_stats = lc_stats[lc_stats['Pixel Count'] > 0]
+        
+        lc_colors = {
+            "Tree cover": "#397e48",
+            "Built-up": "#c4281b",
+            "Grassland": "#88af52",
+            "Bare / sparse vegetation": "#a59b8f",
+            "Cropland": "#e49634",
+            "Water bodies": "#429bdf",
+            "Permanent water bodies": "#00008b",
+            "Mangroves": "#90EE90",
+            "Moss and lichen": "#013220",
+            "Shrubland": "#dfc25a",
+            "Herbaceous wetland": "#7d87c4",
+            "Snow and ice": "#F5F5F5"
+        }
+        
+        total_pixels = lc_stats['Pixel Count'].sum()
+        lc_stats['Percentage'] = lc_stats['Pixel Count'] / total_pixels * 100
+        
+        
+        plt.figure(figsize=(12, 8))
+        squarify.plot(sizes=lc_stats['Pixel Count'], label=lc_stats['Land Cover Type'], 
+                        color=[lc_colors[lc_type] for lc_type in lc_stats['Land Cover Type']], 
+                        alpha=0.8, pad=True)
+        plt.title(f"Land Cover Distribution of {city_name}")
+        plt.axis('off')
+        plt.tight_layout()
+
+        render_path_png = f"{local_output_dir}/{city_name_l}_landcover_treemap.png"
+        plt.savefig(render_path_png)
+        plt.close()
+        utils.upload_blob(cloud_bucket, render_path_png, f'{render_dir}/{city_name_l}_landcover_treemap.png', type='render')
+        
+        fig = px.treemap(lc_stats, path=['Land Cover Type'], values='Pixel Count', color='Land Cover Type', 
+                            color_discrete_map=lc_colors)
+        
+        fig.update_traces(textinfo='label+percent entry', textposition='middle center')
+        fig.update_layout(margin=dict(t=50, l=25, r=25, b=25),font=font_dict)
+        
+        render_path_html = f"{local_output_dir}/{city_name_l}_landcover_treemap.html"
+        fig.write_html(render_path_html, full_html=False, include_plotlyjs='cdn')
+        utils.upload_blob(cloud_bucket, render_path_html, f'{render_dir}/{city_name_l}_landcover_treemap.html', type='render')
+
+        highest_values = lc_stats.sort_values(by='Percentage', ascending=False).head(3)
+        ordinal_dict = {1: "first", 2: "second", 3: "third"}
+        lc_text_dict = {}
+        for i, (index, row) in enumerate(highest_values.iterrows()):
+            ordinal_str = ordinal_dict.get(i + 1, str(i + 1) + "th")
+            lc_text_dict[ordinal_str] = f"The {ordinal_str} highest landcover value is {row['Land Cover Type']} with {row['Percentage']:.2f}% of the total land area".replace('first ', '')
+        
+        with open(f'{local_output_dir}/{city_name_l}_lc_stats.yml', 'w') as file:
+            yaml.dump(lc_text_dict, file)
+        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_lc_stats.yml', f'{output_dir}/{city_name_l}_lc_stats.yml')
+
 def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
     print('run gee_elevation')
 

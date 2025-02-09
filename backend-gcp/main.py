@@ -234,8 +234,10 @@ def main():
 
             if menu['slope']:  # processing time: 20s
                 import raster_pro
+                from elevation import plot_slope_stats
                 raster_pro.slope(aoi_file, f'{local_output_dir}/{city_name_l}_elevation_buf.tif', cloud_bucket, output_dir, city_name_l, local_output_dir)
                 raster_pro.get_raster_histogram(f'{local_output_dir}/{city_name_l}_slope.tif', [0, 2, 5, 10, 20, 90], f'{local_output_dir}/{city_name_l}_slope.csv')
+                plot_slope_stats(city_name, city_name_l, local_output_dir, cloud_bucket, output_dir, render_dir, font_dict)
                 utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_slope.csv', f'{output_dir}/{city_name_l}_slope.csv')
         elif task_index == 10:
             if menu['flood_coastal'] or menu['flood_fluvial'] or menu['flood_pluvial']:  # processing time (2020 + 1 SSP): 13m
