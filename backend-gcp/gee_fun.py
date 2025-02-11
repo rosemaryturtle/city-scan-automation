@@ -130,7 +130,7 @@ def gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_
         reducer=ee.Reducer.frequencyHistogram(),
         geometry=AOI,
         # scale=10,
-        maxPixels=1e9
+        maxPixels=1e10
     )
     lc_hist1 = lc_hist.getInfo()['Map']
     
@@ -174,7 +174,7 @@ def gee_landcover(city_name_l, aoi_file, local_output_dir, cloud_bucket, output_
                                                     'scale': 10,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_lc",
-                                                    'maxPixels': 1e9,
+                                                    'maxPixels': 1e10,
                                                     'fileFormat': 'GeoTIFF',
                                                     'formatOptions': {
                                                         'cloudOptimized': True,
@@ -278,7 +278,7 @@ def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
                                                     'scale': 30,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_elevation",
-                                                    'maxPixels': 1e9,
+                                                    'maxPixels': 1e10,
                                                     'fileFormat': 'GeoTIFF',
                                                     'formatOptions': {
                                                         'cloudOptimized': True,
@@ -292,7 +292,7 @@ def gee_elevation(city_name_l, aoi_file, cloud_bucket, output_dir):
                                                     'scale': 30,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_elevation_buf",
-                                                    'maxPixels': 1e9,
+                                                    'maxPixels': 1e10,
                                                     'fileFormat': 'GeoTIFF',
                                                     'formatOptions': {
                                                         'cloudOptimized': True,
@@ -327,7 +327,7 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
                                                     'scale': 30.92,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_forest_cover23",
-                                                    'maxPixels': 1e9,
+                                                    'maxPixels': 1e10,
                                                     'fileFormat': 'GeoTIFF',
                                                     'formatOptions': {
                                                         'cloudOptimized': True,
@@ -341,7 +341,7 @@ def gee_forest(city_name_l, aoi_file, cloud_bucket, output_dir):
                                                     'scale': 30.92,
                                                     'bucket': cloud_bucket,
                                                     'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_deforestation",
-                                                    'maxPixels': 1e9,
+                                                    'maxPixels': 1e10,
                                                     'fileFormat': 'GeoTIFF',
                                                     'formatOptions': {
                                                         'cloudOptimized': True,
@@ -388,7 +388,7 @@ def gee_lst(city_name_l, aoi_file, local_output_dir, first_year, last_year, data
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_{season}",
         'region': AOI,
         'scale': 30,
-        'maxPixels': 1e9,
+        'maxPixels': 1e10,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
             'cloudOptimized': True,
@@ -447,7 +447,7 @@ def gee_ndxi(city_name_l, aoi_file, local_output_dir, first_year, last_year, dat
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_{index_type}_season",
         'region': AOI,
         'scale': 10,
-        'maxPixels': 1e9,
+        'maxPixels': 1e10,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
             'cloudOptimized': True,
@@ -493,7 +493,7 @@ def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_linfit",
         'region': AOI,
         'scale': 463.83,
-        'maxPixels': 1e9,
+        'maxPixels': 1e10,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
             'cloudOptimized': True,
@@ -509,7 +509,7 @@ def gee_nightlight(city_name_l, aoi_file, cloud_bucket, output_dir):
         'fileNamePrefix': f"{output_dir}/spatial/{city_name_l}_avg_rad_sum",
         'region': AOI,
         'scale': 463.83,
-        'maxPixels': 1e9,
+        'maxPixels': 1e10,
         'fileFormat': 'GeoTIFF',
         'formatOptions': {
             'cloudOptimized': True,
