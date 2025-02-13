@@ -194,13 +194,11 @@ mnt/**
 # other
 backend/temp.ipynb
 backend/temp.py
-backend/cover_image.py
-backend/desertification/*
-backend/vulnerability_mapping/*
-backend-gcp/city_inputs.yml
-backend-gcp/fathom_aws_credentials.yml
-backend-gcp/menu.yml
-backend-gcp/global_inputs.yml
+backend/city_inputs.yml
+backend/fathom_aws_credentials.yml
+backend/menu.yml
+backend/global_inputs.yml
+backend/cache/*
 
 # GitHub Wiki
 city-scan-automation.wiki.git
