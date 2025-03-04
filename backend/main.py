@@ -85,6 +85,7 @@ def main():
     project_id = os.getenv('GOOGLE_CLOUD_PROJECT', 'city-scan-gee-test')
     region = os.getenv('CLOUD_RUN_REGION', 'us-central1')
     job2_name = os.getenv('JOB2_NAME', 'frontend')
+    city_name = os.getenv('city_name', None)
     
     if not all([execution_id, project_id, region]):
         raise ValueError("Missing required environment variables")
@@ -130,7 +131,8 @@ def main():
         with open('city_inputs.yml', 'r') as f:
             city_inputs = yaml.safe_load(f)
 
-        city_name = city_inputs['city_name']
+        if city_name is None:
+            city_name = city_inputs['city_name']
         city_name_l = city_name.replace(' ', '_').replace("'", "").lower()
         country_iso3, country_name, country_name_l = None, None, None
 
