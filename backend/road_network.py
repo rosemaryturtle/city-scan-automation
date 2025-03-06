@@ -40,6 +40,8 @@ def get_graph(city_name_l, aoi_file, local_output_dir):
                     G_list.append(G_part)
                 except ox._errors.InsufficientResponseError:
                     print(f"No roads found in this polygon, skipping...")
+                except ValueError as e:
+                    print(f"ValueError: {e}, skipping this polygon...")
             elif poly.geom_type == 'MultiPolygon':  # Handle any nested MultiPolygons
                 for p in poly.geoms:
                     print("Processing a polygon in multipolygon...")
@@ -48,6 +50,8 @@ def get_graph(city_name_l, aoi_file, local_output_dir):
                         G_list.append(G_part)
                     except ox._errors.InsufficientResponseError:
                         print(f"No roads found in this polygon, skipping...")
+                    except ValueError as e:
+                        print(f"ValueError: {e}, skipping this polygon...")
 
         if not G_list:
             print("No graphs created from polygons, skipping graph creation.")
