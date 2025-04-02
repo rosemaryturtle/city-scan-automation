@@ -232,6 +232,9 @@ mkdir -p $MNT_DIR/01-user-input $MNT_DIR/02-process-output $MNT_DIR/03-render-ou
 if [ "$COPYCODE" = true ]; then
     log "Copying reproduction code..."
     mkdir -p $MNT_DIR/00-reproduction-code
+    rm -rf $MNT_DIR/00-reproduction-code/R $MNT_DIR/00-reproduction-code/scripts \
+        $MNT_DIR/00-reproduction-code/source $MNT_DIR/00-reproduction-code/index.qmd \
+        $MNT_DIR/00-reproduction-code/pdf.qmd
     cp -r R scripts source index.qmd pdf.qmd $MNT_DIR/00-reproduction-code
     echo ".." > $MNT_DIR/00-reproduction-code/city-dir.txt
     if [ "$UPLOAD" = true ]; then
@@ -276,7 +279,11 @@ if [ "$HTML" = true ]; then
     quarto render index.qmd --cache-refresh
     # Do I actually want to keep cache?
     # Don't/can't move index.html, etc., to $MNT_DIR if $MNT_DIR is working dir
-    # mv -f index.html index_files index_cache $MNT_DIR/03-render-output/
+    ## Wait why wasn't this possible?
+    ## Perhaps because any other files that are used don't also get moved
+    rm -rf $MNT_DIR/03-render-output/index_files
+    rm -rf $MNT_DIR/03-render-output/index_cache
+    mv -f index.html index_files index_cache $MNT_DIR/03-render-output/
     if [ "$UPLOAD" = true ]; then
         gcloud storage cp -R $MNT_DIR/03-render-output/index.html $MNT_DIR/03-render-output/index_files gs://crp-city-scan/$GCS_CITY_DIR/03-render-output/
     fi
