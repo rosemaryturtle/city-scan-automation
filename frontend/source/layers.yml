@@ -267,7 +267,7 @@ landslides:
   title: Landslide susceptibility
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
-  breaks: [-1, 0, 1, 2, 3, 4]
+  breaks: [0, 1, 2, 3, 4, 5]
   group_id: Landslides
 liquefaction:
   fuzzy_string: liquefaction.tif$
