@@ -71,6 +71,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         data = data, yaml_key = yaml_key,
         plot_aoi = T, plot_wards = !is.null(wards))
       plots[[yaml_key]] <<- plot
+      message(paste("Success:", yaml_key))
     })
   }) %>% unlist() -> plot_log
 
@@ -83,10 +84,12 @@ source("R/map-flooding.R", local = T)
 source("R/map-historical-burnt-area.R", local = T)
 
 # Save plots -------------------------------------------------------------------
-plots %>% walk2(names(.), \(plot, name) {
-  save_plot(plot, filename = glue("{name}.png"), directory = styled_maps_dir,
+# Switched to for loop because walk required too much memory; uncertain if helps
+# For Algeria, reduced time from 1,100 seconds to 1,000 seconds
+for (name in names(plots)) {
+  save_plot(plots[[name]], filename = glue("{name}.png"), directory = styled_maps_dir,
     map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
-})
+}
 
 # See which layers weren't successfully mapped
 unmapped <- setdiff(c(names(layer_params), "aoi", "forest_deforest", "burnt_area"), names(plots))
