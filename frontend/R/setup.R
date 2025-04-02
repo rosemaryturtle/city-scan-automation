@@ -74,6 +74,8 @@ city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
 city <- str_to_title(city_params$city_name)
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
 country <- str_to_title(city_params$country_name)
+basic_info <- fuzzy_read(tabular_dir, "basic_info.yml", read_yaml)
+if (length(country) == 0 && is.list(basic_info)) country <- basic_info$country
 
 # 6. Read AOI & wards ----------------------------------------------------------
 aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
