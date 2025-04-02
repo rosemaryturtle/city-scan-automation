@@ -397,7 +397,9 @@ $page-margin-right: 0.5in;
 @media screen {
   .maps {
     grid-column: 2 / 3;
-    grid-row: 3 / 4;
+    // While we aren't using a cover map, starting the leaflet map at the top
+    // grid-row: 3 / 4;
+    grid-row: 2 / 4;
     // position: sticky;
     // top: calc(var(--topbar-height) - 100vh);
     min-height: calc(100vh - var(--topbar-height));

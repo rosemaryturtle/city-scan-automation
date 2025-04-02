@@ -15,8 +15,8 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
-source('R/maps-web.R')
-cover_image <- fuzzy_read(process_output_dir, "footprints", paste)
+source*('R/maps-web.R')
+cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$"*, paste)
 ```
 
 ---
@@ -82,9 +82,11 @@ City Scan
 
 :::
 
-<div id="cover-map">
+<!-- Hiding cover map until we have a way of producing it on Google Cloud -->
+<!-- While hiding, also raising the map* -->
+<!-- <div id="cover-map">
 ![](`r cover_image`)
-</div>
+</div> -->
 
 ::: text-column
 

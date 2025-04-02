@@ -20,6 +20,9 @@ source('R/setup.R')
 # source('R/maps-web.R')
 # source('R/maps-static.R')
 cover_image <- fuzzy_read(process_output_dir, "footprints", paste)
+if (is.na(cover_image)) {
+  cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
+}
 ```
 
 ---
