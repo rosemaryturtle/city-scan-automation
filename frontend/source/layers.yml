@@ -74,6 +74,7 @@ wsf_tracker:
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
   labels: ['Before July 2016', 'July 2016-2018', 'July 2018-2020', 'July 2020–2022', 'July 2022–2024']
   palette: ['#FBF9CD', '#D18158', '#25115B']
+  group_id: Urban extent, 2016–2024
 impervious:
   title: Impervious Surfaces
   min: 0
