@@ -17,7 +17,7 @@ combine_flood_types <- function() {
   if (length(flood_files) > 0) {
     combined_flooding <- flood_files %>%
       lapply(rast) %>% 
-      reduce(\(x, y) max(x, y, na.rm = T))
+      reduce(\(x, y) max(x, resample(y, x), na.rm = T))    
     writeRaster(combined_flooding, filename = file.path(spatial_dir, paste0(city, "_combined_flooding_2020.tif")), overwrite = T)
   }
 }
@@ -95,15 +95,23 @@ rename_health_points()
 
 wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif$")
 if (inherits(wsf, "SpatRaster")) {
-  wsf_new <- project(wsf, "epsg:3857")
-  values(wsf_new)[values(wsf_new) == 0] <- NA
+  # # Projecting to 3857 causes problems for leaflet; but was possibly necessary
+  # # for ggplot2. If there are problems with static, perhaps split in two files?
+  # wsf_new <- project(wsf, "epsg:3857")
+  wsf_new <- wsf
+  # Using <- NA changes the datatype to unsigned, which ultimately results
+  # in huge values when wsf is re-projected in maps-static.R
+  # values(wsf_new)[values(wsf_new) == 0] <- NA
+  classify(wsf_new, cbind(0, NA))
   NAflag(wsf_new) <- NA
   writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
 }
 
 wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
 if (inherits(wsf_tracker, "SpatRaster")) {
-  wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
+  # # Projecting to 3857 causes problems for leaflet; necessary for ggplot2?
+  # wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
+  wsf_tracker_new <- wsf_tracker
   wsf_tracker_new <- 2016 + wsf_tracker_new/2
   # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
   # NAflag(wsf_tracker_new) <- NA

@@ -828,9 +828,9 @@ format_title <- function(title, subtitle, width = 20) {
 
 count_aoi_cells <- function(data, aoi) {
   aoi_area <- if ("sf" %in% class(aoi)) {
-    units::drop_units(st_area(aoi))
+    units::drop_units(sum(st_area(aoi)))
   } else if ("SpatVector" %in% class(aoi)) {
-    expanse(aoi)
+    sum(expanse(aoi)) # sum to account for multiple geometries
   }
   cell_count <- (aoi_area / cellSize(data)[1,1])[[1]]
   return(cell_count)
