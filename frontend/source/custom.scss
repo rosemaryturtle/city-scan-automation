@@ -61,7 +61,10 @@ $page-margin-right: 0.5in;
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: 20px 20px;
     display: flex;
-
+    section.level1 {
+        width: 95%;
+      }
+  
     .donors {
       height: 65vh; // This needs to be dynamic somehow
       // padding: $side-padding;
@@ -70,6 +73,7 @@ $page-margin-right: 0.5in;
       // justify-content: end;
       display: grid;
       grid-template: auto auto / 1fr 1fr;
+      column-gap: 2ch;
       align-content: end;
       align-items: center;
       justify-items: center;
