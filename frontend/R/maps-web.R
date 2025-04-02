@@ -77,7 +77,7 @@ tryCatch_named("roads", {
         data = roads,
         fillColor = "tranparent",
         stroke = T,
-        weight = 1,
+        weight = 2,
         color = ~roads_color_scale(get_layer_values(roads[roads_params$stroke$variable])),
         label = paste0(round(get_layer_values(roads[roads_params$stroke$variable]), 1), "%"),
         group = roads_params$group_id

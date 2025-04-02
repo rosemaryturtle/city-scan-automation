@@ -289,7 +289,7 @@ roads:
     variable: road_type
     factor: TRUE
     range: [0.25, 1]
-    palette: [0.24, 1]
+    palette: [0.5, 1]
     # breaks: [FALSE, TRUE]
     labels: ['Secondary', 'Primary']
   group_id: Road network criticality
