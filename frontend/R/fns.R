@@ -978,9 +978,13 @@ prepare_html <- \(in_file, out_file, css_file) {
 
 rotate_ccw <- \(x) t(x)[ncol(x):1,]
 
-density_rast <- \(points, n = 100) {
+density_rast <- \(points, n = 100, aoi = NULL) {
   crs <- crs(points)
-  density_extent <- ext(aspect_buffer(vect(ext(points), crs = crs), aspect_ratio = aspect_ratio))
+  data_extent <- ext(points)
+  if (!is.null(aoi)) {
+    data_extent <- terra::union(data_extent, ext(project(aoi, crs)))
+  }
+  density_extent <- ext(aspect_buffer(vect(data_extent, crs = crs), aspect_ratio = aspect_ratio))
   points_df <- as_tibble(mutate(points, x = geom(points, df = T)$x, y = geom(points, df = T)$y))
   density <-  MASS::kde2d(points_df$x, points_df$y, n = n, lims = as.vector(density_extent))
   dimnames(density$z) <- list(x = density$x, y = density$y)

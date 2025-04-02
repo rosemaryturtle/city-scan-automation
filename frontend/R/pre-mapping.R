@@ -132,6 +132,6 @@ if (inherits(intersection_nodes, "SpatVector")) {
 
 historical_fire_data <- fuzzy_read(spatial_dir, "globfire")
 if (inherits(historical_fire_data, c("SpatVector", "SpatRaster")) && length(historical_fire_data) > 0) {
-  historical_fire_density <- density_rast(historical_fire_data, n = 200)
+  historical_fire_density <- density_rast(historical_fire_data, n = 200, aoi = aoi)
   writeRaster(historical_fire_density, file.path(spatial_dir, "burnt-area-density.tif"), overwrite = T)
 }
