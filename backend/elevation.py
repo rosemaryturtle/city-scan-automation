@@ -245,14 +245,12 @@ def plot_slope_stats(city_name, city_name_l, local_output_dir, cloud_bucket, out
         import yaml
 
         slope = pd.read_csv(slope_stats_file)
-        
+        slope = slope[slope['Count'] > 0].copy()
         total_count = slope['Count'].sum()
 
         slope['percent'] = slope['Count'] / total_count * 100
 
         slope['percent'] = pd.to_numeric(slope['percent'], errors='coerce')
-
-        slope = slope.dropna(subset=['Bin']).copy()
 
         slope['Percent'] = (slope['percent'] / 100).apply(lambda x: f"{x:.0%}")
         slope['Slope'] = slope['Bin'].str.extract(r"(\d+)").astype(float)

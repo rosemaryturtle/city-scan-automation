@@ -1,4 +1,4 @@
-import os, sys, logging, warnings, time
+import os, logging, time
 
 import pyproj
 import networkx as nx
@@ -8,7 +8,6 @@ import geopandas as gpd
 import numpy as np
 
 from scipy import spatial
-from functools import partial
 from shapely.wkt import loads, dumps
 from shapely.geometry import Point, LineString, MultiLineString, MultiPoint, box
 from shapely.ops import linemerge, unary_union, transform
@@ -781,7 +780,7 @@ def make_iso_polys(G, origins, trip_times, edge_buff=10, node_buff=25, infill=Fa
         all_gs = list(n) + list(e)
 
         print("unary_union")
-        new_iso = gpd.GeoSeries(all_gs).union_all()
+        new_iso = gpd.GeoSeries(all_gs).unary_union
 
         # If desired, try and "fill in" surrounded
         # areas so that shapes will appear solid and blocks
@@ -856,7 +855,7 @@ def make_iso_polys_original(G, origins, trip_times, edge_buff=10, node_buff=25, 
 
                 all_gs = list(n) + list(e)
 
-                new_iso = gpd.GeoSeries(all_gs).union_all()
+                new_iso = unary_union(gpd.GeoSeries(all_gs))
 
                 # If desired, try and "fill in" surrounded
                 # areas so that shapes will appear solid and blocks
@@ -2754,7 +2753,7 @@ def project_gdf(gdf, to_crs=None, to_latlong=False):
             raise ValueError("Geometry must be unprojected to calculate UTM zone")
 
         # calculate longitude of centroid of union of all geometries in gdf
-        avg_lng = gdf["geometry"].union_all().centroid.x
+        avg_lng = unary_union(gdf["geometry"]).centroid.x
 
         # calculate UTM zone from avg longitude to define CRS to project to
         utm_zone = math.floor((avg_lng + 180) / 6) + 1
@@ -2871,7 +2870,7 @@ def utm_of_graph(G):
     gdf_nodes = node_gdf_from_graph(G)
     
     # calculate longitude of centroid of union of all geometries in gdf
-    avg_lng = gdf_nodes["geometry"].union_all().centroid.x
+    avg_lng = unary_union(gdf_nodes["geometry"]).centroid.x
 
     # calculate UTM zone from avg longitude to define CRS to project to
     utm_zone = math.floor((avg_lng + 180) / 6) + 1

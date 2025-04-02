@@ -74,7 +74,7 @@ def plot_earthquake_event(features, city_name_l, local_output_dir, cloud_bucket,
         eq_text['location'] = ""
 
     eq_text['fatalities'] = eq_text['deaths'].apply(lambda x: f"{int(x):,} fatalities" if pd.notna(x) else "")
-    eq_text['fatalities'] = eq_text['fatalities'].str.replace("1 fatalities", "1 fatality")
+    eq_text['fatalities'] = eq_text['fatalities'].astype(str).str.replace("1 fatalities", "1 fatality")
     eq_text['fatalities'] = eq_text['fatalities'].str.replace("NA fatalities", "")
     eq_text['damage'] = eq_text['damageAmountOrder'].apply(lambda x: damages.get(str(int(x)), "Unknown") + " damage")
     eq_text['day'] = eq_text['day'].fillna(1).astype(int)

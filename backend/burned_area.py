@@ -1,73 +1,75 @@
-# DETERMINE WHETHER TO RUN THIS SCRIPT ##############
-import yaml
-
-# load menu
-with open("../mnt/city-directories/01-user-input/menu.yml", 'r') as f:
-    menu = yaml.safe_load(f)
-
-if menu['burned_area']:
+def burned_area(aoi_file, gf_dir, gf_blob_prefix, task_index, data_bucket, local_data_dir, local_output_dir, city_name_l, cloud_bucket, output_dir):
     print('run burned_area')
-    
+
     import os
     import pandas as pd
     import geopandas as gpd
-    from pathlib import Path
-    from os.path import exists
-
-    # SET UP #########################################
-    # load city inputs files, to be updated for each city scan
-    with open("../mnt/city-directories/01-user-input/city_inputs.yml", 'r') as f:
-        city_inputs = yaml.safe_load(f)
-
-    city_name_l = city_inputs['city_name'].replace(' ', '_').replace("'", '').lower()
-
-    # load global inputs, such as data sources that generally remain the same across scans
-    with open("global_inputs.yml", 'r') as f:
-        global_inputs = yaml.safe_load(f)
-
-    # Read AOI shapefile --------
-    # transform the input shp to correct prj (epsg 4326)
-    aoi_file = gpd.read_file(city_inputs['AOI_path']).to_crs(epsg = 4326)
-
-    # Define output folder ---------
-    output_folder = Path('../mnt/city-directories/02-process-output')
-
-    if not exists(output_folder):
-        os.mkdir(output_folder)
-
+    import utils
 
     # SET PARAMETERS ################################
-    # Set data folders --------------
-    gf_folder = Path(global_inputs['burned_area_source'])
+    task_index_range = range(1, 6)
 
     # Buffer AOI ------------------
     aoi_buff = aoi_file.buffer(1)  # 1 degree is about 111 km at the equator
     features = aoi_buff.geometry[0]
 
     # Set time period --------------
-    years = range(2011, 2021)
+    years = range(2009 + task_index * 2, 2011 + task_index * 2)
     months = range(1, 13)
+
+    # Make local data folder --------------
+    local_gf_folder = f'{local_data_dir}/gf'
+    os.makedirs(local_gf_folder, exist_ok=True)
 
 
     # PROCESS DATA ##################################
-    if not exists(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp'):
-        df = pd.DataFrame(columns=['year', 'month', 'x', 'y'])
+    df = pd.DataFrame(columns=['year', 'month', 'x', 'y'])
 
-        for year in years:
-            for month in months:
-                print(f'year: {year}, month: {month}')
-                
-                # Filter GlobFire ----------------
-                shp_name = f'MODIS_BA_GLOBAL_1_{month}_{year}.shp'
-                gf_shp = gpd.read_file(gf_folder / shp_name)
-                gf_aoi = gf_shp[gf_shp.intersects(features)]
+    for year in years:
+        for month in months:
+            # Filter GlobFire ----------------
+            shp_names = [f'{gf_blob_prefix}{month}_{year}.{suf}' for suf in ['cpg', 'dbf', 'prj', 'shp', 'shx']]
+            for f in shp_names:
+                utils.download_blob(data_bucket, f'{gf_dir}/{f}', f'{local_gf_folder}/{f}')
+            gf_shp = gpd.read_file(f'{local_gf_folder}/{gf_blob_prefix}{month}_{year}.shp')
+            gf_aoi = gf_shp[gf_shp.intersects(features)]
 
-                # Find centroids ----------------
-                gf_aoi = gf_aoi[gf_aoi['Type'] == 'FinalArea'].centroid
-                for i in gf_aoi:
-                    df.loc[len(df.index)] = [year, month, i.x, i.y]
+            # Find centroids ----------------
+            gf_aoi = gf_aoi[gf_aoi['Type'] == 'FinalArea'].centroid
+            for i in gf_aoi:
+                df.loc[len(df.index)] = [year, month, i.x, i.y]
+            
+            # Delete downloaded files -----------------
+            for f in shp_names:
+                os.remove(f'{local_gf_folder}/{f}')
+    
+    # Save dataframe to csv -----------------------
+    df.to_csv(f'{local_output_dir}/{city_name_l}_globfire_centroids_{task_index}.csv')
+    utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_globfire_centroids_{task_index}.csv', f'{output_dir}/{city_name_l}_globfire_centroids_{task_index}.csv')
+
+    # Concatenate csv ------------------------
+    if task_index == task_index_range[-1]:
+        from datetime import datetime as dt
+        import time
+        from os.path import exists
+
+        time0 = dt.now()
+        while (dt.now()-time0).total_seconds() <= 120*60:
+            download_gf_csv = [utils.download_blob(cloud_bucket, 
+                                                   f"{output_dir}/tabular/{city_name_l}_globfire_centroids_{ti}.csv", 
+                                                   f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv',
+                                                   check_exists=True) for ti in task_index_range]
+            if all(download_gf_csv):
+                print('all globfire centroids csv files downloaded')
+                break
+            time.sleep(60)
         
-        # Save centroids to shapefile ----------------
-        if not os.path.exists(output_folder / f'{city_name_l}_globfire_centroids'):
-            os.mkdir(output_folder / f'{city_name_l}_globfire_centroids')
-        gpd.GeoDataFrame(df, geometry = gpd.points_from_xy(df.x, df.y, crs = 'EPSG:4326')).to_file(output_folder / f'{city_name_l}_globfire_centroids' / f'{city_name_l}_globfire_centroids.shp')
+        concat_df = pd.concat([pd.read_csv(f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv') for ti in task_index_range if exists(f'{local_output_dir}/{city_name_l}_globfire_centroids_{ti}.csv')])
+
+        # Save centroids to geopackage ----------------
+        gpd.GeoDataFrame(concat_df, geometry = gpd.points_from_xy(concat_df.x, concat_df.y, crs = 'EPSG:4326')).to_file(f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', driver='GPKG', layer = 'burned_area')
+        utils.upload_blob(cloud_bucket, f'{local_output_dir}/{city_name_l}_globfire_centroids.gpkg', f'{output_dir}/{city_name_l}_globfire_centroids.gpkg')
+
+        # Delete csv files -------------------------
+        for ti in task_index_range:
+            utils.delete_blob(cloud_bucket, f'{output_dir}/tabular/{city_name_l}_globfire_centroids_{ti}.csv')
