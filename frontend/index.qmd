@@ -73,7 +73,7 @@ City Scan
 ::: donors
 ![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
 
-![World Bank](https://landportal.org/sites/default/files/2024-03/WorldBank_Logo_optimized-17.png)
+![World Bank](https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/The_World_Bank_logo.svg/624px-The_World_Bank_logo.svg.png)
 
 ![Austrian Federal Ministry of Finance](https://www.bmf.gv.at/dam/jcr:b259928e-ef89-43c8-9bf3-4d2dae928bcd/BMF_Logo_srgb_EN.png)
 
@@ -444,7 +444,7 @@ plots_html %>%
 :::
 
 ::: foot
-Last edited September 2024. <!-- Ideally this would be programmatic so people can't forget about it -->
+Last edited `r Sys.Date()`.
 
 This City Scan is a product of the City Resilience Program.
 
