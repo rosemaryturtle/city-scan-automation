@@ -999,3 +999,26 @@ tryCatch_named <- \(name, expr) {
     warning(glue("Error on {name}: {e}"))
   })
 }
+
+grow_extent <- \(x, amount) {
+  # Given a SpatExtent object, grow (or shrink) it by a given multiplier
+  # amount can be length 1 (applied to all sides), 2 (applied to x and y) or 4 (applied to each side)
+  stopifnot(inherits(x, "SpatExtent"))
+  stopifnot(length(amount) %in% c(1, 2, 4))
+  if (length(amount) == 1) amount <- rep(amount, 4)
+  if (length(amount) == 2) amount <- c(rep(amount[1], 2), rep(amount[2], 2))
+  growth <- amount * c(rep(diff(x[1:2]), 2), rep(diff(x[3:4]), 2))
+  x + growth
+}
+change_zoom <- function(p, zoom) {
+  tile_layer_index <- detect_index(p$layers, \(x) inherits(x$geom, "GeomMapTile"))
+  p$layers[[tile_layer_index]]$mapping$zoom <- zoom
+  p
+}
+
+zoom_on_extent <- function(p, extent_vect, aspect_ratio, buffer_percent = 0.05, zoom_adj = 0) {
+  bounds <- aspect_buffer(extent_vect, aspect_ratio, buffer_percent = buffer_percent)
+  (p + theme(legend.position = "none") +
+    coord_3857_bounds(bounds)) %>%
+    change_zoom(get_zoom_level(bounds) + zoom_adj)
+}
