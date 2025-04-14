@@ -1010,10 +1010,23 @@ grow_extent <- \(x, amount) {
   growth <- amount * c(rep(diff(x[1:2]), 2), rep(diff(x[3:4]), 2))
   x + growth
 }
+
 change_zoom <- function(p, zoom) {
+  # Update, not the best method (better to use ggproto) but we have a way for 
+  # separating q from p!
+  
+  # This is a bad solution because it changes the zoom level of all plots. 
+  # p <- change_zoom(plot) changes the zoom on both plot (output) and p (input).
+  # Need to learn how to either 1) create a distinct copy (neither ggplot_build
+  # nor rlang::duplicate seem to do this), or 2) create a ggproto (?) that can
+  # be used with `+`
+
+  q <- unserialize(serialize(p, NULL))
+
+  # p_copy <- ggplot2::ggplot_build(p)$plot
   tile_layer_index <- detect_index(p$layers, \(x) inherits(x$geom, "GeomMapTile"))
-  p$layers[[tile_layer_index]]$mapping$zoom <- zoom
-  p
+  q$layers[[tile_layer_index]]$mapping$zoom <- zoom
+  q
 }
 
 zoom_on_extent <- function(p, extent_vect, aspect_ratio, buffer_percent = 0.05, zoom_adj = 0) {
