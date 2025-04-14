@@ -1,7 +1,7 @@
 # SECTION 2
 setting_the_context:
   basic_city_info:
-    footnote: The yellow boundary marks the area of interest for the City Scan.
+    footnote: The boundary lines marks the area of interest for the City Scan. These lines may differ from the city's official administrative boundaries and may include multiple jurisdictions.
 # SECTION 3
 demographics:
   population_growth:
@@ -22,7 +22,7 @@ demographics:
     title: Population Density
     method: This map estimates population numbers per 10,000 m^2^ grid cell. It provides a more consistent representation of population distributions across different landscapes than administrative unit counts. Knowing where people are is critical for impact assessments and intervention plans, especially those focused on service delivery, food security, climate change, network systems and natural disasters.
     footnote: NULL
-    plot: pop_growth.html|pop-growth.png
+    plot: pop-plot.html|pop-growth.png
   rwi:
     title: Relative Wealth
     method: This map shows micro-estimates of wealth and poverty relative to the whole country that cover the populated surface at a 2.4 km^2^ resolution. Many critical policy decisions, from strategic investments to the allocation of humanitarian aid, rely on data about the geographic distribution of wealth and poverty.
@@ -267,7 +267,7 @@ risk_identification:
   burnt_area:
     title: Historical Burnt Area
     method: |
-      TK Describe historical burnt area
+      Historical fire is a kernel density plot of where there have been fires, as observed by satellite data, in recent years. The map is relative to the local area: areas with the highest density of fire are are not necessarily areas of lots of fires in absolute terms.
       The Fire Weather Index (FWI) measures the potential for wildfire in an area at a given time, by combining measures of moisture, of built-up area, and of ignition spread. Areas with a higher index have a higher potential for wildfire, though the specific relationship between FWI and fire danger is highly localized; therefore values representing high fire potential must be determined locally.
     footnote: Map data from Zorn & Koks, 2019. Graph data from NASA’s Global Fire Weather Database.
     plot: nasa-fwi.png
