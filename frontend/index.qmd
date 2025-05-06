@@ -15,8 +15,8 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
-source*('R/maps-web.R')
-cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$"*, paste)
+source('R/maps-web.R')
+cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
 ```
 
 ---
