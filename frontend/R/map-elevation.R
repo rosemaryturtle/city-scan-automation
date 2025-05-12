@@ -1,5 +1,5 @@
 tryCatch_named("elevation", {
-  elevation_breaks <- fuzzy_read(process_output_dir, "elevation.csv", read_csv, col_types = "cd")$Bin %>%
+  elevation_breaks <- fuzzy_read(tabular_dir, "elevation.csv", read_csv, col_types = "cd")$Bin %>%
     str_extract_all("\\d+") %>% unlist() %>% unique() %>% as.numeric()
   elevation_data <- fuzzy_read(spatial_dir, layer_params$elevation$fuzzy_string) %>%
           # aggregate_if_too_fine(threshold = 1e6, fun = \(x) Mode(x, na.rm = T)) %>%
