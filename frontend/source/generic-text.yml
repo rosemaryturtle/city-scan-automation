@@ -1,7 +1,7 @@
 # SECTION 2
 setting_the_context:
   basic_city_info:
-    footnote: The boundary lines marks the area of interest for the City Scan. These lines may differ from the city's official administrative boundaries and may include multiple jurisdictions.
+    footnote: The boundary lines mark the area of interest for the City Scan. These lines may differ from the city's official administrative boundaries and may include multiple jurisdictions.
 # SECTION 3
 demographics:
   population_growth:
@@ -103,8 +103,8 @@ climate_conditions:
   air_quality:
     title: Air Quality
     method: |
-      The concentration of particulate matter (PM) is a key indicator of air quality since it is the most common air pollutant affecting short and long-term health. This map displays the average annual concentration (µg per m3) of ground-level fine particulate matter of 2.5 micrometers or smaller (PM2.5). 
-      PM2.5 particles are of greater concern than PM10 particles because their small size allows them to travel deeper into the cardiopulmonary system. According to the WHO and the United States EPA standards, PM2.5 concentrations should not exceed between 5 µg/m3 or 12 µg/m3, respectively. Higher concentrations of particulate matter may also reduce the availability of solar energy.
+      The concentration of particulate matter (PM) is a key indicator of air quality since it is the most common air pollutant affecting short and long-term health. This map displays the average annual concentration (µg per m^3^) of ground-level fine particulate matter of 2.5 micrometers or smaller (PM2.5). 
+      PM2.5 particles are of greater concern than PM10 particles because their small size allows them to travel deeper into the cardiopulmonary system. According to the WHO and the United States EPA standards, PM2.5 concentrations should not exceed between 5 µg/m^3^ or 12 µg/m^3^, respectively. Higher concentrations of particulate matter may also reduce the availability of solar energy.
     footnote: |
       PM2.5 Grids are derived using annual data from 1998-2019 represent near-surface concentrations.
       Map data from Hammer, 2022, “Global Annual PM2.5 Grids”.
