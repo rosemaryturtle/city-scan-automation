@@ -130,25 +130,30 @@ print_slide_text(slide_texts$basic_city_info)
 #| output: asis
 # For map layer to continue to show, all text column content must be in same cell
 fill_slide_content("population")
-print_slide_text(slide_texts$demographics$population_growth)
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "pop-density", paste)
+plots_file <- fuzzy_read(charts_dir, "oxford-pop-growth.png", paste)
+if (!is.na(plots_file)) {
+  cat("#### Population Growth\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$population_growth)
+}
+plots_file <- fuzzy_read(charts_dir, "density-scatter", paste)
 if (!is.na(plots_file)) {
   cat("#### Population Density\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$population_density_chart)
 }
 
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "\\?\\?\\?", paste)
+plots_file <- fuzzy_read(charts_dir, "\\?\\?\\?", paste)
 if (!is.na(plots_file)) {
   cat("#### Population Distribution by Age\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$population_density_chart)
 }
 
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "age_stats", paste)
+plots_file <- fuzzy_read(charts_dir, "age-sex", paste)
 if (!is.na(plots_file)) {
   cat("#### Population Distribution by Age & Sex\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$population_distribution_age_sex)
 }
 ```
@@ -168,46 +173,46 @@ fill_slide_content("economic_activity")
 ```{r}
 #| output: asis
 fill_slide_content("economic_change")
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "national-shares", paste)
+plots_file <- fuzzy_read(charts_dir, "national-shares", paste)
 if (!is.na(plots_file)) {
   cat("#### Cities’ Shares of National Population, Employment & GDP\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$national_shares)
 }
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "oxford-gdp-plot", paste)
+plots_file <- fuzzy_read(charts_dir, "oxford-gdp_line", paste)
 if (!is.na(plots_file)) {
   cat("#### GDP Growth\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$gdp_growth)
 }
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "oxford-emp-plot", paste)
+plots_file <- fuzzy_read(charts_dir, "oxford-emp_line", paste)
 if (!is.na(plots_file)) {
   cat("#### Employment Growth\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$employment_growth)
 }
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "oxford-pop-plot", paste)
+plots_file <- fuzzy_read(charts_dir, "oxford-pop_line", paste)
 if (!is.na(plots_file)) {
   cat("#### Population Growth\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$population_growth_multicity)
 }
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "\\?\\?\\?", paste)
+plots_file <- fuzzy_read(charts_dir, "gdp-per-capita", paste)
 if (!is.na(plots_file)) {
   cat("#### Per Capita GDP Growth\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$gdp_per_capita_growth)
 }
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "employment-sectors", paste)
+plots_file <- fuzzy_read(charts_dir, "employment-sectors", paste)
 if (!is.na(plots_file)) {
   cat("#### Share of Employment by Sector\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$employment_share)
 }
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "gva-sectors", paste)
+plots_file <- fuzzy_read(charts_dir, "gva-sectors", paste)
 if (!is.na(plots_file)) {
   cat("#### Per Capita GDP Growth\n") 
-  include_html_chart(plots_file)
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$gva_share)
 }
 ```
@@ -273,15 +278,6 @@ fill_slide_content("forest", "deforest")
 ```
 
 ## Risk Identification
-
-```{r}
-#| output: asis
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "flood_timeline", paste)
-if (!is.na(plots_file)) {
-  cat("### Flood events\n") 
-  include_html_chart(plots_file)
-}
-```
 
 <!-- All the flooding -->
 ```{r}

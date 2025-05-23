@@ -60,7 +60,7 @@ spatial_dir <- file.path(process_output_dir, "spatial/")
 tabular_dir <- file.path(process_output_dir, "tabular/")
 output_dir <- file.path(city_dir, "03-render-output/")
 styled_maps_dir <- file.path(output_dir, "maps/")
-charts_dir <- file.path(output_dir, "charts/")
+charts_dir <- file.path(output_dir, "plots/")
 
 if (!dir.exists(styled_maps_dir)) dir.create(styled_maps_dir, recursive = T)
 if (!dir.exists(charts_dir)) dir.create(charts_dir, recursive = T)

@@ -701,9 +701,11 @@ fill_slide_content <- function(layer, extra_layers = NULL, title = NULL, slide_t
     cat("\n")
     cat(glue('<div class="map-list" data-layers="{mapping_layers}"></div>'))
     cat("\n")
-    tryCatch(
-      include_html_chart(fuzzy_read(file.path(output_dir, "plots/html"), slide_text$plot, paste)),
-      error = \(e) return(""))
+    # tryCatch(
+    #   include_html_chart(fuzzy_read(file.path(output_dir, "plots/html"), slide_text$plot, paste)),
+    #   error = \(e) return(""))
+    plot_file <- fuzzy_read(charts_dir, slide_text$plot %||% "NO PLOT TO SEARCH FOR", paste)
+    if (!is.na(plot_file)) cat(glue('<img style="max-width:95%" src="{plot_file}">\n\n\n'))
     print_slide_text(slide_text)
   }
 }
