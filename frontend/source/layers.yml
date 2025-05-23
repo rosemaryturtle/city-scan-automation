@@ -202,7 +202,7 @@ fluvial:
   fuzzy_string: fluvial_2020.tif$
   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, 1, 2, 3]  
+  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Fluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
@@ -211,7 +211,7 @@ pluvial:
   fuzzy_string: pluvial_2020.tif$
   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, 1, 2, 3]  
+  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Pluvial flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
@@ -220,7 +220,7 @@ coastal:
   fuzzy_string: coastal_2020.tif$
   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, 1, 2, 3]  
+  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Coastal flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
@@ -229,7 +229,7 @@ combined_flooding: # This will require pre-processing
   fuzzy_string: combined_flooding_2020.tif$
   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
   # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, 1, 2, 3]  
+  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
   labels: ['0.1–1%', '1–10%', '>10%']
   title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
@@ -309,7 +309,8 @@ burnt_area:
   group_id: History of fire
 drought:
   fuzzy_string: ndmi_season.*.tif$
-  title: NDMI
+  title: Moisture
+  subtitle: 'Normalized difference moisture index (NDMI)'
   palette: ['#D45A35', '#F6F7F9', '#48A747']
   center: 0
   bins: 5
