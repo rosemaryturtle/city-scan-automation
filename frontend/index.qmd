@@ -435,7 +435,8 @@ plots_html %>%
   addLayersControl(
     overlayGroups = group_ids,
     position = "topleft",
-    options = layersControlOptions(collapsed = TRUE))
+    options = layersControlOptions(collapsed = TRUE)) %>%
+    addScaleBar(position = "bottomleft")
 
 # If I want to use javascript directly I could use htmlwidgets::onRender(),
 # or maybe just an observable cell

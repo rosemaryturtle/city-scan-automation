@@ -32,7 +32,8 @@ assign_road_types <- function() {
         primary = highway %in% c("motorway", "trunk", "primary"),
         road_type = case_when(primary ~ "Primary", T ~ "Secondary"),
         edge_centrality = edge_centrality * 100) %>%
-      select(edge_centrality, road_type)
+      select(edge_centrality, road_type) %>%
+      arrange(edge_centrality)
     writeVector(roads, filename = file.path(spatial_dir, "edges-edit.gpkg"), overwrite = T)
   }
 }
