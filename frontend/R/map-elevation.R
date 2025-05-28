@@ -6,5 +6,5 @@ tryCatch_named("elevation", {
           vectorize_if_coarse(threshold = 1e6)
   plots$elevation <- plot_static_layer(
     data = elevation_data, yaml_key = "elevation", breaks = elevation_breaks,
-    plot_aoi = T, plot_wards = !is.null(wards))
+    plot_aoi = T, plot_wards = !is.null(wards), zoom_adj = zoom_adjustment)
 })

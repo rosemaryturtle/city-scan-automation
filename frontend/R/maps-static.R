@@ -12,9 +12,9 @@ map_portions <- c(7, 2) # First number is map width, second is legend width
 source("R/setup.R", local = T)
 source("R/pre-mapping.R", local = T)
 
-# Define map extent and zoom level
+# Define map extent and zoom level adjustment
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
-zoom_level <- get_zoom_level(static_map_bounds)
+zoom_adjustment <- 0
 
 # Static maps
 
@@ -23,7 +23,7 @@ plots <- list()
 
 # Plot AOI & wards -------------------------------------------------------------
 plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards),
-  expansion = 1.5, aoi_stroke = list(color = "yellow", linewidth = 0.4),
+  expansion = 1.5, zoom_adj = zoom_adjustment, aoi_stroke = list(color = "yellow", linewidth = 0.4),
   baseplot = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg")
 # if inherits(wards, "SpatVector") {
 #   ward_labels <- site_labels(wards, simplify = F)
@@ -69,7 +69,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         vectorize_if_coarse()
       plot <- plot_static_layer(
         data = data, yaml_key = yaml_key,
-        plot_aoi = T, plot_wards = !is.null(wards))
+        plot_aoi = T, plot_wards = !is.null(wards), zoom_adj = zoom_adjustment)
       plots[[yaml_key]] <<- plot
       message(paste("Success:", yaml_key))
     })
