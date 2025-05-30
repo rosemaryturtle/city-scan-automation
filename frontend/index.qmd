@@ -15,8 +15,16 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
-source('R/maps-web.R')
-cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
+# source('R/maps-web.R')
+source('R/setup.R')
+# cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
+```
+
+```{r}
+#| cache: false
+# Which layers do we have plots for? Tell Observable cells
+# ojs_define(createdMaps = names(plots_html))
+ojs_define(createdMaps = c("population", "rwi", "economic_activity", "economic_change", "wsf", "land_cover", "intersections", "school_zones", "school_points", "health_zones", "health_points", "solar", "air_quality", "summer_lst", "vegetation", "forest", "deforest", "infrastructure", "elevation", "slope", "landslides", "liquefaction", "burnable"))
 ```
 
 ---
@@ -35,6 +43,45 @@ if (file.exists(city_text_file)) {
 }
 slide_texts <- unlist(slide_texts, recursive = F) %>%
   setNames(str_extract(names(.), "\\.(.*)$", group = T))
+```
+
+```{r}
+#| cache: false
+ojs_define(layerParams = layer_params)
+ojs_define(slide_texts = slide_texts)
+```
+
+```{ojs}
+function renderDiv(text, divClass) {
+  if (!text) return "";
+  const textMarkdown = Array.isArray(text) ? md`${text.join('\n')}` : md`${text}`;
+  return html`<div class="${divClass}">${textMarkdown}</div>`;
+}
+
+function addSlideText(slide) {
+  return html`
+  ${renderDiv(slide.takeaways, "takeaways")}
+  ${renderDiv(slide.method, "method")}
+  ${renderDiv(slide.footnote, "footnote")}`
+}
+
+function fillSlide(layer, chart = null, extra_layers = null, title = null, slide_text = null) {
+  if (!createdMaps.includes(layer)) return md``;
+  var mappingLayers = [...(extra_layers ?? []), layer].map(lay => layerParams[lay].group_id).join(";");
+  // To avoid rendering "null", "undefined", or "" in the document, return nothing explicitly:
+  // if (!createdMaps.includes(layer)) return;
+    if (!slide_text) slide_text = slide_texts[layer];
+    if (!title) title = slide_text?.title;
+    if (!title) title = layer;
+return html`
+<section class="level3">
+${md`### ${title}`}
+${chart ?? ""}
+${html`<div class="map-list" data-layers="${mappingLayers}"></div>`}
+${addSlideText(slide_texts[layer])}
+</section>
+`
+}
 ```
 
 :::
@@ -89,7 +136,7 @@ City Scan
 <!-- Hiding cover map until we have a way of producing it on Google Cloud -->
 <!-- While hiding, also raising the map* -->
 <!-- <div id="cover-map">
-![](`r cover_image`)
+
 </div> -->
 
 ::: text-column
@@ -112,314 +159,94 @@ slide_texts$executive_summary_no_anchor_ids$takeaways <-
     glue("{x}\n<p>→ [Go to section]({anchor})</p>\n")
   }) %>%
   str_split("\n\n") %>% unlist()
-print_slide_text(slide_texts$executive_summary_no_anchor_ids)
-```
-
-## Setting the Context
-
-### Basic City Information
-```{r}
-#| output: asis
-#| label: basic_city_info
-print_slide_text(slide_texts$basic_city_info)
+# print_slide_text(slide_texts$executive_summary_no_anchor_ids)
 ```
 
 ## Population and Demographic Trends
 
-```{r}
-#| output: asis
-# For map layer to continue to show, all text column content must be in same cell
-fill_slide_content("population")
-plots_file <- fuzzy_read(charts_dir, "oxford-pop-growth.png", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "density-scatter", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Density\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_density_chart)
-}
+```{ojs}
+//| output: asis
+fillSlide("population")
 
-plots_file <- fuzzy_read(charts_dir, "\\?\\?\\?", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Distribution by Age\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_density_chart)
-}
+md`#### Population Growth`
+import {chart_pop_growth}
+// with {pop_growth_tunis as pop_growth}
+// with {new_title as title}
+from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+chart_pop_growth
+addSlideText(slide_texts.population_growth)
 
-plots_file <- fuzzy_read(charts_dir, "age-sex", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Distribution by Age & Sex\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_distribution_age_sex)
-}
+columnWidth = 300
+md`#### Population Distribution by Age & Sex`
+import {chart_pop_age_sex}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+chart_pop_age_sex
+addSlideText(slide_texts.population_distribution_age_sex)
 ```
 
-```{r}
-#| output: asis
-fill_slide_content("rwi")
+```{ojs}
+//| output: true
+fillSlide("rwi")
 ```
 
 ## Economic Activity
 
-```{r}
-#| output: asis
-fill_slide_content("economic_activity")
-```
+```{ojs}
+//| output: asis
+fillSlide("economic_activity")
+fillSlide("economic_change")
 
-```{r}
-#| output: asis
-fill_slide_content("economic_change")
-plots_file <- fuzzy_read(charts_dir, "national-shares", paste)
-if (!is.na(plots_file)) {
-  cat("#### Cities’ Shares of National Population, Employment & GDP\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$national_shares)
-}
-plots_file <- fuzzy_read(charts_dir, "oxford-gdp_line", paste)
-if (!is.na(plots_file)) {
-  cat("#### GDP Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$gdp_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "oxford-emp_line", paste)
-if (!is.na(plots_file)) {
-  cat("#### Employment Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$employment_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "oxford-pop_line", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_growth_multicity)
-}
-plots_file <- fuzzy_read(charts_dir, "gdp-per-capita", paste)
-if (!is.na(plots_file)) {
-  cat("#### Per Capita GDP Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$gdp_per_capita_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "employment-sectors", paste)
-if (!is.na(plots_file)) {
-  cat("#### Share of Employment by Sector\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$employment_share)
-}
-plots_file <- fuzzy_read(charts_dir, "gva-sectors", paste)
-if (!is.na(plots_file)) {
-  cat("#### Per Capita GDP Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$gva_share)
-}
 ```
 
 ## Built Form
 
-```{r}
-#| output: asis
-fill_slide_content("wsf")
-```
+```{ojs}
+//| output: true
 
-```{r}
-#| output: asis
-fill_slide_content("wsf_tracker")
-```
+// slide_texts.wsf
+// md`### ${slide_texts.wsf.title}`
+import {chart_uba} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+// chart_uba
+// addSlideText(slide_texts.wsf)
+fillSlide("wsf", chart_uba)
 
-```{r}
-#| output: asis
-fill_slide_content("impervious")
-```
+fillSlide("wsf_tracker")
 
-```{r}
-#| output: asis
-fill_slide_content("land_cover")
-```
+fillSlide("impervious")
 
-```{r}
-#| output: asis
-fill_slide_content("school_zones", slide_text = slide_texts$school_proximity)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("health_zones", slide_text = slide_texts$health_proximity)
+import {chart_lc} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+// fillSlide("land_cover", chart_lc)
+fillSlide("land_cover")
+// fillSlide("school_zones", null, null, null, slide_texts.school_proximity)
+// fillSlide("health_zones", null, null, null, slide_texts.health_proximity)
 ```
 
 ## Climate Conditions
 
-```{r}
-#| output: asis
-fill_slide_content("solar")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("air_quality")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("summer_lst")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("vegetation")
-```
-
-```{r}
-#| output: asis
-# Something appears wrong here – forest and deforest are both showing for forest?
-fill_slide_content("forest", "deforest")
+```{ojs}
+//| output: asis
+fillSlide("solar")
+fillSlide("air_quality")
+fillSlide("summer_lst")
+fillSlide("vegetation")
+// fillSlide("forest", null, "deforest")
 ```
 
 ## Risk Identification
+```{ojs}
+//| output: true
+// fillSlide("fluvial", null, "infrastructure", null, slide.texts.flooding_infrastructure_fluvial)
+import {chart_fu} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
 
-<!-- All the flooding -->
-```{r}
-#| output: asis
-fill_slide_content("fluvial", "infrastructure", slide_text = slide_texts$flooding_infrastructure_fluvial)
-```
+fillSlide("elevation")
+fillSlide("slope")
+fillSlide("landslides")
+fillSlide("liquefaction")
+fillSlide("roads")
+fillSlide("burnable")
+fillSlide("moisture")
 
-```{r}
-#| output: asis
-fill_slide_content("pluvial", "infrastructure", slide_text = slide_texts$flooding_infrastructure_pluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("coastal", "infrastructure", slide_text = slide_texts$flooding_infrastructure_coastal)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("combined_flooding", "infrastructure", slide_text = slide_texts$flooding_infrastructure_combined)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("fluvial", "wsf", slide_text = slide_texts$flooding_builtup_fluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("pluvial", "wsf", slide_text = slide_texts$flooding_builtup_pluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("coastal", "wsf", slide_text = slide_texts$flooding_builtup_coastal)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("combined_flooding", "wsf", slide_text = slide_texts$flooding_builtup_combined)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("fluvial", "population", slide_text = slide_texts$flooding_population_fluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("pluvial", "population", slide_text = slide_texts$flooding_population_pluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("coastal", "population", slide_text = slide_texts$flooding_population_coastal)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("combined_flooding", "population", slide_text = slide_texts$flooding_population_combined)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("elevation")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("slope")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("landslides")
-```
-
-```{r}
-#| output: asis
-plots_file <- fuzzy_read(file.path(output_dir, "plots/html"), "earthquake_timeline", paste)
-if (!is.na(plots_file)) {
-  cat("### Significant earthquakes\n") 
-  include_html_chart(plots_file)
-}
-```
-
-```{r}
-#| output: asis
-fill_slide_content("liquefaction")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("roads")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("burnable")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("moisture")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("burnt_area")
-```
-
-## Local Institutions & Planning
-
-### Administrative Structure
-
-```{r}
-#| output: asis
-print_slide_text(slide_texts$administrative_structure)
-```
-
-### Availability Of Development Plans And Policies
-
-```{r}
-#| output: asis
-print_slide_text(slide_texts$document_availability)
-```
-
-### The State of Urban Infrastructure and Service Delivery
-
-```{r}
-#| output: asis
-print_slide_text(slide_texts$infrastructure_and_service_delivery)
-```
-
-
-## Key Considerations for Investment Planning & Prioritization
-
-### Concluding Questions
-
-```{r}
-#| output: asis
-print_md(slide_texts$concluding_questions)
 ```
 
 :::
@@ -429,15 +256,15 @@ print_md(slide_texts$concluding_questions)
 #| output: true
 #| label: leaflet_maps
 # # all_maps # Created in maps.R
-plots_html %>%
-  { Reduce(\(x, f) f(x), ., init = plot_basemap("vector")) } %>%
-  add_aoi() %>%
-  addLayersControl(
-    overlayGroups = group_ids,
-    position = "topleft",
-    options = layersControlOptions(collapsed = TRUE)) %>%
-    addScaleBar(position = "bottomleft")
-
+# plots_html[2:5] %>%
+#   { Reduce(\(x, f) f(x), ., init = plot_basemap("vector")) } %>%
+#   add_aoi() %>%
+#   addLayersControl(
+#     overlayGroups = group_ids,
+#     position = "topleft",
+#     options = layersControlOptions(collapsed = TRUE)) %>%
+#     addScaleBar(position = "bottomleft")
+"Maps will go here"
 # If I want to use javascript directly I could use htmlwidgets::onRender(),
 # or maybe just an observable cell
 ```
