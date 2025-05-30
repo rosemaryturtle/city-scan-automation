@@ -191,7 +191,7 @@ $page-margin-right: 0.5in;
 
   @media print {
     grid-column: 1 / -1;
-    h2, h3 {
+    section>h2, h3 {
       grid-column: 1 / -1;
       grid-row: 1 / 2;
       // margin-top: 0; // Already set for screen
@@ -347,13 +347,13 @@ $page-margin-right: 0.5in;
   section#executive-summary { color: black; };
   }
 
-  h2, h3 {
+  section>h2, h3 {
     color: black;
     font-weight: 400;
     text-transform: uppercase;
   }
 
-  h2 { // Previously also applied to h2::before
+  section>h2 { // Previously also applied to h2::before
     font-size: 2rem;
     color: black;
     background-image: radial-gradient(black 1px, transparent 0);
@@ -370,7 +370,7 @@ $page-margin-right: 0.5in;
     border-bottom: 1px solid black;
     @media print {font-size: 14pt; margin: 0}
   }
-  h4, .pseudo-h4 {
+  section>h4, .pseudo-h4 {
     font-size: 1.1rem; @media print {font-size: 12pt; margin: 0}
     font-weight: 500;
     opacity: 0.9;
@@ -617,11 +617,11 @@ $page-margin-right: 0.5in;
     counter-reset: slide_count;
   }
 
-  section.level3 {
+  h3 {
     counter-increment: slide_count;
   }
 
-  h2::before {
+  section>h2::before {
       // content: "string";
       color: $pale-color;
       content: counter(section_count);
@@ -650,7 +650,7 @@ $page-margin-right: 0.5in;
   }
 
   div#cover-page h1 {string-set: city_name content(); }
-  h2 {
+  section>h2 {
     page-break-after: always;
     string-set: section_title content(); 
   }

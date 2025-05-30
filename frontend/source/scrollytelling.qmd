@@ -107,7 +107,11 @@ function initLevel3() {
     .onStepExit(handleStepExit)
 }
 
-initLevel3();
+// Ideally find other solution.
+// Problem: OJS cells (fillSlide()) with charts in them are rendered after initLevel3, so they don't get included in scrollytelling
+setTimeout(() => {
+  initLevel3();
+}, 1000);
 ```
 
 
