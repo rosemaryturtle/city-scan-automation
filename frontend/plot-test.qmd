@@ -1,0 +1,208 @@
+---
+title: Test scan
+format:
+  html:
+    theme: [source/custom.scss, none]
+editor: source
+execute:
+  echo: false
+  output: false
+  cache: true
+engine: knitr
+---
+
+::: setup
+
+```{r}
+#| include: false
+#| label: prerender
+# source('R/maps-web.R')
+source('R/fns.R')
+```
+
+
+```{ojs}
+function renderDiv(text, divClass) {
+  if (!text) return "";
+  const textMarkdown = Array.isArray(text) ? md`${text.join('\n')}` : md`${text}`;
+  return html`<div class="${divClass}">${textMarkdown}</div>`;
+}
+
+function addSlideText(slide) {
+  return html`
+  ${renderDiv(slide.takeaways, "takeaways")}
+  ${renderDiv(slide.method, "method")}
+  ${renderDiv(slide.footnote, "footnote")}`
+}
+
+function fillSlide(title, chart = null) {
+  return html`
+  <section class="level3">
+  ${md`### ${title}`}
+  ${chart ?? ""}
+  </section>
+  `
+}
+```
+
+:::
+
+::: topbar
+# {{< meta title >}}
+
+::: navigation
+
+:::
+
+<div>
+by the [City Resilience Program](https://www.gfdrr.org/en/crp)
+</div>
+
+:::
+
+::: {#cover-page}
+# {{< meta title >}} <!-- Put "City Scan" on second line-->
+
+City Scan
+
+`r month.name[lubridate::month(Sys.Date())]` `r lubridate::year(Sys.Date())`
+
+::: donors
+![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
+
+![World Bank](https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/The_World_Bank_logo.svg/624px-The_World_Bank_logo.svg.png)
+
+![Austrian Federal Ministry of Finance](https://www.bmf.gv.at/dam/jcr:b259928e-ef89-43c8-9bf3-4d2dae928bcd/BMF_Logo_srgb_EN.png)
+
+![Swiss Confederation Federal Department of Economic Affairs State Secretariat for Economic Affairs SECO](https://biotrade-asia.com/wp-content/uploads/2022/05/Logo-Swiss.png)
+:::
+
+:::
+
+<!-- Hiding cover map until we have a way of producing it on Google Cloud -->
+<!-- While hiding, also raising the map* -->
+<!-- <div id="cover-map">
+
+</div> -->
+
+::: text-column
+
+## Executive Summary
+
+## Population and Demographic Trends
+
+```{ojs}
+//| output: asis
+fillSlide("population")
+
+md`#### Population Growth`
+import {chart_pop_growth}
+// with {pop_growth_tunis as pop_growth}
+// with {new_title as title}
+from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+chart_pop_growth
+
+columnWidth = 300
+md`#### Population Distribution by Age & Sex`
+import {chart_pop_age_sex}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+chart_pop_age_sex
+```
+
+```{ojs}
+//| output: true
+fillSlide("rwi")
+```
+
+## Economic Activity
+
+```{ojs}
+//| output: asis
+fillSlide("economic_activity")
+fillSlide("economic_change")
+
+```
+
+## Built Form
+
+```{ojs}
+//| output: true
+
+// slide_texts.wsf
+// md`### ${slide_texts.wsf.title}`
+import {chart_uba} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+// chart_uba
+// addSlideText(slide_texts.wsf)
+fillSlide("wsf", chart_uba)
+
+fillSlide("wsf_tracker")
+
+fillSlide("impervious")
+
+import {chart_lc} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+// fillSlide("land_cover", chart_lc)
+fillSlide("land_cover", chart_lc)
+// fillSlide("school_zones", null, null, null, slide_texts.school_proximity)
+// fillSlide("health_zones", null, null, null, slide_texts.health_proximity)
+```
+
+## Climate Conditions
+
+```{ojs}
+//| output: asis
+fillSlide("solar")
+fillSlide("air_quality")
+fillSlide("summer_lst")
+fillSlide("vegetation")
+// fillSlide("forest", null, "deforest")
+```
+
+## Risk Identification
+```{ojs}
+//| output: true
+// fillSlide("fluvial", null, "infrastructure", null, slide.texts.flooding_infrastructure_fluvial)
+import {chart_fu} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+
+fillSlide("elevation")
+fillSlide("slope")
+fillSlide("landslides")
+fillSlide("liquefaction")
+fillSlide("roads")
+fillSlide("burnable")
+fillSlide("moisture")
+
+```
+
+:::
+
+::: maps
+```{r}
+#| output: true
+#| label: leaflet_maps
+# # all_maps # Created in maps.R
+# plots_html[2:5] %>%
+#   { Reduce(\(x, f) f(x), ., init = plot_basemap("vector")) } %>%
+#   add_aoi() %>%
+#   addLayersControl(
+#     overlayGroups = group_ids,
+#     position = "topleft",
+#     options = layersControlOptions(collapsed = TRUE)) %>%
+#     addScaleBar(position = "bottomleft")
+"Maps will go here"
+# If I want to use javascript directly I could use htmlwidgets::onRender(),
+# or maybe just an observable cell
+```
+
+:::
+
+::: foot
+Last edited `r Sys.Date()`.
+
+This City Scan is a product of the City Resilience Program.
+
+The findings, interpretations, and conclusions expressed in this City Scan do not necessarily reflect the views of the World Bank, the Executive Directors of the World Bank, or the governments they represent. Given that the data included in this work are derived from global sources, the World Bank does not guarantee its accuracy.
+
+:::
+
+{{< include source/scrollytelling.qmd >}}
