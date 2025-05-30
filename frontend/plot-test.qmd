@@ -93,20 +93,25 @@ City Scan
 
 ```{ojs}
 //| output: asis
+textColumn = d3.select('.text-column').node();
+textColumn
+columnWidth = textColumn.getBoundingClientRect().width;
+columnWidth
+
 fillSlide("population")
 
 md`#### Population Growth`
 import {chart_pop_growth}
 // with {pop_growth_tunis as pop_growth}
 // with {new_title as title}
-from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
 chart_pop_growth
 
-columnWidth = 300
 md`#### Population Distribution by Age & Sex`
 import {chart_pop_age_sex}
 with {columnWidth as plotWidth}
-from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+from "@unrelated/tunis-test"
 chart_pop_age_sex
 ```
 
@@ -128,10 +133,9 @@ fillSlide("economic_change")
 
 ```{ojs}
 //| output: true
-
-// slide_texts.wsf
-// md`### ${slide_texts.wsf.title}`
-import {chart_uba} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+import {chart_uba} 
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
 // chart_uba
 // addSlideText(slide_texts.wsf)
 fillSlide("wsf", chart_uba)
@@ -140,8 +144,9 @@ fillSlide("wsf_tracker")
 
 fillSlide("impervious")
 
-import {chart_lc} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
-// fillSlide("land_cover", chart_lc)
+import {chart_lc}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
 fillSlide("land_cover", chart_lc)
 // fillSlide("school_zones", null, null, null, slide_texts.school_proximity)
 // fillSlide("health_zones", null, null, null, slide_texts.health_proximity)
@@ -162,7 +167,25 @@ fillSlide("vegetation")
 ```{ojs}
 //| output: true
 // fillSlide("fluvial", null, "infrastructure", null, slide.texts.flooding_infrastructure_fluvial)
-import {chart_fu} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+import {chart_fu}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("fluvial_uba", chart_fu)
+
+import {chart_pu} 
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("fluvial_uba", chart_fu)
+
+// import {chart_cu}
+// with {columnWidth as plotWidth}
+// from "@carolinecullinan/tunis-tunisia"
+// fillSlide("fluvial_uba", chart_cu)
+
+import {chart_comb}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("fluvial_uba", chart_comb)
 
 fillSlide("elevation")
 fillSlide("slope")
@@ -171,6 +194,11 @@ fillSlide("liquefaction")
 fillSlide("roads")
 fillSlide("burnable")
 fillSlide("moisture")
+
+import {chart_fwi} 
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("fluvial_uba", chart_fwi)
 
 ```
 

@@ -178,6 +178,7 @@ $page-margin-right: 0.5in;
     grid-column-gap: 2ch; // Set with sass variable? //Is this used / right
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: 20px 20px;
+    overflow-x: hidden; 
   }
 
   @media screen {
