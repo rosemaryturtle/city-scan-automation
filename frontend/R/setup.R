@@ -29,6 +29,7 @@ librarian::shelf(quiet = T,
   rstudio/terra, # Only the github version of leaflet supports terra, in place of raster, which is now required as sp (on which raster depends) is being deprecated
   tidyterra, 
   leaflet, 
+  leafem,
   ggspatial, 
 
   # Web
@@ -57,6 +58,7 @@ city_dir <- readLines("city-dir.txt")[1]
 user_input_dir <- file.path(city_dir, "01-user-input/")
 process_output_dir <- file.path(city_dir, "02-process-output/")
 spatial_dir <- file.path(process_output_dir, "spatial/")
+fgb_dir <- file.path(process_output_dir, "spatial-fgb")
 tabular_dir <- file.path(process_output_dir, "tabular/")
 output_dir <- file.path(city_dir, "03-render-output/")
 styled_maps_dir <- file.path(output_dir, "maps/")

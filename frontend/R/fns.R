@@ -168,6 +168,20 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   #   )
   # }
 
+v <- data %>%
+  as.polygons(digits = 4)
+v_styled <- v %>%
+  rename(value = 1) %>%
+  mutate(
+    fillColor = color_scale(value),
+    label = label_maker(
+      x = value,
+      levels = params$breaks,
+      labels = params$labels,
+      suffix = params$suffix))
+fgb_path <- file.path(fgb_dir, paste0(yaml_key, ".fgb"))
+writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
+
 # I have moved the formerly-present note on lessons from the CRC Workshop code to my `Week of 2023-11-26` note in Obsidian.
 
 ### !!! I need to pull labels out because not always numeric so can't be signif
@@ -176,10 +190,12 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
     if (class(data)[1] %in% c("SpatRaster", "RasterLayer")) {
     # RASTER
       maps <- maps %>% 
-        addRasterImage(data, opacity = 1,
-          colors = color_scale,
-          # For now the group needs to match the section id in the text-column
-          # group = params$title %>% str_replace_all("\\s", "-") %>% tolower(),
+        addFgb(
+          file = fgb_path,
+          color = NULL,
+          fill = T,
+          label = "label",
+          fillOpacity = 0.9,
           group = params$group_id)
     } else if (class(data)[1] %in% c("SpatVector", "sf")) {
       # VECTOR

@@ -429,14 +429,16 @@ print_md(slide_texts$concluding_questions)
 #| output: true
 #| label: leaflet_maps
 # # all_maps # Created in maps.R
+aoi_fgb <- file.path(fgb_dir, "aoi.fgb")
+
 plots_html %>%
   { Reduce(\(x, f) f(x), ., init = plot_basemap("vector")) } %>%
-  add_aoi() %>%
+  addFgb(file = aoi_fgb, stroke = TRUE, color = "black", weight = 2, fill = F, opacity = .9) %>%
   addLayersControl(
     overlayGroups = group_ids,
     position = "topleft",
     options = layersControlOptions(collapsed = TRUE)) %>%
-    addScaleBar(position = "bottomleft")
+  addScaleBar(position = "bottomleft")
 
 # If I want to use javascript directly I could use htmlwidgets::onRender(),
 # or maybe just an observable cell
