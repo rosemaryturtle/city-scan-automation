@@ -95,24 +95,23 @@ City Scan
 //| output: asis
 textColumn = d3.select('.text-column').node();
 textColumn
-columnWidth = textColumn.getBoundingClientRect().width;
+columnWidth = textColumn.getBoundingClientRect().width * .95;
 columnWidth
 
 fillSlide("population")
 
-md`#### Population Growth`
-import {chart_pop_growth}
+import {chart_pg}
 // with {pop_growth_tunis as pop_growth}
 // with {new_title as title}
 with {columnWidth as plotWidth}
 from "@carolinecullinan/tunis-tunisia"
-chart_pop_growth
+fillSlide("population growth", chart_pg)
 
 md`#### Population Distribution by Age & Sex`
-import {chart_pop_age_sex}
+import {chart_pas}
 with {columnWidth as plotWidth}
-from "@unrelated/tunis-test"
-chart_pop_age_sex
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("population distro", chart_pas)
 ```
 
 ```{ojs}

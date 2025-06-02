@@ -192,7 +192,7 @@ $page-margin-right: 0.5in;
 
   @media print {
     grid-column: 1 / -1;
-    section>h2, h3 {
+    section>h2, section>h3 {
       grid-column: 1 / -1;
       grid-row: 1 / 2;
       // margin-top: 0; // Already set for screen
@@ -348,7 +348,7 @@ $page-margin-right: 0.5in;
   section#executive-summary { color: black; };
   }
 
-  section>h2, h3 {
+  section>h2, section>h3 {
     color: black;
     font-weight: 400;
     text-transform: uppercase;
@@ -366,7 +366,7 @@ $page-margin-right: 0.5in;
     @media print {margin-left: 0; margin-right: 0}
   }
 
-  h3 { // Previously also applied to h3::before 
+  section>h3 { // Previously also applied to h3::before 
     font-size: 1.1rem;
     border-bottom: 1px solid black;
     @media print {font-size: 14pt; margin: 0}
@@ -618,7 +618,7 @@ $page-margin-right: 0.5in;
     counter-reset: slide_count;
   }
 
-  h3 {
+  section>h3 {
     counter-increment: slide_count;
   }
 
@@ -629,7 +629,7 @@ $page-margin-right: 0.5in;
       padding-right: 3ch;
     }
 
-  h3::before {
+  section>h3::before {
     // content: "string";
     color: $pale-color;
     content: counter(section_count) "." counter(slide_count);
@@ -729,3 +729,28 @@ $page-margin-right: 0.5in;
     }
   }
 }
+
+// Plots
+figure h3, figure h2 {
+  font-weight: 400;
+  font-size: 1.1rem;
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: .2rem;
+}
+figure h3 {
+  font-style: italic;
+  font-size: 1rem;
+  padding-bottom: .5rem;
+}
+
+figure svg text, svg.plot text {
+  font-size:clamp(6px, .8vw, 11px) !important;
+  font-weight: 400;
+}
+figure svg g[aria-label*=x-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
+figure svg  g[aria-label*=y-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
+figure svg g[aria-label*=title] text {font-size:clamp(10px, 1.2vw, 12px) !important}
+// Not used
+.plot .treemap-label {font-size:clamp(20px, 1.8vw, 32px) !important}
+.plot .treemap-percentage {font-size: clamp(16px, 1.4vw, 24px) !important}
