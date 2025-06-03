@@ -220,7 +220,7 @@ html`<section class="level4">
 fillSlide("rwi")
 ```
 
-## Economic Activity
+## Economy
 
 ```{ojs}
 //| output: asis
