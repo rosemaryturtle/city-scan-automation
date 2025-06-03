@@ -17,8 +17,8 @@ add_leaflet_plot <- function(yaml_key, fuzzy_string = NULL) {
   if (is.null(fuzzy_string)) fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
   tryCatch_named(yaml_key, {
     data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
-      aggregate_if_too_fine(threshold = 1e4, fun = \(x) Mode(x, na.rm = T)) %>%
-      vectorize_if_coarse(threshold = 1e5)
+      aggregate_if_too_fine(threshold = 2e4, fun = \(x) Mode(x, na.rm = T)) # %>%
+      # vectorize_if_coarse(threshold = 1e5)
     plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
     plots_html[[yaml_key]] <<- plot_function
     message(paste("Success:", yaml_key))
@@ -41,8 +41,8 @@ possible_layers %>%
     fuzzy_string <- layer_params[[yaml_key]]$fuzzy_string
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
-        aggregate_if_too_fine(fun = \(x) if (all(is.na(x))) NA else max(x, na.rm = T)) %>%
-        vectorize_if_coarse(threshold = 1e7)
+        aggregate_if_too_fine(fun = \(x) if (all(is.na(x))) NA else max(x, na.rm = T)) # %>%
+        # vectorize_if_coarse(threshold = 1e7)
       plot_function <- create_layer_function(data = data, yaml_key = yaml_key)
       plots_html[[yaml_key]] <<- plot_function
       message(paste("Success:", yaml_key))
@@ -53,10 +53,10 @@ tryCatch_named("deforest", {
   deforest <- fuzzy_read(spatial_dir, layer_params$deforest$fuzzy_string)
   if (inherits(deforest, "SpatRaster")) {
     values(deforest) <- values(deforest) + 2000
-    deforest_vect <- deforest %>%
-      aggregate_if_too_fine(threshold = 1e4, fun = \(x) if (all(is.na(x))) NA else max(x, na.rm = T)) %>%
-      vectorize_if_coarse(threshold = 1e6)
-    plots_html$deforest <- create_layer_function(data = deforest_vect, yaml_key = "deforest")
+    deforest <- deforest %>%
+      aggregate_if_too_fine(threshold = 2e4, fun = \(x) if (all(is.na(x))) NA else max(x, na.rm = T)) # %>%
+      # vectorize_if_coarse(threshold = 1e6)
+    plots_html$deforest <- create_layer_function(data = deforest, yaml_key = "deforest")
   }
 })
 

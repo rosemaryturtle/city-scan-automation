@@ -15,16 +15,14 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
-# source('R/maps-web.R')
-source('R/setup.R')
-# cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
+source('R/maps-web.R')
+cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
 ```
 
 ```{r}
 #| cache: false
 # Which layers do we have plots for? Tell Observable cells
-# ojs_define(createdMaps = names(plots_html))
-ojs_define(createdMaps = c("population", "rwi", "economic_activity", "economic_change", "wsf", "land_cover", "intersections", "school_zones", "school_points", "health_zones", "health_points", "solar", "air_quality", "summer_lst", "vegetation", "forest", "deforest", "infrastructure", "elevation", "slope", "landslides", "liquefaction", "burnable", "burnt_area", "fluvial", "pluvial", "coastal", "combined_flooding"))
+ojs_define(createdMaps = names(plots_html))
 ```
 
 ---
@@ -142,7 +140,7 @@ City Scan
 <!-- Hiding cover map until we have a way of producing it on Google Cloud -->
 <!-- While hiding, also raising the map* -->
 <!-- <div id="cover-map">
-
+![](`r cover_image`)
 </div> -->
 
 ::: text-column
@@ -366,15 +364,17 @@ fillSlide("burnt_area", chart_fwi)
 #| output: true
 #| label: leaflet_maps
 # # all_maps # Created in maps.R
-# plots_html[2:5] %>%
-#   { Reduce(\(x, f) f(x), ., init = plot_basemap("vector")) } %>%
-#   add_aoi() %>%
-#   addLayersControl(
-#     overlayGroups = group_ids,
-#     position = "topleft",
-#     options = layersControlOptions(collapsed = TRUE)) %>%
-#     addScaleBar(position = "bottomleft")
-"Maps will go here"
+aoi_fgb <- file.path(fgb_dir, "aoi.fgb")
+
+plots_html %>%
+  { Reduce(\(x, f) f(x), ., init = plot_basemap("vector")) } %>%
+  addFgb(file = aoi_fgb, stroke = TRUE, color = "black", weight = 2, fill = F, opacity = .9) %>%
+  addLayersControl(
+    overlayGroups = group_ids,
+    position = "topleft",
+    options = layersControlOptions(collapsed = TRUE)) %>%
+  addScaleBar(position = "bottomleft")
+
 # If I want to use javascript directly I could use htmlwidgets::onRender(),
 # or maybe just an observable cell
 ```

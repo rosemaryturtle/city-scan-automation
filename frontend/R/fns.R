@@ -168,6 +168,31 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   #   )
   # }
 
+v <- data %>%
+  as.polygons(digits = 4)
+v_styled <- v %>%
+  rename(value = 1) %>%
+  mutate(
+    fillColor = color_scale(value),
+    label = label_maker(
+      x = value,
+      levels = params$breaks,
+      labels = params$labels,
+      suffix = params$suffix))
+fgb_path <- file.path(fgb_dir, paste0(yaml_key, ".fgb"))
+writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
+
+
+# Where did this come from? Appeared 2025-06-02??
+  # # If the data is a raster, we need to set the domain to the range of the values
+  # # in the raster. If it is a vector, we can use the values in the first column.
+  # if (class(data)[1] %in% c("SpatRaster", "RasterLayer")) {
+  #   domain <- if (is.null(params$domain)) range(layer_values, na.rm = T) else params$domain
+  # } else {
+  #   domain <- if (is.null(params$domain)) range(layer_values, na.rm = T) else params$domain
+  # }
+  # legend_opacity <- params$legend_opacity %||% 0.8
+
 # I have moved the formerly-present note on lessons from the CRC Workshop code to my `Week of 2023-11-26` note in Obsidian.
 
 ### !!! I need to pull labels out because not always numeric so can't be signif
@@ -175,11 +200,19 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   layer_function <- function(maps, show = T) {
     if (class(data)[1] %in% c("SpatRaster", "RasterLayer")) {
     # RASTER
+      # maps <- maps %>% 
+      #   addRasterImage(data, opacity = 1,
+      #     colors = color_scale,
+      #     # For now the group needs to match the section id in the text-column
+      #     # group = params$title %>% str_replace_all("\\s", "-") %>% tolower(),
+      #     group = params$group_id)
       maps <- maps %>% 
-        addRasterImage(data, opacity = 1,
-          colors = color_scale,
-          # For now the group needs to match the section id in the text-column
-          # group = params$title %>% str_replace_all("\\s", "-") %>% tolower(),
+        addFgb(
+          file = fgb_path,
+          color = NULL,
+          fill = T,
+          label = "label",
+          fillOpacity = 0.9,
           group = params$group_id)
     } else if (class(data)[1] %in% c("SpatVector", "sf")) {
       # VECTOR
