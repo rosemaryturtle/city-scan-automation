@@ -751,6 +751,6 @@ figure svg text, svg.plot text {
 figure svg g[aria-label*=x-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
 figure svg  g[aria-label*=y-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
 figure svg g[aria-label*=title] text {font-size:clamp(10px, 1.2vw, 12px) !important}
-// Not used
+// Not used, no "treemap-label" or "treemap-percentage" classes in the plot
 .plot .treemap-label {font-size:clamp(20px, 1.8vw, 32px) !important}
 .plot .treemap-percentage {font-size: clamp(16px, 1.4vw, 24px) !important}

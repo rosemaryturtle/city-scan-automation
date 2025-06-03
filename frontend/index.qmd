@@ -24,7 +24,7 @@ source('R/setup.R')
 #| cache: false
 # Which layers do we have plots for? Tell Observable cells
 # ojs_define(createdMaps = names(plots_html))
-ojs_define(createdMaps = c("population", "rwi", "economic_activity", "economic_change", "wsf", "land_cover", "intersections", "school_zones", "school_points", "health_zones", "health_points", "solar", "air_quality", "summer_lst", "vegetation", "forest", "deforest", "infrastructure", "elevation", "slope", "landslides", "liquefaction", "burnable"))
+ojs_define(createdMaps = c("population", "rwi", "economic_activity", "economic_change", "wsf", "land_cover", "intersections", "school_zones", "school_points", "health_zones", "health_points", "solar", "air_quality", "summer_lst", "vegetation", "forest", "deforest", "infrastructure", "elevation", "slope", "landslides", "liquefaction", "burnable", "burnt_area", "fluvial", "pluvial", "coastal", "combined_flooding"))
 ```
 
 ---
@@ -65,23 +65,29 @@ function addSlideText(slide) {
   ${renderDiv(slide.footnote, "footnote")}`
 }
 
-function fillSlide(layer, chart = null, extra_layers = null, title = null, slide_text = null) {
+function fillSlide(layer, chart = null, extra_layers = [], title = null, slide_text = null) {
   if (!createdMaps.includes(layer)) return md``;
-  var mappingLayers = [...(extra_layers ?? []), layer].map(lay => layerParams[lay].group_id).join(";");
+  var mappingLayers = [...(extra_layers ?? []), layer]
+    .map(lay => layerParams[lay].group_id)
+    .filter(Boolean)
+    .join(";"); 
   // To avoid rendering "null", "undefined", or "" in the document, return nothing explicitly:
   // if (!createdMaps.includes(layer)) return;
-    if (!slide_text) slide_text = slide_texts[layer];
+    if (!slide_text && layer) slide_text = slide_texts[layer];
     if (!title) title = slide_text?.title;
-    if (!title) title = layer;
-return html`
-<section class="level3">
-${md`### ${title}`}
-${chart ?? ""}
-${html`<div class="map-list" data-layers="${mappingLayers}"></div>`}
-${addSlideText(slide_texts[layer])}
-</section>
-`
+    if (!title && layer) title = layer;
+  return html`
+    <section class="level3">
+      ${md`### ${title}`}
+      ${html`<div class="map-list" data-layers="${mappingLayers}"></div>`}
+      ${chart ?? ""}
+      ${addSlideText(slide_text)}
+    </section>
+    `
 }
+
+textColumn = d3.select('.text-column').node();
+columnWidth = textColumn.getBoundingClientRect().width * .95;
 ```
 
 :::
@@ -168,21 +174,23 @@ slide_texts$executive_summary_no_anchor_ids$takeaways <-
 //| output: asis
 fillSlide("population")
 
-md`#### Population Growth`
-import {chart_pop_growth}
-// with {pop_growth_tunis as pop_growth}
-// with {new_title as title}
-from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
-chart_pop_growth
-addSlideText(slide_texts.population_growth)
-
-columnWidth = 300
-md`#### Population Distribution by Age & Sex`
-import {chart_pop_age_sex}
+import {chart_pg}
 with {columnWidth as plotWidth}
-from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
-chart_pop_age_sex
-addSlideText(slide_texts.population_distribution_age_sex)
+from "@carolinecullinan/tunis-tunisia"
+// fillSlide("population_growth", chart_pas)
+html`<section class="level4">
+    ${md`#### Population Growth`}
+    ${chart_pg ?? ""}
+    ${addSlideText(slide_texts.population_growth)}
+    </section>`
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+// fillSlide("population_distribution_age_sex", chart_pas)
+html`<section class="level4">
+    ${md`#### Population Distribution by Age & Sex`}
+    ${chart_pas ?? ""}
+    ${addSlideText(slide_texts.population_distribution_age_sex)}
+    </section>`
 ```
 
 ```{ojs}
@@ -203,41 +211,70 @@ fillSlide("economic_change")
 
 ```{ojs}
 //| output: true
-
-// slide_texts.wsf
-// md`### ${slide_texts.wsf.title}`
-import {chart_uba} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
-// chart_uba
-// addSlideText(slide_texts.wsf)
+import {chart_uba} 
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
 fillSlide("wsf", chart_uba)
 
 fillSlide("wsf_tracker")
 
 fillSlide("impervious")
 
-import {chart_lc} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
-// fillSlide("land_cover", chart_lc)
-fillSlide("land_cover")
-// fillSlide("school_zones", null, null, null, slide_texts.school_proximity)
-// fillSlide("health_zones", null, null, null, slide_texts.health_proximity)
+import {chart_lc}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("land_cover", chart_lc)
+fillSlide("school_zones", null, null, null, slide_texts.school_proximity)
+fillSlide("health_zones", null, null, null, slide_texts.health_proximity)
 ```
 
 ## Climate Conditions
 
 ```{ojs}
 //| output: asis
-fillSlide("solar")
+import {chart_pv}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("solar", chart_pv)
+
 fillSlide("air_quality")
 fillSlide("summer_lst")
 fillSlide("vegetation")
-// fillSlide("forest", null, "deforest")
+fillSlide("forest", null, ["deforest"])
 ```
 
 ## Risk Identification
 ```{ojs}
 //| output: true
-// fillSlide("fluvial", null, "infrastructure", null, slide.texts.flooding_infrastructure_fluvial)
-import {chart_fu} from "@carolinecullinan/city-scan-plotted-tunis-tunisia"
+fillSlide("fluvial", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_fluvial)
+fillSlide("pluvial", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_pluvial)
+fillSlide("coastal", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_coastal)
+fillSlide("combined_flooding", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_combined)
+
+import {chart_fu}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("fluvial", chart_fu, ["wsf"], null, slide_texts.flooding_builtup_fluvial)
+
+import {chart_pu} 
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("pluvial", chart_pu, ["wsf"], null, slide_texts.flooding_builtup_pluvial)
+
+import {chart_cu}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("coastal", chart_cu, ["wsf"], null, slide_texts.flooding_builtup_coastal)
+
+import {chart_comb}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("combined_flooding", chart_comb, ["wsf"], null, slide_texts.flooding_builtup_combined)
+
+fillSlide("fluvial", null, ["population"], null, slide_texts.flooding_population_fluvial)
+fillSlide("pluvial", null, ["population"], null, slide_texts.flooding_population_pluvial)
+fillSlide("coastal", null, ["population"], null, slide_texts.flooding_population_coastal)
+fillSlide("combined_flooding", null, ["population"], null, slide_texts.flooding_population_combined)
 
 fillSlide("elevation")
 fillSlide("slope")
@@ -247,6 +284,10 @@ fillSlide("roads")
 fillSlide("burnable")
 fillSlide("moisture")
 
+import {chart_fwi} 
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+fillSlide("burnt_area", chart_fwi)
 ```
 
 :::
