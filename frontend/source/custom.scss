@@ -300,11 +300,15 @@ $page-margin-right: 0.5in;
 
     p {
       margin-top: 0;
+      margin-bottom: .5rem;
     }  
 
-    p:has(+ .pseudo-h4), p:last-child {display: none}  // Don't show Go to sections
-
+    p:has(+ .pseudo-h4), p:last-child {
+      // display: none;  // Don't show Go to sections
+      font-size: .9rem;
+      margin-bottom: 1.5rem; 
   }
+}
 
   form {
     width: 100%
@@ -343,7 +347,7 @@ $page-margin-right: 0.5in;
 .text-column {
   @media screen {
   // Text is grey when not in focus, black when in focus
-  color: darkgrey;
+  // color: darkgrey; // Pausing this while I figure out how to include additional charts in sections
   section.is-active {color: black;};
   section#executive-summary { color: black; };
   }
@@ -373,11 +377,13 @@ $page-margin-right: 0.5in;
   }
   section>h4, .pseudo-h4 {
     font-size: 1.1rem; @media print {font-size: 12pt; margin: 0}
-    font-weight: 500;
+    // font-weight: 500;
     opacity: 0.9;
     margin: 1.5rem 0 0.5rem 0;
     line-height: 1.2;
     color: var(--bs-heading-color);
+    text-transform: uppercase;
+    font-weight: 400;
   }
   p { font-size: 1rem; }
   .takeaways { 
@@ -393,7 +399,7 @@ $page-margin-right: 0.5in;
 
   ul {
     padding-left: .25in;
-    margin-block-start: 1rem;
+    margin-block-start: .5rem;
     margin-block-end: 1rem;
   }
 }
@@ -731,25 +737,27 @@ $page-margin-right: 0.5in;
 }
 
 // Plots
-figure h3, figure h2 {
+figure h3, figure h2, .plot-container h2, .plot-container h3 {
   font-weight: 400;
-  font-size: 1.1rem;
-  border-bottom: 0;
-  margin-bottom: 0;
-  padding-bottom: .2rem;
-}
-figure h3 {
-  font-style: italic;
   font-size: 1rem;
-  padding-bottom: .5rem;
+  border-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-bottom:.2rem;
+}
+
+figure h3, .plot-container h3 {
+  font-style: italic;
+  // font-size: 1rem;
+  padding-bottom:.5rem;
 }
 
 figure svg text, svg.plot text {
-  font-size:clamp(6px, .8vw, 11px) !important;
+  font-size: clamp(6px, .8vw, 11px) !important;
   font-weight: 400;
 }
 figure svg g[aria-label*=x-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
-figure svg  g[aria-label*=y-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
+figure svg g[aria-label*=y-axis] text {font-size:clamp(6px, .7vw, 10px) !important}
 figure svg g[aria-label*=title] text {font-size:clamp(10px, 1.2vw, 12px) !important}
 // Not used, no "treemap-label" or "treemap-percentage" classes in the plot
 .plot .treemap-label {font-size:clamp(20px, 1.8vw, 32px) !important}
