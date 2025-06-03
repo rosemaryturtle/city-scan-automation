@@ -313,6 +313,15 @@ fillSlide("forest", null, ["deforest"])
 ## Risk Identification
 ```{ojs}
 //| output: true
+import {chart_fe}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+html`<section class="level4">
+    ${md`#### Signficant Flood Events`}
+    ${chart_fe ?? ""}
+    ${addSlideText(slide_texts.flood_events)}
+    </section>`
+
 fillSlide("fluvial", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_fluvial)
 fillSlide("pluvial", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_pluvial)
 fillSlide("coastal", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_coastal)
@@ -346,6 +355,16 @@ fillSlide("combined_flooding", null, ["population"], null, slide_texts.flooding_
 fillSlide("elevation")
 fillSlide("slope")
 fillSlide("landslides")
+
+import {chart_ee}
+with {columnWidth as plotWidth}
+from "@carolinecullinan/tunis-tunisia"
+html`<section class="level4">
+    ${md`#### Signficant Earthquake Events`}
+    ${chart_ee ?? ""}
+    ${addSlideText(slide_texts.earthquake_events)}
+    </section>`
+
 fillSlide("liquefaction")
 fillSlide("roads")
 fillSlide("burnable")
