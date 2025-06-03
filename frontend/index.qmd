@@ -165,7 +165,16 @@ slide_texts$executive_summary_no_anchor_ids$takeaways <-
     glue("{x}\n<p>→ [Go to section]({anchor})</p>\n")
   }) %>%
   str_split("\n\n") %>% unlist()
-# print_slide_text(slide_texts$executive_summary_no_anchor_ids)
+print_slide_text(slide_texts$executive_summary_no_anchor_ids)
+```
+
+## Setting the Context
+
+### Basic City Information
+```{r}
+#| output: asis
+#| label: basic_city_info
+print_slide_text(slide_texts$basic_city_info)
 ```
 
 ## Population and Demographic Trends
@@ -183,6 +192,21 @@ html`<section class="level4">
     ${chart_pg ?? ""}
     ${addSlideText(slide_texts.population_growth)}
     </section>`
+```
+
+```{r}
+#| output: asis
+plots_file <- fuzzy_read(charts_dir, "density-scatter", paste)
+if (!is.na(plots_file)) {
+  cat("#### Population Density\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$population_density_chart)
+}
+```
+
+```{ojs}
+//| output: asis
+import {chart_pas}
 with {columnWidth as plotWidth}
 from "@carolinecullinan/tunis-tunisia"
 // fillSlide("population_distribution_age_sex", chart_pas)
@@ -204,7 +228,52 @@ fillSlide("rwi")
 //| output: asis
 fillSlide("economic_activity")
 fillSlide("economic_change")
+```
 
+```{r}
+#| output: asis
+plots_file <- fuzzy_read(charts_dir, "national-shares", paste)
+if (!is.na(plots_file)) {
+  cat("#### Cities’ Shares of National Population, Employment & GDP\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$national_shares)
+}
+plots_file <- fuzzy_read(charts_dir, "oxford-gdp_line", paste)
+if (!is.na(plots_file)) {
+  cat("#### GDP Growth\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$gdp_growth)
+}
+plots_file <- fuzzy_read(charts_dir, "oxford-emp_line", paste)
+if (!is.na(plots_file)) {
+  cat("#### Employment Growth\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$employment_growth)
+}
+plots_file <- fuzzy_read(charts_dir, "oxford-pop_line", paste)
+if (!is.na(plots_file)) {
+  cat("#### Population Growth\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$population_growth_multicity)
+}
+plots_file <- fuzzy_read(charts_dir, "gdp-per-capita", paste)
+if (!is.na(plots_file)) {
+  cat("#### Per Capita GDP Growth\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$gdp_per_capita_growth)
+}
+plots_file <- fuzzy_read(charts_dir, "employment-sectors", paste)
+if (!is.na(plots_file)) {
+  cat("#### Share of Employment by Sector\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$employment_share)
+}
+plots_file <- fuzzy_read(charts_dir, "gva-sectors", paste)
+if (!is.na(plots_file)) {
+  cat("#### Per Capita GDP Growth\n") 
+  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
+  print_slide_text(slide_texts$gva_share)
+}
 ```
 
 ## Built Form
