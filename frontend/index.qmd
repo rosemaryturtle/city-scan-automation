@@ -104,6 +104,7 @@ slide_texts$executive_summary_no_anchor_ids$takeaways <-
 #   str_replace_all("#### (.*$)", "<p class='pseudo-h4'>\\1</p>")
   unlist(slide_texts$executive_summary) %>% paste(collapse="\n") %>%
   str_split("#### ") %>% .[[1]] %>% str_subset("^$", negate = T) %>%
+  (\(x) modify_at(x, length(x), ~ paste0(.x, "\n\n")))() %>%
   lapply(\(x) {
     section <- str_extract(x, "^.*")
     x <- str_replace(x, "^(.*)",  "<p class='pseudo-h4'>\\1</p>")
@@ -387,6 +388,39 @@ fill_slide_content("moisture")
 ```{r}
 #| output: asis
 fill_slide_content("burnt_area")
+```
+
+## Local Institutions & Planning
+
+### Administrative Structure
+
+```{r}
+#| output: asis
+print_slide_text(slide_texts$administrative_structure)
+```
+
+### Availability Of Development Plans And Policies
+
+```{r}
+#| output: asis
+print_slide_text(slide_texts$document_availability)
+```
+
+### The State of Urban Infrastructure and Service Delivery
+
+```{r}
+#| output: asis
+print_slide_text(slide_texts$infrastructure_and_service_delivery)
+```
+
+
+## Key Considerations for Investment Planning & Prioritization
+
+### Concluding Questions
+
+```{r}
+#| output: asis
+print_md(slide_texts$concluding_questions)
 ```
 
 ## Local Institutions & Planning
