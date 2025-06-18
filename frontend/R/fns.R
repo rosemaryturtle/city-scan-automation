@@ -651,6 +651,15 @@ read_md <- function(file) {
     bind_rows() #%>%
     # Do I want to remove header lines? For now, no
     # filter(!str_detect(text, "^#"))
+
+  # Remove empty lines
+  no_slide <- filter(mddf, is.na(slide))
+  if (nrow(no_slide) > 0) {
+    warning(paste0(
+      "There are", nrow(no_slide), "lines with no slide name:\n\n",
+      paste(knitr::kable(mutate(no_slide, .keep = "none", section, text = substr(text, 1, 25))), collapse = "\n")))
+    mddf <- filter(mddf, !is.na(slide))
+  }
   text_list <- sapply(unique(mddf$section), function(sect) {
     section_df <- filter(mddf, section == sect)
     section_list <- sapply(c(unique(section_df$slide)), function(s) {
