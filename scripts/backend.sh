@@ -1,9 +1,16 @@
 #!/usr/bin/env -S bash -euo pipefail
 # Execute City Scan backend (which triggers frontend)
 
-# Create template directory
+# Create template directory and copy templates
 mkdir -p gcs-01-user-input
 mkdir -p gcs-01-user-input/AOI
+if [[ ! -f gcs-01-user-input/city_inputs.yml ]]; then
+  cp templates/city_inputs.yml gcs-01-user-input/city_inputs.yml
+fi
+if [[ ! -f gcs-01-user-input/menu.yml ]]; then
+  cp templates/menu.yml gcs-01-user-input/menu.yml
+fi
+
 read -p "Do you want to update the template city_inputs.yml and menu.yml with the most recently used versions? (y/n): " update_files
 if [[ "$update_files" == "y" ]]; then
   gcloud storage cp gs://crp-city-scan/01-user-input/city_inputs.yml \
