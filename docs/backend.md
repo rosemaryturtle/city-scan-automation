@@ -61,7 +61,7 @@ gcloud config set project city-scan
 
 The easiest way to run the Job from the command line is to use interactive script `scripts/backend.sh`. This script will let you download the most recent `city_inputs.yml` and `menu.yml` files, prompt you to edit them, upload them to Google Cloud, and execute the Job.
 
-To use, run `bash scripts/backend.sh` from the repository's root directory, and follow the prompts. The script will create a new directory called `gcs-01-user-input`. Use this directory, and AOI/ within it, for the YAML files and the shapefiles. This directory is also where the script will download the YAML files if you request them.
+To use, run `bash scripts/backend.sh` from the repository's root directory, and follow the prompts. The script will create a new directory called `gcs-user-input`. Use this directory, and AOI/ within it, for the YAML files and the shapefiles. This directory is also where the script will download the YAML files if you request them.
 
 ### From the command line, step by step
 

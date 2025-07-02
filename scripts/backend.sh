@@ -2,31 +2,31 @@
 # Execute City Scan backend (which triggers frontend)
 
 # Create template directory and copy templates
-mkdir -p gcs-01-user-input
-mkdir -p gcs-01-user-input/AOI
-if [[ ! -f gcs-01-user-input/city_inputs.yml ]]; then
-  cp templates/city_inputs.yml gcs-01-user-input/city_inputs.yml
+mkdir -p gcs-user-input
+mkdir -p gcs-user-input/AOI
+if [[ ! -f gcs-user-input/city_inputs.yml ]]; then
+  cp templates/city_inputs.yml gcs-user-input/city_inputs.yml
 fi
-if [[ ! -f gcs-01-user-input/menu.yml ]]; then
-  cp templates/menu.yml gcs-01-user-input/menu.yml
+if [[ ! -f gcs-user-input/menu.yml ]]; then
+  cp templates/menu.yml gcs-user-input/menu.yml
 fi
 
 read -p "Do you want to update the template city_inputs.yml and menu.yml with the most recently used versions? (y/n): " update_files
 if [[ "$update_files" == "y" ]]; then
   gcloud storage cp gs://crp-city-scan/01-user-input/city_inputs.yml \
-    gs://crp-city-scan/01-user-input/menu.yml gcs-01-user-input
+    gs://crp-city-scan/01-user-input/menu.yml gcs-user-input
 fi
 echo ""
 echo "Please modify city_inputs.yml and menu.yml for your city and add shapefile AOI/."
-echo "(All are located in gcs-01-user-input/)"
+echo "(All are located in gcs-user-input/)"
 read -p "When finished press [Enter] to continue..." 
 
 # Read city name
-city_name=$(grep 'city_name:' gcs-01-user-input/city_inputs.yml | awk '{print $2}' | tr -d '\r' | tr -d '"' | tr -d "'")
+city_name=$(grep 'city_name:' gcs-user-input/city_inputs.yml | awk '{print $2}' | tr -d '\r' | tr -d '"' | tr -d "'")
 echo ""
 echo "City name is set to '$city_name'."
 
-# Read gcs-01-user-input/menu.yml and print a 2-column table of true/false values
+# Read gcs-user-input/menu.yml and print a 2-column table of true/false values
 echo "menu.yml has turned on and off the following values:"
 
 true_values=()
@@ -42,7 +42,7 @@ while IFS= read -r line; do
       false_values+=("- $key")
     fi
   fi
-done < gcs-01-user-input/menu.yml
+done < gcs-user-input/menu.yml
 
 printf "%-30s | %-30s\n" "Will run" "Won't run"
 printf "%-30s-+-%-30s\n" "$(printf -- '-%.0s' {1..30})" "$(printf -- '-%.0s' {1..30})"
@@ -52,21 +52,21 @@ for i in $(seq 0 $(( ${#true_values[@]} > ${#false_values[@]} ? ${#true_values[@
 done
 
 # Read the value for AOI_shp_name from city_inputs.yml
-AOI_shp_name=$(grep 'AOI_shp_name:' gcs-01-user-input/city_inputs.yml | awk '{print $2}' | tr -d '\r' | tr -d '"' | tr -d "'")
+AOI_shp_name=$(grep 'AOI_shp_name:' gcs-user-input/city_inputs.yml | awk '{print $2}' | tr -d '\r' | tr -d '"' | tr -d "'")
 
 if [[ -n "$AOI_shp_name" ]]; then
-  if ls "gcs-01-user-input/AOI/${AOI_shp_name}"* 1> /dev/null 2>&1; then
+  if ls "gcs-user-input/AOI/${AOI_shp_name}"* 1> /dev/null 2>&1; then
     echo "AOI file $AOI_shp_name was found."
     read -p "Do you want to upload the '$AOI_shp_name' AOI files to Google (y/n)?: " upload_aoi
     if [[ "$upload_aoi" == "y" ]]; then
-      if ! gcloud storage cp "gcs-01-user-input/AOI/${AOI_shp_name}"* gs://crp-city-scan/01-user-input/AOI; then
+      if ! gcloud storage cp "gcs-user-input/AOI/${AOI_shp_name}"* gs://crp-city-scan/01-user-input/AOI; then
         echo "Error: Failed to upload AOI files."
         exit 1
       fi
     fi
   else
-    echo "No files matching 'gcs-01-user-input/AOI/${AOI_shp_name}*' were found."
-    echo "You can add the missing files to the 'gcs-01-user-input/AOI' directory and rerun"
+    echo "No files matching 'gcs-user-input/AOI/${AOI_shp_name}*' were found."
+    echo "You can add the missing files to the 'gcs-user-input/AOI' directory and rerun"
     echo "the script, or proceed without uploading AOI files if they're already uploaded."
     read -p "Do you want to proceed without uploading AOI files? (y/n): " proceed_without_aoi
     if [[ "$proceed_without_aoi" == "n" ]]; then
@@ -90,7 +90,7 @@ fi
 #   echo "No active job executions found for 'csb'."
 # fi
 
-gcloud storage cp gcs-01-user-input/menu.yml gcs-01-user-input/city_inputs.yml \
+gcloud storage cp gcs-user-input/menu.yml gcs-user-input/city_inputs.yml \
   gs://crp-city-scan/01-user-input
 
 gcloud run jobs execute csb

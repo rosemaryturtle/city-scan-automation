@@ -44,6 +44,12 @@ _Task: Someone who actually uses Python should probably write this section. Incl
 
 ### R
 
+- R
+- R extension
+- RStudio
+- radian
+
+
 ### Quarto
 
 
