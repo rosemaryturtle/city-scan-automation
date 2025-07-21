@@ -94,6 +94,8 @@ The job will automatically create a folder in the crp-city-scan bucket for your 
 
 Once the Job is complete, you can download its inputs and outputs using gcloud. Usually we do this as part of running the frontend Job (see [Running the frontend Job](frontend.md)), but you can also do it manually.
 
+#### Download the outputs
+
 To download everything from the Job, use the following command, replacing `<city-directory>` with the name of the city's directory on Google Cloud (e.g., 2024-09-zambia-lusaka) and `<local-directory>` with the directory you want to download to:
 
 ```bash
