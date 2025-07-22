@@ -5,10 +5,19 @@
 mkdir -p gcs-user-input
 mkdir -p gcs-user-input/AOI
 if [[ ! -f gcs-user-input/city_inputs.yml ]]; then
-  cp templates/city_inputs.yml gcs-user-input/city_inputs.yml
+  if [[ -d templates ]]; then
+    cp templates/city_inputs.yml gcs-user-input/city_inputs.yml
+  else
+    curl -fsSL -o gcs-user-input/city_inputs.yml https://github.com/rosemaryturtle/city-scan-automation/raw/refs/heads/main/templates/city_inputs.yml
+  fi
 fi
 if [[ ! -f gcs-user-input/menu.yml ]]; then
-  cp templates/menu.yml gcs-user-input/menu.yml
+  if [[ -d templates ]]; then
+    cp templates/menu.yml gcs-user-input/menu.yml
+  else
+    echo "No local templates directory found. Downloading menu.yml from GitHub..."
+    curl -fsSL -o gcs-user-input/menu.yml https://github.com/rosemaryturtle/city-scan-automation/raw/refs/heads/main/templates/menu.yml
+  fi
 fi
 
 read -p "Do you want to update the template city_inputs.yml and menu.yml with the most recently used versions? (y/n): " update_files

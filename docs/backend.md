@@ -1,5 +1,7 @@
 # Data Gathering and Processing
 
+This document describes how to run the data gathering and processing code for the City Scan project. It covers how to run the code on Google Cloud Platform, how to prepare city-specific files, and how to modify the data processing code. It includes the following sections:
+
 - [Data Gathering and Processing](#data-gathering-and-processing)
   - [Running on Google Cloud Platform](#running-on-google-cloud-platform)
     - [In browser](#in-browser)

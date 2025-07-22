@@ -10,7 +10,8 @@ For running a City Scan on Google Cloud, see
 - [gcloud](#gcloud) (required)
 
 To run visualizations and reports locally, see
-- [Docker](#docker) (recommended)
+- [gcloud](#gcloud) (either gcloud or Docker are required)
+- [Docker](#docker) (gcloud is included within the Docker image)
 
 _Task: Continue this list of use cases and software requirements_
 

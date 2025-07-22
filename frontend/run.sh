@@ -224,7 +224,9 @@ fi
 
 # Moving into mnt/ directory for ease of file paths... silly?
 # Also for access in interactive local runs
-cp -r R scripts source run.sh index.qmd pdf.qmd $MNT_DIR
+if [ "$COPYCODE" = true ]; then
+    cp -r R scripts source run.sh index.qmd pdf.qmd $MNT_DIR
+fi
 cd $MNT_DIR
 echo "." > city-dir.txt
 mkdir -p $MNT_DIR/01-user-input $MNT_DIR/02-process-output $MNT_DIR/03-render-output 

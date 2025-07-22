@@ -1,14 +1,34 @@
 #!/bin/bash
 
-# Set variables ----------------------------------------------------------------
-# Path to service account key file -- CHANGE TO USE YOUR SERVICE ACCOUNT KEY
-# It's necessary that this is a full path, not a relative path, thus the `$(pwd)`
-# which adds the current working directory to the path
-GCS_CRED_FILE="$(pwd)/.access/<service-account-key.json>"
+# Parse arguments --------------------------------------------------------------
+if [ $# -lt 1 ] || [[ "$1" == -* ]]; then
+  read -p "Enter the name of the city directory as it appears on Google Cloud (e.g., 2025-04-colombia-cartagena): " GCS_CITY_DIR
+  if [ -z "$GCS_CITY_DIR" ]; then
+    echo "City directory is required. Exiting."
+    exit 1
+  fi
+else
+  GCS_CITY_DIR="$1"
+  shift
+fi
 
-# Name of the city directory in the Google Cloud Storage Bucket
-# e.g., GCS_CITY_DIR="2025-07-philippines-taytay-rizal"
-GCS_CITY_DIR="2025-07-philippines-kalibo-aklan"
+# Check for --docker and --native flags, and remove them from arguments
+RUN_DOCKER=0
+RUN_NATIVE=0
+DOCKER_FLAGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --docker)
+      RUN_DOCKER=1
+      ;;
+    --native)
+      RUN_NATIVE=1
+      ;;
+    *)
+      DOCKER_FLAGS+=("$arg")
+      ;;
+  esac
+done
 
 # Local directory for the city (will be created if it doesn't exist)
 CITY_DIR="$(pwd)/mnt/${GCS_CITY_DIR}"
@@ -47,14 +67,52 @@ shopt -u dotglob nullglob
 rm -rf $CITY_DIR/temp-repo
 
 # Download the city data from Google Cloud Storage
+if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
+  echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist. Exiting."
+  exit 1
+fi
 gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 
-# Run the Docker container to create maps --------------------------------------
-if ! pgrep -x "docker" > /dev/null; then
-  open -a docker
-  sleep 4
+# Create maps ------------------------------------------------------------------
+
+if [[ $RUN_DOCKER -eq 1 && $RUN_NATIVE -eq 1 ]]; then
+  echo "Warning: Both --docker and --native flags are set. Please choose one."
+  select choice in "Docker" "Native"; do
+    case $choice in
+      Docker)
+        RUN_NATIVE=0
+        break
+        ;;
+      Native)
+        RUN_DOCKER=0
+        break
+        ;;
+      *)
+        echo "Please select 1 (Docker) or 2 (Native)."
+        ;;
+    esac
+  done
 fi
-docker run -it --rm \
-  -v "$CITY_DIR:/home/mnt" \
-  -e GCS_CITY_DIR="$GCS_CITY_DIR" \
-  notkin/nalgene run.sh --no-pdf --no-html --no-code-copy
+
+if [[ $RUN_NATIVE -eq 1 ]]; then
+  Rscript "$CITY_DIR/R/maps-static.R" || {
+    echo "Error: Failed to run R script for static maps."
+    exit 1
+  }
+  echo "Static maps generated successfully."
+fi
+
+if [[ $RUN_DOCKER -eq 1 ]]; then
+# Open Docker if it's not running
+  if ! pgrep -x "docker" > /dev/null; then
+    open -a docker
+    sleep 4
+  fi
+
+  # Run the Docker container with the city directory mounted
+  echo "Running Docker container..."
+  docker run -it --rm \
+    -v "$CITY_DIR:/home/mnt" \
+    -e GCS_CITY_DIR="$GCS_CITY_DIR" \
+    notkin/nalgene run.sh --no-code-copy ${DOCKER_FLAGS:---no-pdf --no-html}
+fi
