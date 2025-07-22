@@ -36,7 +36,9 @@ The standard install instructions are [here](https://cloud.google.com/sdk/docs/i
 
 Docker lets all of us, with our different devices, operating systems and softwares, pretend we all have the same setup. It lets us define and run *containers*, essentially mini virtual machines that can run anywhere Docker is installed. Docker is most important for us because it's how we package code up to run on Google Cloud, but it's also helpful for running code locally.
 
-With Docker, we write instructions (a Dockerfile) that define a Docker *image*. This image defines the operating system, software, libraries, and code that will 
+With Docker, we write instructions (a Dockerfile) that define a Docker *image*. This image defines the operating system, software, libraries, and code that will … TK
+
+To install, follow the instructions at https://docs.docker.com/desktop.
 
 ### Python
 

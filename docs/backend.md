@@ -1,10 +1,19 @@
 # Data Gathering and Processing
 
-Hi folks,
+- [Data Gathering and Processing](#data-gathering-and-processing)
+  - [Running on Google Cloud Platform](#running-on-google-cloud-platform)
+    - [In browser](#in-browser)
+      - [Prepare city-specific files](#prepare-city-specific-files)
+      - [Upload the files](#upload-the-files)
+      - [Execute the Job](#execute-the-job)
+    - [From the command line](#from-the-command-line)
+    - [From the command line, step by step](#from-the-command-line-step-by-step)
+      - [Prepare city-specific files](#prepare-city-specific-files-1)
+      - [Upload the files](#upload-the-files-1)
+      - [Execute the Job](#execute-the-job-1)
+      - [Download the outputs](#download-the-outputs)
+  - [Modifying the data processing code](#modifying-the-data-processing-code)
 
-You both already have some experience with the backend code, but we're writing documentation anyway and so here's some reference material for you as you continue working with it for the Philippines atlas. I'm trying to write it for a future audience, so it'll assume less familiarity and a slightly different context.
-
-Whether or not we add the non-standard layers to the backend processing, we will need to run Google Cloud Job for the standard layers. Here's how to do that:
 
 ## Running on Google Cloud Platform
 
@@ -95,6 +104,8 @@ The job will automatically create a folder in the crp-city-scan bucket for your 
 Once the Job is complete, you can download its inputs and outputs using gcloud. Usually we do this as part of running the frontend Job (see [Running the frontend Job](frontend.md)), but you can also do it manually.
 
 #### Download the outputs
+ 
+Once the Job is complete, you can run the frontend Job to create the maps and other outputs. See [Running the frontend Job](frontend.md) for instructions on how to do this. Below, though are instructions for downloading the outputs manually.
 
 To download everything from the Job, use the following command, replacing `<city-directory>` with the name of the city's directory on Google Cloud (e.g., 2024-09-zambia-lusaka) and `<local-directory>` with the directory you want to download to:
 
