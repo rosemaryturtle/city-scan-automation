@@ -13,12 +13,13 @@ map_portions <- c(map_width, 2.6) # First number is map width, second is legend 
 source("R/setup.R", local = T)
 source("R/pre-mapping.R", local = T)
 
+# If you want layers.yml file, change it here
 # layer_params_file <- 'source/layers-uzbek.yml' # Also used by fns.R
-# layer_params
 # layer_params <- read_yaml(layer_params_file)
-# Define map extent and zoom level
+
+# Define map extent and zoom level adjustment
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
-# zoom_level <- get_zoom_level(static_map_bounds) + 1
+zoom_adjustment <- 0
 
 # Custom themes
 theme_title <- \(...) theme(plot.title = element_text(size = 20, margin = margin(6, 0, 3.5, 40)), ...)
@@ -28,13 +29,12 @@ theme_title <- \(...) theme(plot.title = element_text(size = 20, margin = margin
 # Initiate plots list ----------------------------------------------------------
 plots <- list()
 
+# Plot AOI boundary, vector basemap, and aerial basemap  -----------------------
 plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards),
   baseplot = ggplot(),
   zoom_adj = 1,
   aoi_stroke = list(color = "black", linewidth = 0.4)) +
   labs(title = toupper(paste(
-          # "Qiziqish sohasi",
-          # "Область интересов",
           "Area of interest",
           "Domaine d'intérêt",
           sep = "   /   "))) +
@@ -47,6 +47,7 @@ plots$vector <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.n
   labs(title = "   ") +
   theme_title()
 
+# Plot aerial imagery ----------------------------------------------------------
 plots$aerial <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.null(wards),
     zoom_adj = 1,
     #  aoi_stroke = list(color = "yellow", linewidth = 0.4),
@@ -56,16 +57,13 @@ plots$aerial <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.n
 
 # Standard plots ---------------------------------------------------------------
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
-  keep_at(c("fluvial", "coastal", "pluvial", "combined_flooding")) %>%
-  # keep_at(c("drought")) %>%
   discard_at(c("burnt_area", "elevation")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
         vectorize_if_coarse()
-        # browser()
       plot <- plot_static_layer(
-        data = data, yaml_key = yaml_key, zoom_adj = 0,
+        data = data, yaml_key = yaml_key, zoom_adj = zoom_adjustment,
         baseplot = ggplot(),
         plot_aoi = T, plot_wards = !is.null(wards)) +
         labs(title = toupper(paste(
@@ -86,7 +84,6 @@ if ("zoom" %in% names(plots$elevation$layers[[2]]$mapping)) {
   plots$elevation$layers[[2]] <- NULL
 }
 source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
-# source("R/map-flooding.R", local = T)
 source("R/map-historical-burnt-area.R", local = T)
 # plots$infrastructure <- plots$infrastructure + theme(legend.text = element_markdown())
 
