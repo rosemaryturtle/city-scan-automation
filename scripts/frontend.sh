@@ -73,6 +73,9 @@ if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
 fi
 gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 
+# Write city-dir.txt to tell the R scripts where to work from ------------------
+echo "." > $CITY_DIR/city-dir.txt
+
 # Create maps ------------------------------------------------------------------
 
 if [[ $RUN_DOCKER -eq 1 && $RUN_NATIVE -eq 1 ]]; then
