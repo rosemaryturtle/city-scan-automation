@@ -1,21 +1,21 @@
-# Data Gathering and Processing
+# Data Gathering and Processing <!-- omit in toc -->
 
-This document describes how to run the data gathering and processing code for the City Scan project. It covers how to run the code on Google Cloud Platform, how to prepare city-specific files, and how to modify the data processing code. It includes the following sections:
+This document describes how to run the data gathering and processing code for the City Scan project. It covers how to run the code on Google Cloud Platform, how to prepare city-specific files, and how to modify the data processing code.
 
-- [Data Gathering and Processing](#data-gathering-and-processing)
-  - [Running on Google Cloud Platform](#running-on-google-cloud-platform)
-    - [In browser](#in-browser)
-      - [Prepare city-specific files](#prepare-city-specific-files)
-      - [Upload the files](#upload-the-files)
-      - [Execute the Job](#execute-the-job)
-    - [From the command line](#from-the-command-line)
-    - [From the command line, step by step](#from-the-command-line-step-by-step)
-      - [Prepare city-specific files](#prepare-city-specific-files-1)
-      - [Upload the files](#upload-the-files-1)
-      - [Execute the Job](#execute-the-job-1)
-      - [Download the outputs](#download-the-outputs)
-  - [Modifying the data processing code](#modifying-the-data-processing-code)
+## Contents <!-- omit in toc -->
 
+- [Running on Google Cloud Platform](#running-on-google-cloud-platform)
+  - [In browser](#in-browser)
+    - [Prepare city-specific files](#prepare-city-specific-files)
+    - [Upload the files](#upload-the-files)
+    - [Execute the Job](#execute-the-job)
+  - [From the command line](#from-the-command-line)
+  - [From the command line, step by step](#from-the-command-line-step-by-step)
+    - [Prepare city-specific files](#prepare-city-specific-files-1)
+    - [Upload the files](#upload-the-files-1)
+    - [Execute the Job](#execute-the-job-1)
+    - [Download the outputs](#download-the-outputs)
+- [Modifying the data processing code](#modifying-the-data-processing-code)
 
 ## Running on Google Cloud Platform
 
