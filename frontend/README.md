@@ -2,7 +2,7 @@
 
 This directory renders a City Scan as a static site webpage filled with backend-generated source material (to be located in `mnt/`), using [Quarto](https://quarto.org).
 
-The primary file is `index.qmd` which Quarto converts to HTML; `index.qmd` is a markdown document with additional capacity to execute chunks of R, Python and Observable-flavored JavaScript (OJS). (Right now the QMD is written in R and OJS but the R could be converted to Python.)
+The primary file is `index.qmd` which Quarto converts to HTML; `index.qmd` is a markdown document with additional capacity to execute chunks of R, Python and Observable-flavored JavaScript (OJS). (Currently, the document is written in R and OJS.)
 
 This directory includes both the files for creating a scan (and a template for other scans), and the files for building the scan using Google Cloud. First we will look into creating a scan and its template, and then we will complicate things by doing so in Docker and on Google Cloud.
 
@@ -34,18 +34,20 @@ This directory includes both the files for creating a scan (and a template for o
 
 ## The lay of the land…
 
-For all scans
+The following files are used by all scans:
 - `index.qmd` – The main file which Quarto builds the document from; a Quarto file (QMD) is a markdown file that can execute Python, R, and ObservableJS chunks
+- `source/maps-web.R` & `source/maps-static.R` – R scripts for generating the leaflet functions and the static ggplot2 plots
+- `source/setup.R` – An R script which sets city-specific parameters and directories, and loads packages and functions.
 - `source/fns.R` – The R functions used by `index.qmd`; these functions mainly consist of mapmaking functions that style the rasters for interactive (leaflet) and static (ggplot2) plots
 - `source/scrollytelling.qmd` – The ObservableJS code needed for the scrollytelling (the feature where the map layers turn on when the relevant section is scrolled to)
 - `source/layers.yml` – The recipe for how each map layer is made (this may be moved out of the container and onto Google Cloud, but probably best for it to stay here with a way to override it with a file in Google Cloud Storage)
 - `source/custom.scss` – The document's style sheet (note that it is a [*SASS*](https://sass-lang.com) file, rather than a *CSS* file)
-- `source/generic-text.yml` – the text snippets used by all City Scans, such as methodology text and citations.
+- `source/generic-text.yml` – the text snippets used by all City Scans, such as methodology text and citations
 
-For a particular scan
-- `mnt/<city-directory>/01-user-input/city_inputs.yml`
-- `mnt/<city-directory>/01-user-input/text-files/manual-text.md`
-- geospatial data, such as GeoTIFFs
+Each particular scan, in addition, requires the following city-specific:
+- `mnt/<city-directory>/01-user-input/city_inputs.yml` – A YAML file containing city-specific parameters; it will be made by the backend process
+- `mnt/<city-directory>/01-user-input/text-files/manual-text.md` – A text file with the takeaway text for each map and chart, desk research and executive summary; the user should make this file based on the template.
+- `mnt/<city-directory>/02-process-output/` – Spatial and tabular data collected by the backend process and which will be used by the frontend to create the maps and charts
 
 ## Making changes
 
@@ -64,9 +66,11 @@ Let's consider 3 scenarios in which you want to modify this site:
 
 ### `index.qmd`
 
-`index.qmd` provides the site's skeletal structure. It is essentially an R markdown notebook or a Jupyter notebook that can execute Python, R, and JavaScript. This file gathers all of the content we want in the final document. Currently, it also creates the maps from the geospatial data, though we might want to move this to a separate file.
+`index.qmd` provides the site's skeletal structure. It is essentially an R markdown notebook or a Jupyter notebook that can execute Python, R, and JavaScript. This file gathers all of the content we want in the final document.
 
 #### Structure
+
+`index.qmd` is broken up into multiple sections: the YAML frontmatter, and then a series of sections separated by `:::` – these sections will be rendered as HTML `<div>`s with the clas name that appears after the `:::`:
 
 - YAML frontmatter
   - Sandwiched by `---`
@@ -81,14 +85,15 @@ Let's consider 3 scenarios in which you want to modify this site:
   - This could probably be done more efficiently.
 - `:::text-column`
   - This section includes all of the left-side content of the site
-  - It also creates all of the map layers, but doesn't show them (for scrollytelling reasons)
   - Note that this section begins with `:::text-column` and ends with `:::`, which creates `<div class="text-column>`
 - `:::maps`
-  - This is where all of the map layers are ultimately shown
+  - This div defines the right-side content of the site, which is the leaflet map
+  - All of the map layers made in `source/maps-web.R`, and saved to the list `plots_html`, are shown here
   - We have built the map layers above but now we want to show them all at once, on a single basemap
-  - Over the course of text-column, we have been adding each new layer to the `all_maps` object
 
 #### Creating the map layer
+
+A map layer comprises a map function, some text, and perhaps a chart. The map is made in `source/maps-web.R` based off parameters defined in `source/layers.yml`. The text is stitched together from the `source/generic-text.yml` and `source/manual-text.md` files. To make a new map layer, we then must 
 
 Each map layer begins with a level-3 header (e.g., `### Population density`). This is the title that will appear on the lefthand side and is also the label (at least for now) that is used to show/hide the map layers.
 
