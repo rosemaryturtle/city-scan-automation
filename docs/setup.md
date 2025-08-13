@@ -60,6 +60,6 @@ _Task: Someone who actually uses Python should probably write this section. Incl
 
 ### Google Cloud
 
-To use Google Cloud, from browser or command line, you need to authenticate. If you don't have access, please write Ben Notkin to get set up. For instructions on how to give someone access, see [docs/google-cloud-access.md](docs/google-cloud-access.md).
+To use Google Cloud, from browser or command line, you need to authenticate. If you don't have access, please write Ben Notkin to get set up. For instructions on how to give someone access, see [docs/google-cloud-access.md](/docs/google-cloud-access.md).
 
 Inside of a Docker container, you'll need to authenticate with a service account. (For browser and interactive command line, you can sign in using Google Cloud Platform's website.) _Task: write instructions for what to do with service account._

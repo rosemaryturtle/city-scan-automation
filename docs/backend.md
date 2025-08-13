@@ -41,6 +41,8 @@ To run the Job, we must provide these two or three files to Google Cloud, and th
 1. Edit `city_inputs.yml` and `menu.yml`
 2. (Optional) Find or create AOI shapefile (for help with this, see [Finding an AOI](finding-aoi.md))
 
+The AOI shapefile is optional because if it is not included, the Job will use default boundaries from GHSL's Urban Centre Database or OpenStreetMap based on the city name. Beware, however, that these areas, though, can be quite large and also wrong (such as when there are multiple cities with the same name – we do not yet allow for specification by country.) (_Task: allow for specification by country, probably via country name -> iso code.)
+
 #### Upload the files
 
 3. Visit [Google Cloud Storage](https://console.cloud.google.com/storage/browser/crp-city-scan/01-user-input) for the crp-city-scan bucket
