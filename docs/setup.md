@@ -3,15 +3,15 @@
 ## Required and Recommended Software
 
 For all activities, see
-- Git (required)
-- VS Code (recommended)
+- [Git](#git) (required)
+- [VS Code](#vs-code) (recommended)
 
 For running a City Scan on Google Cloud, see
 - [gcloud](#gcloud) (required)
 
-To run visualizations and reports locally, see
-- [gcloud](#gcloud) (either gcloud or Docker are required)
-- [Docker](#docker) (gcloud is included within the Docker image)
+To run visualizations and reports locally, you can run with [Docker](#docker) or natively. If using Docker, you will only need Docker, in addition to Git and an editor like VS Code. (The frontend script also requires gcloud, but we will add instructions that don't require it.) For running natively, see
+- [gcloud](#gcloud) (required)
+- [R](#r) (required)
 
 _Task: Continue this list of use cases and software requirements_
 
@@ -47,14 +47,17 @@ _Task: Someone who actually uses Python should probably write this section. Incl
 
 ### R
 
-- R
-- R extension
-- RStudio
-- radian
+The maps and webpage are made using the language R. You will need R in order to run the frontend, and you can download it [here](https://cran.r-project.org/). To use R in VS Code, we recommend installing the [R extension](https://marketplace.visualstudio.com/items?itemName=REditorSupport.r): follow the instructions at the link; we also recommend installing [radian](https://github.com/randy3k/radian).
 
+If you have used R in the past, you likely used RStudio as your editor. For the City Scan workflow and development, we recommend VS Code as it supports multiple languages and has a better terminal and Git integration. Still, RStudio can still be useful, and can be downloaded [here](https://posit.co/download/rstudio-desktop/).
 
 ### Quarto
 
+Quarto is a publishing system that lets you create documents and websites with R, Python, JavaScript, and Julia. If you are familiar with R Markdown, Jupyter notebooks, or Observable notebooks, Quarto is similar but allows for the use of multiple languages in the same document. It is used to create the City Scan reports and website.
+
+A Quarto file is a markdown document with code chunks that can be rendered into HTML, PDF, or other formats. The Python and R code is executed at the time of rendering and the output is included in the final document.
+
+To install Quarto, follow the instructions at [Quarto's installation page](https://quarto.org/docs/get-started/).
 
 ## Authentication
 
