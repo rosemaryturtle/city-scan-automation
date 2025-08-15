@@ -26,7 +26,7 @@ librarian::shelf(quiet = T,
   cowplot,
   # Spatial
   sf,
-  rstudio/terra, # Only the github version of leaflet supports terra, in place of raster, which is now required as sp (on which raster depends) is being deprecated
+  rspatial/terra, # Only the github version of leaflet supports terra, in place of raster, which is now required as sp (on which raster depends) is being deprecated
   tidyterra, 
   leaflet, 
   leafem,
