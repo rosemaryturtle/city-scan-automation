@@ -113,11 +113,13 @@ erase_isochrone_overlaps <- function() {
 erase_isochrone_overlaps()
 
 lst <- fuzzy_read(spatial_dir, "summer.*.tif$")
-q <- quantile(values(lst), .9, na.rm = T)
-# classify lst so everything below 50 is NA and everything above 50 is 1
-lst <- classify(lst, cbind(c(0, q), c(q, 100), c(NA, 1))) %>%
-  as.polygons()
-writeVector(lst, file.path(spatial_dir, "extreme-lst.gpkg"), overwrite = T)
+if (inherits(lst, "SpatRaster")) {
+  q <- quantile(values(lst), .9, na.rm = T)
+  # classify lst so everything below 50 is NA and everything above 50 is 1
+  lst <- classify(lst, cbind(c(0, q), c(q, 100), c(NA, 1))) %>%
+    as.polygons()
+  writeVector(lst, file.path(spatial_dir, "extreme-lst.gpkg"), overwrite = T)
+}
 
 # wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif$")
 # if (inherits(wsf, "SpatRaster")) {

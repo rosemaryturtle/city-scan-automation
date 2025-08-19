@@ -17,14 +17,14 @@ tryCatch_named("health_proximity", {
 
 c("public_space", "waste", "transportation", "sanitation", "electricity", "sez", "water", "communication") %>%
   walk(\(x) {
-    # browser()
-    points <- fuzzy_read(spatial_dir, paste0(x, "_POI"))[static_map_bounds] # Filter added for SEZ labels
+    points <- fuzzy_read(spatial_dir, paste0(x, "_POI"))
     label <- layer_params[[paste0(x, "_points")]]$label
     p <- plots[[paste0(x, "_zones")]]
     if (inherits(points, "SpatVector") & !is.null(p)) {
+      points <- points[static_map_bounds] # Filter added for SEZ labels
       plots[[paste0(x, "_proximity")]] <<- p +
           geom_spatvector(data = points, aes(color = label), size = 1) +
           scale_color_manual(values = layer_params[[paste0(x, "_points")]]$palette, name = "Feature") +
           coord_3857_bounds(static_map_bounds)
     }
-
+  })
