@@ -98,3 +98,27 @@ for (name in names(overlay_plots)) {
     map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 }
 
+# Ports & road networks -------------------------------------------------------
+
+roads <- fuzzy_read(spatial_dir, "primary_roads")
+roro <- fuzzy_read(spatial_dir, "roro_ports")
+seaports <- fuzzy_read(spatial_dir, "seaports")
+airports <- fuzzy_read(spatial_dir, "airports")
+
+ports <- rbind(
+  mutate(roro, type = "RORO", label = "R", .keep = "none"),
+  mutate(seaports, type = "Seaport", label = "S", .keep = "none"),
+  mutate(airports, type = "Airport", label = "A", .keep = "none"))
+
+plots$ports <- plot_static_layer(aoi_only = T, plot_aoi = F) +
+  geom_spatvector(data = roads, aes(color = "Primary road")) +
+  scale_color_manual(values = c("Primary road" = "grey20"), name = "") +
+  ggnewscale::new_scale_color() +
+  geom_spatvector(data = ports, aes(shape = type, color = type)) +
+  # scale_color_manual(values = 
+  #   setNames(scales::hue_pal()(2), c("RORO", "Seaport", "Airport")), name = "Port type") +
+  scale_color_manual(values = c("RORO" = "dodgerblue", "Seaport" = "dodgerblue", "Airport" = "red"), name = "Port type") +
+  scale_shape_manual(values = c("RORO" = 16, "Airport" = 2, "Seaport" = 1), name = "Port type") +
+  # labs(color = "Port type", shape = "Port type") +
+  coord_3857_bounds(static_map_bounds)
+
