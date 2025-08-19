@@ -23,7 +23,7 @@ template:
   # resolution or resolution_factor
 # SECTION 3 DEMOGRAPHICS
 population: # <-- We refer to this as the "YAML key" and is used to match generic and manual text
-  fuzzy_string: population.*.tif$
+  fuzzy_string: pop_2030.tif$
   title: 'Population density'
   subtitle: 'Number of persons per 10,000 m<sup>2</sup>'
   palette: ['#ECEB72', '#8E3933']
@@ -55,32 +55,24 @@ economic_change:
   center: 0
   bins: 0
 # SECTION 5 BUILT FORM
-wsf:
-  fuzzy_string: wsf-edit.tif$
-  title: Year of urban expansion, 1985–2015
-  breaks: [1985, 1986, 1996, 2006, 2015]
+builtup:
+  fuzzy_string: built_over_time.tif$
+  title: Year of urban expansion, 1970–2030
+  breaks: [1970, 1971, 1980, 1990, 2000, 2010, 2020, 2030]
   # labels: ['Before 1986', '1986', '1996', '2006', '2015']
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
-  labels: ['Before 1986', '1986-1995', '1996-2005', '2006-2015']
+  labels: ['Before 1971', '1971-1980', '1981-1990', '1991-2000', '2001-2009', '2011-2020', '2021-2030']
   palette: ['#FBF9CD', '#E3B854', '#BF4A3B', '#25110B']
   group_id: Urban extent
   # wsf_val[[city]] <- c('', 'Pre 1985', '1986-1995', '1996-2005', '2006-2015')
   # wsf_col[[city]] <- c('transparent', '#ffffbe', '#ffaa00', '#e60000', '#290800')
-wsf_tracker:
-  fuzzy_string: wsf-tracker-edit.tif$
-  title: Year of urban expansion, 2016–2024
-  breaks: [2016.5, 2017, 2019, 2021, 2023, 2024.5]
-  # labels: ['Before 1986', '1986', '1996', '2006', '2015']
-  # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
-  labels: ['Before July 2016', 'July 2016-2018', 'July 2018-2020', 'July 2020–2022', 'July 2022–2024']
-  palette: ['#FBF9CD', '#D18158', '#25115B']
-  group_id: Urban extent, 2016–2024
-impervious:
-  title: Impervious Surfaces
-  min: 0
-  max: 100
-  suffix: '%'
-  group_id: Built-up density
+# builtup_binary:
+#   fuzzy_string: built_over_time.tif$
+#   title: Built-up area (2030)
+#   # breaks: [1970, 2030]
+#   bins: 1
+#   palette: ['#FBF9CD']
+#   group_id: Urban extent (2030)
 land_cover:
   fuzzy_string: lc.tif$
   title: Land Cover
@@ -140,6 +132,180 @@ health_points:
   labels: ['Health facility']
   factor: TRUE
   group_id: Healthcare proximity
+waste_points:
+  fuzzy_string: waste_POI
+  title: SWM site
+  data_variable: element_type # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['Waste disposal site or landfill']
+  factor: TRUE
+  group_id: SWM proximity
+waste_zones:
+  fuzzy_string: waste-journeys
+  data_variable: distance
+  title: Travel distance to nearest waste disposal site or landfill
+  subtitle: Distance along road network
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [150, 300, 450]
+  labels: ['<150 m', '150–300 m', '300–450 m']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: SWM proximity
+public_space_points:
+  fuzzy_string: public_space_POI
+  title: Public Space
+  data_variable: source_name # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['white']
+  alpha: 1
+  labels: ['Public space']
+  factor: TRUE
+  group_id: Public space proximity
+public_space_zones:
+  fuzzy_string: public_space-journeys
+  data_variable: distance
+  title: Travel distance to nearest public space
+  subtitle: Distance along road network
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [150, 300, 450]
+  labels: ['<150 m', '150–300 m', '300–450 m']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: Public space proximity
+sez_zones:
+  fuzzy_string: sez-journeys
+  data_variable: distance
+  title: Travel distance to nearest special economic zone (SEZ)
+  subtitle: Distance along road network
+  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [5000, 10000, 20000]
+  labels: ['<5 km', '5–10 km', '10–20 km']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: SEZ proximity
+sez_points:
+  fuzzy_string: sez_POI
+  title: Special Economic Zone
+  data_variable: Name # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['Special Economic Zone']
+  factor: TRUE
+  group_id: SEZ proximity
+sanitation_zones:
+  fuzzy_string: sanitation-journeys
+  data_variable: distance
+  title: Travel distance to nearest sanitation
+  subtitle: Distance along road network
+  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [1000, 2000, 3000]
+  labels: ['<1 km', '1–2 km', '2–3 km']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: sanitation proximity
+sanitation_points:
+  fuzzy_string: sanitation_POI
+  title: Sanitation
+  data_variable: name # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['Sanitation']
+  factor: TRUE
+  group_id: sanitation proximity
+transportation_zones:
+  fuzzy_string: transportation-journeys
+  data_variable: distance
+  title: Travel distance to nearest transportation
+  subtitle: Distance along road network
+  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [150, 300, 450]
+  labels: ['<150 m', '150–300 m', '300–450 m']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: transportation proximity
+transportation_points:
+  fuzzy_string: transportation_POI
+  title: transportation
+  data_variable: amenity # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['Bus or train station']
+  factor: TRUE
+  group_id: transportation proximity
+water_zones:
+  fuzzy_string: water-journeys
+  data_variable: distance
+  title: Travel distance to nearest water
+  subtitle: Distance along road network
+  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [150, 300, 450]
+  labels: ['<150 m', '150–300 m', '300–450 m']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: water proximity
+water_points:
+  fuzzy_string: water_POI
+  title: water
+  data_variable: element_type # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['Water']
+  factor: TRUE
+  group_id: water proximity
+electricity_zones:
+  fuzzy_string: electricity-journeys
+  data_variable: distance
+  title: Travel distance to nearest electricity infrastructure
+  subtitle: Distance along road network
+  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [5000, 10000, 20000]
+  labels: ['<5 km', '5–10 km', '10–20 km']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: electricity proximity
+electricity_points:
+  fuzzy_string: electricity_POI
+  title: electricity
+  data_variable: power # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['Electricity infrastructure']
+  factor: TRUE
+  group_id: electricity proximity
+communication_zones:
+  fuzzy_string: communication-journeys
+  data_variable: distance
+  title: Travel distance to nearest communication infrastructure
+  subtitle: Distance along road network
+  # palette: ['#2B4C29', '#C5D4C1', '#B6D053']
+  palette: ['#577156', '#7DA953', '#DAE7AE']
+  breaks: [5000, 10000, 20000]
+  labels: ['<5 km', '5–10 km', '10–20 km']
+  bins: 3
+  factor: TRUE
+  # How do I indicate shading?
+  group_id: communication proximity
+communication_points:
+  fuzzy_string: communication_POI
+  title: Communication infrastructure
+  data_variable: element_type # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
+  palette: ['#523249']
+  alpha: 1
+  labels: ['communication']
+  factor: TRUE
+  group_id: communication proximity
 # SECTION 6 CLIMATE CONDITIONS
 solar:
   fuzzy_string: solar.*.tif$
@@ -161,10 +327,21 @@ summer_lst:
   # palette: 'Spectral'
   palette: ['#5290C2', '#F0EE80', '#D33837']
   # domain: 'minmax'
-  title: 'Summer surface temperature<br>2017–2021'
+  title: 'Summer surface temperature<br>2015–2024'
   subtitle: 'Mean temperature (°C)'
   suffix: '°C'
   group_id: Summer surface temperature
+lst_extreme:
+  fuzzy_string: lst_extreme.*.tif$
+  title: 'Summer surface temperature<br>2015–2024'
+  subtitle: 'Area with 90th percentile temerature'
+  # palette: ['#5290C2', '#F0EE80', '#D33837']
+  # breaks: [0, 25, 30, 35, 40]
+  # labels: ['<25°C', '25–30°C', '30–35°C', '35–40°C']
+  # group_id: Summer surface temperature
+  palette: ["orange"]
+  breaks: 1
+  factor: TRUE
 vegetation:
   fuzzy_string: ndvi_season.*.tif$
   title: Vegetated Areas
@@ -315,4 +492,12 @@ drought:
   center: 0
   bins: 5
   group_id: Moisture
+seismic_hazard:
+  fuzzy_string: earthquake.tif$
+  title: Seismic hazard
+  subtitle: 'Peak ground acceleration (PGA) in g'
+  palette: ['#FFFFFF', '#D7E3EE', '#B5CAFF', '#8FB3FF', '#7F97FF', '#ABCF63', '#E8F59E', '#FFFA14', '#FFD121', '#FFA30A', '#FF4C00']
+  breaks: [0.00, 0.01, 0.02, 0.03, 0.05, 0.08, 0.13, 0.20, 0.35, 0.55, 0.90, 1.50]
+  # labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
+  group_id: Seismic hazard
 # SECTION 8 LOCAL INSTITUTIONS AND PLANNING
