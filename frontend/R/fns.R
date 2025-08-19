@@ -497,7 +497,7 @@ coord_3857_bounds <- function(extent, expansion = 1, ...) {
     ...)
 }
 
-get_zoom_level <- \(bounds, cap = 10) {
+get_zoom_level <- \(bounds, cap = 6) {
   # cap & max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
   zoom <- round(14.6 + -0.00015 * sqrt(expanse(project(bounds, "epsg:4326"))/3))
   if (is.na(cap)) return(zoom)
