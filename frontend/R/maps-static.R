@@ -67,6 +67,10 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
         vectorize_if_coarse()
+      if (nrow(data) == 0) {
+        message(paste("No data for:", yaml_key))
+        return(NULL)
+      }
       plot <- plot_static_layer(
         data = data, yaml_key = yaml_key,
         plot_aoi = T, plot_wards = !is.null(wards), zoom_adj = zoom_adjustment)
@@ -81,7 +85,7 @@ source("R/map-schools-health-proximity.R", local = T) # Could be standard if lay
 source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
 source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
 source("R/map-flooding.R", local = T)
-source("R/map-historical-burnt-area.R", local = T)
+source("R/map-philippines-specific.R", local = T)
 
 # Save plots -------------------------------------------------------------------
 # Switched to for loop because walk required too much memory; uncertain if helps

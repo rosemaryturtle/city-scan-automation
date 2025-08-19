@@ -94,30 +94,55 @@ rename_health_points <- function() {
 }
 rename_health_points()
 
-wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif$")
-if (inherits(wsf, "SpatRaster")) {
-  # # Projecting to 3857 causes problems for leaflet; but was possibly necessary
-  # # for ggplot2. If there are problems with static, perhaps split in two files?
-  # wsf_new <- project(wsf, "epsg:3857")
-  wsf_new <- wsf
-  # Using <- NA changes the datatype to unsigned, which ultimately results
-  # in huge values when wsf is re-projected in maps-static.R
-  # values(wsf_new)[values(wsf_new) == 0] <- NA
-  wsf_new <- classify(wsf_new, cbind(0, NA)) # Added this for Uzbekistan, but I don't suspect it will cause problems on newer runs
-  NAflag(wsf_new) <- NA
-  writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
+erase_isochrone_overlaps <- function() {
+  c("public_space", "waste", "transportation", "sanitation", "electricity", "sez", "water", "communication") %>%
+  # c("communication") %>%
+    map(\(x) {
+      zones <- fuzzy_read(spatial_dir, paste0(x, "_isochrone"))
+      # if (inherits(zones, "SpatVector")) {
+      #   if (x == "waste") {
+      #     zones <- filter(zones, distance %in% layer_params$swm_zones$breaks)
+      #   }
+      # browser()
+      if (!"distance" %in% names(zones)) return(NULL)
+      zones <- filter(zones, distance %in% layer_params[[paste0(x, "_zones")]]$breaks)
+      zones <- erase(arrange(zones, desc(distance)))
+      writeVector(zones, filename = file.path(spatial_dir, paste0(x, "-journeys.gpkg")), overwrite = T)
+    })
 }
+erase_isochrone_overlaps()
 
-wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
-if (inherits(wsf_tracker, "SpatRaster")) {
-  # # Projecting to 3857 causes problems for leaflet; necessary for ggplot2?
-  # wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
-  wsf_tracker_new <- wsf_tracker
-  wsf_tracker_new <- 2016 + wsf_tracker_new/2
-  # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
-  # NAflag(wsf_tracker_new) <- NA
-  writeRaster(wsf_tracker_new, file.path(spatial_dir, "wsf-tracker-edit.tif"), overwrite = T)
-}
+lst <- fuzzy_read(spatial_dir, "summer.*.tif$")
+q <- quantile(values(lst), .9, na.rm = T)
+# classify lst so everything below 50 is NA and everything above 50 is 1
+lst <- classify(lst, cbind(c(0, q), c(q, 100), c(NA, 1))) %>%
+  as.polygons()
+writeVector(lst, file.path(spatial_dir, "extreme-lst.gpkg"), overwrite = T)
+
+# wsf <- fuzzy_read(spatial_dir, "wsf_evolution.tif$")
+# if (inherits(wsf, "SpatRaster")) {
+#   # # Projecting to 3857 causes problems for leaflet; but was possibly necessary
+#   # # for ggplot2. If there are problems with static, perhaps split in two files?
+#   # wsf_new <- project(wsf, "epsg:3857")
+#   wsf_new <- wsf
+#   # Using <- NA changes the datatype to unsigned, which ultimately results
+#   # in huge values when wsf is re-projected in maps-static.R
+#   # values(wsf_new)[values(wsf_new) == 0] <- NA
+#   classify(wsf_new, cbind(0, NA))
+#   NAflag(wsf_new) <- NA
+#   writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
+# }
+
+# wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
+# if (inherits(wsf_tracker, "SpatRaster")) {
+#   # # Projecting to 3857 causes problems for leaflet; necessary for ggplot2?
+#   # wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
+#   wsf_tracker_new <- wsf_tracker
+#   wsf_tracker_new <- 2016 + wsf_tracker_new/2
+#   # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
+#   # NAflag(wsf_tracker_new) <- NA
+#   writeRaster(wsf_tracker_new, file.path(spatial_dir, "wsf-tracker-edit.tif"), overwrite = T)
+# }
 
 burn <- fuzzy_read(spatial_dir, "lc_burn.tif$")
 if (inherits(burn, "SpatRaster")) {
