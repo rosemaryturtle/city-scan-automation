@@ -167,6 +167,6 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster")) && length(hist
 seismic_data <- fuzzy_read(spatial_dir, "earthquake\\.tif$")
 if (inherits(seismic_data, c("SpatVector", "SpatRaster")) && length(seismic_data) > 0) {
   browser()
-  seismic_masked <- mask(seismic_data, aoi
+  seismic_masked <- mask(seismic_data, aoi)
   writeRaster(seismic_masked, file.path(spatial_dir, "seismic-hazard-masked.tif"), overwrite = T)
 }
