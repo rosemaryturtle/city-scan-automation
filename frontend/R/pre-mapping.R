@@ -96,17 +96,17 @@ rename_health_points()
 
 erase_isochrone_overlaps <- function() {
   c("public_space", "waste", "transportation", "sanitation", "electricity", "sez", "water", "communication") %>%
-  # c("communication") %>%
     map(\(x) {
       zones <- fuzzy_read(spatial_dir, paste0(x, "_isochrone"))
-      # if (inherits(zones, "SpatVector")) {
-      #   if (x == "waste") {
-      #     zones <- filter(zones, distance %in% layer_params$swm_zones$breaks)
-      #   }
-      # browser()
       if (!"distance" %in% names(zones)) return(NULL)
-      zones <- filter(zones, distance %in% layer_params[[paste0(x, "_zones")]]$breaks)
-      zones <- erase(arrange(zones, desc(distance)))
+      layer_distances <- layer_params[[paste0(x, "_zones")]]$breaks
+      zones <- filter(zones, distance %in% layer_distances) %>%
+        # If multiple distances have the same zone, the erase output gets inverted.
+        # We remove the duplicate zones that have the longer distance
+        arrange(distance) %>%
+        distinct(geometry, .keep_all = T) %>%
+        arrange(desc(distance))
+      zones <- erase(zones)
       writeVector(zones, filename = file.path(spatial_dir, paste0(x, "-journeys.gpkg")), overwrite = T)
     })
 }
