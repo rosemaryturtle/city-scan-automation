@@ -1,6 +1,13 @@
 # Generating City Scan Maps
 if ("frontend" %in% list.files()) setwd("frontend")
 
+# WARNING: Some raster plotting breaks with terra 1.8+, when reprojected, such
+# as to EPSG: 3857. It results in the following error. Would upgrading tidyterra
+# also solve this?
+# Caused by error:
+# ! [spatSample] at least one of 'values', 'cells', or 'xy' must be TRUE; or 'as.points' must be TRUE 
+# 2: No shared levels found between `names(values)` of the manual scale and the data's fill values.
+
 # Set static map visualization parameters
 layer_alpha <- 0.7
 map_width <- 8.77 # Width of the map itself, excluding legend
