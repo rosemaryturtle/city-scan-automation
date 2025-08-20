@@ -157,7 +157,7 @@ public_space_points:
   fuzzy_string: public_space_POI
   title: Public Space
   data_variable: source_name # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['white']
+  palette: ['green']
   alpha: 1
   labels: ['Public space']
   factor: TRUE
@@ -191,7 +191,7 @@ sez_points:
   fuzzy_string: sez_POI
   title: Special Economic Zone
   data_variable: Name # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['#523249']
+  palette: ['blue']
   alpha: 1
   labels: ['Special Economic Zone']
   factor: TRUE
@@ -498,6 +498,6 @@ seismic_hazard:
   subtitle: 'Peak ground acceleration (PGA) in g'
   palette: ['#FFFFFF', '#D7E3EE', '#B5CAFF', '#8FB3FF', '#7F97FF', '#ABCF63', '#E8F59E', '#FFFA14', '#FFD121', '#FFA30A', '#FF4C00']
   breaks: [0.00, 0.01, 0.02, 0.03, 0.05, 0.08, 0.13, 0.20, 0.35, 0.55, 0.90, 1.50]
-  # labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
+  labels: ['0.00–0.01', '0.01–0.02', '0.02–0.03', '0.03–0.05', '0.05–0.08', '0.08–0.13', '0.13–0.20', '0.20–0.35', '0.35–0.55', '0.55–0.90', '0.90–1.50']
   group_id: Seismic hazard
 # SECTION 8 LOCAL INSTITUTIONS AND PLANNING
