@@ -23,6 +23,12 @@ c("public_space", "waste", "transportation", "sanitation", "electricity", "water
     p <- plots[[paste0(x, "_zones")]]
     if (inherits(points, "SpatVector") & !is.null(p)) {
       points <- points[static_map_bounds] # Filter added for SEZ labels
+      # Points map
+      plots[[paste0(x, "_points")]] <<- plot_static_layer(aoi_only = T, plot_aoi = T) +
+        geom_spatvector(data = points, aes(color = group), size = 1) +
+        scale_color_manual(values = layer_params[[paste0(x, "_points")]]$palette, name = "Feature") +
+        coord_3857_bounds(static_map_bounds)
+      # Points & isochrones map (ggpacket would let me reuse the code)
       plots[[paste0(x, "_proximity")]] <<- p +
         geom_spatvector(data = points, aes(color = group), size = 1) +
         scale_color_manual(values = layer_params[[paste0(x, "_points")]]$palette, name = "Feature") +
@@ -42,7 +48,20 @@ c("sez") %>%
       points_sf <- points %>%
         mutate(.before = 1, text = pull(points[layer_params[[paste0(x, "_points")]]$data_variable])) %>%
         st_as_sf()
-
+      # Points and isochrones map
+      plots[[paste0(x, "_points")]] <<- plot_static_layer(aoi_only = T, plot_aoi = T) +
+        geom_sf(data = points_sf, aes(color = group), size = 1) +
+        geom_text_repel(
+          data = points_sf, aes(label = text, color = group, geometry = geometry),
+          stat = "sf_coordinates",
+          # I am surprised that the bounds should be in 3857 as we've not yet changed
+          # coordinate systems, but it works and 4326 does not
+          xlim = ext(project(static_map_bounds, "epsg:3857"))[1:2],
+          ylim = ext(project(static_map_bounds, "epsg:3857"))[3:4],
+          show.legend = F) +
+        scale_color_manual(values = layer_params[[paste0(x, "_points")]]$palette, name = "Feature") +
+        coord_3857_bounds(static_map_bounds)
+      # Points and isochrones map
       plots[[paste0(x, "_proximity")]] <<- p +
         geom_sf(data = points_sf, aes(color = group), size = 1) +
         geom_text_repel(
