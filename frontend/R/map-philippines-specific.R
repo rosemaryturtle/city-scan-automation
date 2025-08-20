@@ -52,7 +52,7 @@ if (inherits(built, c("SpatRaster", "SpatVector"))) {
   #   coord_3857_bounds(static_map_bounds)
   plots$builtup_binary <- plot_static_layer(aoi_only = T, plot_aoi = F) +
     ggpattern::geom_sf_pattern(data = built, color = NA, fill = NA, aes(pattern = "2025 built-up area"),
-    pattern_spacing = 0.02, pattern_fill = NA, pattern_density = 0.5) +
+    pattern_spacing = 0.0125, pattern_fill = NA, pattern_density = .5, pattern_size = .25) +
     ggpattern::scale_pattern_manual(values = "stripe", name = "")   +
     coord_3857_bounds(static_map_bounds)
   veg <- data <- fuzzy_read(spatial_dir, layer_params$vegetation$fuzzy_string)
@@ -90,7 +90,8 @@ if (inherits(data, c("SpatVector", "SpatRaster"))) {
     walk(\(x) {
 
       overlay_plots[[paste0(x, "_liquefaction_fill")]] <<-
-        plot_static_layer(data = data, yaml_key = "liquefaction", baseplot = plots[[x]])
+        plot_static_layer(data = data, yaml_key = "liquefaction", baseplot = plots[[x]],
+          alpha = .5)
 
       # For point data, considering plotting points on top
       # …

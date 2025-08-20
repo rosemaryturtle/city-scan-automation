@@ -157,7 +157,7 @@ public_space_points:
   fuzzy_string: public_space_POI
   title: Public Space
   data_variable: source_name # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
-  palette: ['green']
+  palette: ['forestgreen']
   alpha: 1
   labels: ['Public space']
   factor: TRUE
@@ -303,7 +303,7 @@ communication_points:
   data_variable: element_type # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
   palette: ['#523249']
   alpha: 1
-  labels: ['communication']
+  labels: ['Communication infrastructure']
   factor: TRUE
   group_id: communication proximity
 # SECTION 6 CLIMATE CONDITIONS
