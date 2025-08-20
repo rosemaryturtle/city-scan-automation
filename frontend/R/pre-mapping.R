@@ -163,3 +163,10 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster")) && length(hist
   historical_fire_density <- density_rast(historical_fire_data, n = 200, aoi = aoi)
   writeRaster(historical_fire_density, file.path(spatial_dir, "burnt-area-density.tif"), overwrite = T)
 }
+
+seismic_data <- fuzzy_read(spatial_dir, "earthquake\\.tif$")
+if (inherits(seismic_data, c("SpatVector", "SpatRaster")) && length(seismic_data) > 0) {
+  browser()
+  seismic_masked <- mask(seismic_data, aoi
+  writeRaster(seismic_masked, file.path(spatial_dir, "seismic-hazard-masked.tif"), overwrite = T)
+}

@@ -493,7 +493,7 @@ drought:
   bins: 5
   group_id: Moisture
 seismic_hazard:
-  fuzzy_string: earthquake.tif$
+  fuzzy_string: seismic-hazard-masked.tif$
   title: Seismic hazard
   subtitle: 'Peak ground acceleration (PGA) in g'
   palette: ['#FFFFFF', '#D7E3EE', '#B5CAFF', '#8FB3FF', '#7F97FF', '#ABCF63', '#E8F59E', '#FFFA14', '#FFD121', '#FFA30A', '#FF4C00']
