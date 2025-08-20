@@ -996,7 +996,6 @@ prepare_html <- \(in_file, out_file, css_file) {
   library(rvest)
   library(xml2)
   pdf <- read_html(in_file)
-  # browser()
   stylesheet_nodes <- html_elements(pdf, "link[rel=stylesheet]")
   xml_attr(stylesheet_nodes[1], "href") <- css_file
   xml2::xml_remove(stylesheet_nodes[-1])

@@ -92,6 +92,7 @@ source("R/map-philippines-specific.R", local = T)
 # Switched to for loop because walk required too much memory; uncertain if helps
 # For Algeria, reduced time from 1,100 seconds to 1,000 seconds
 for (name in names(plots)) {
+  if (str_detect(name, "zones")) next
   save_plot(plots[[name]], filename = glue("{name}.png"), directory = styled_maps_dir,
     map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 }
