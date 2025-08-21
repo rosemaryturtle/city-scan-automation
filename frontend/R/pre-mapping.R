@@ -106,6 +106,7 @@ erase_isochrone_overlaps <- function() {
         arrange(distance) %>%
         distinct(geometry, .keep_all = T) %>%
         arrange(desc(distance))
+      if (any(!is.valid(zones))) zones <- makeValid(zones)
       zones <- erase(zones)
       writeVector(zones, filename = file.path(spatial_dir, paste0(x, "-journeys.gpkg")), overwrite = T)
     })
