@@ -171,3 +171,10 @@ if (inherits(seismic_data, c("SpatVector", "SpatRaster")) && length(seismic_data
   seismic_masked <- mask(seismic_data, aoi)
   writeRaster(seismic_masked, file.path(spatial_dir, "seismic-hazard-masked.tif"), overwrite = T)
 }
+
+pop_2030 <- fuzzy_read(spatial_dir, "pop_2030")
+if (inherits(pop_2030, "SpatRaster")) {
+  values(pop_2030)[values(pop_2030) == 0] <- NA
+  NAflag(pop_2030) <- NA
+  writeRaster(pop_2030, file.path(spatial_dir, "pop_2030-edit.tif"), overwrite = T)
+}
