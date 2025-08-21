@@ -55,24 +55,23 @@ if (inherits(built, c("SpatRaster", "SpatVector"))) {
     pattern_spacing = 0.0125, pattern_fill = NA, pattern_density = .5, pattern_size = .25) +
     ggpattern::scale_pattern_manual(values = "stripe", name = "")   +
     coord_3857_bounds(static_map_bounds)
-  veg <- data <- fuzzy_read(spatial_dir, layer_params$vegetation$fuzzy_string)
+  veg <- fuzzy_read(spatial_dir, layer_params$vegetation$fuzzy_string)
   overlay_plots$vegetation_builtup <- plot_static_layer(veg, "vegetation", baseplot = plots$builtup_binary)
 }
 
 # Extreme LST
 
 librarian::shelf(smoothr, ggpattern)
-data <- fuzzy_read(spatial_dir, "extreme-lst")
-if (inherits(data, c("SpatVector", "SpatRaster"))) {
-  data_inverse <- erase(aoi, data)
-  data_smooth <- smooth(data, method = "ksmooth", smoothness = 3)
+lst_data <- fuzzy_read(spatial_dir, "extreme-lst")
+if (inherits(lst_data, c("SpatVector", "SpatRaster"))) {
+  lst_data_smooth <- smooth(lst_data, method = "ksmooth", smoothness = 3)
   names(plots) %>%
-    str_subset("population|builtup|school_points|waste_points|public_space_points|health_points|buildings") %>%
+    str_subset("population|builtup|building|proximity") %>%
     str_subset("binary", negate = T) %>%
     walk(\(x) {
-      overlay_plots[[paste0(x, "_outline_smooth")]] <<- plots[[x]] +
+      overlay_plots[[paste0("extreme_lst_", x)]] <<- plots[[x]] +
         ggnewscale::new_scale_color() +
-        geom_sf(data = data_smooth, aes(color = "Extreme LST"), fill = NA, linewidth = .6) +
+        geom_sf(data = lst_data_smooth, aes(color = "Extreme LST"), fill = NA, linewidth = .6) +
         scale_color_manual(values = "red", name = "") +
         coord_3857_bounds(static_map_bounds)
     })
@@ -80,27 +79,20 @@ if (inherits(data, c("SpatVector", "SpatRaster"))) {
 
 # Liquefaction susceptibility --------------------------------------------------
 
-data <- fuzzy_read(spatial_dir, "liquefa")
-if (inherits(data, c("SpatVector", "SpatRaster"))) {
-  names(data) <- "liquefaction"
+liquefaction_data <- fuzzy_read(spatial_dir, "liquefa")
+if (inherits(liquefaction_data, c("SpatVector", "SpatRaster"))) {
+  names(liquefaction_data) <- "liquefaction"
 
   names(plots) %>%
-    str_subset("population|builtup|school_points|waste_points|public_space_points|health_points|building") %>%
+    str_subset("population|builtup|building|proximity") %>%
     str_subset("binary", negate = T) %>%
     walk(\(x) {
 
-      overlay_plots[[paste0(x, "_liquefaction_fill")]] <<-
-        plot_static_layer(data = data, yaml_key = "liquefaction", baseplot = plots[[x]],
+      overlay_plots[[paste0("liquefaction_", x)]] <<-
+        plot_static_layer(data = liquefaction_data, yaml_key = "liquefaction", baseplot = plots[[x]],
           alpha = .5)
 
       # For point data, considering plotting points on top
       # …
     })
-}
-
-overlays_dir <- file.path(styled_maps_dir, "overlays")
-dir.create(overlays_dir, showWarnings = FALSE)
-for (name in names(overlay_plots)) {
-  save_plot(overlay_plots[[name]], filename = glue("{name}.png"), directory = overlays_dir,
-    map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
 }
