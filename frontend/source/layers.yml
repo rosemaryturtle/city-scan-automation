@@ -58,38 +58,38 @@ rwi_local:
   labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
   group_id: Relative wealth index
-economic_activity:
-  fuzzy_string: avg_rad_sum.*.tif$
-  title: Economic activity
-  subtitle: 'Average nighttime light radiance'
-  group_id: Economic hotspots
-  palette: ['#00a884', '#f0f0f0', '#e64c00']
-  bins: 5
-  breaks: [0, 80, 160, 700, 1500, 5500]
-economic_activity_local:
-  fuzzy_string: avg_rad_sum.*.tif$
-  title: Economic activity
-  subtitle: 'Average nighttime light radiance'
-  group_id: Economic hotspots
-  palette: ['#00a884', '#f0f0f0', '#e64c00']
-  bins: 5
-economic_change:
-  fuzzy_string: linfit.tif$
-  title: Change in economic activity
-  subtitle: 'Rate of change in nighttime radiance'
-  group_id: Economic change
-  palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
-  center: 0
-  bins: 0
-  domain: [-1, 3]
-economic_change_local:
-  fuzzy_string: linfit.tif$
-  title: Change in economic activity
-  subtitle: 'Rate of change in nighttime radiance'
-  group_id: Economic change
-  palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
-  center: 0
-  bins: 0
+# economic_activity:
+#   fuzzy_string: avg_rad_sum.*.tif$
+#   title: Economic activity
+#   subtitle: 'Average nighttime light radiance'
+#   group_id: Economic hotspots
+#   palette: ['#00a884', '#f0f0f0', '#e64c00']
+#   bins: 5
+#   breaks: [0, 80, 160, 700, 1500, 5500]
+# economic_activity_local:
+#   fuzzy_string: avg_rad_sum.*.tif$
+#   title: Economic activity
+#   subtitle: 'Average nighttime light radiance'
+#   group_id: Economic hotspots
+#   palette: ['#00a884', '#f0f0f0', '#e64c00']
+#   bins: 5
+# economic_change:
+#   fuzzy_string: linfit.tif$
+#   title: Change in economic activity
+#   subtitle: 'Rate of change in nighttime radiance'
+#   group_id: Economic change
+#   palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
+#   center: 0
+#   bins: 0
+#   domain: [-1, 3]
+# economic_change_local:
+#   fuzzy_string: linfit.tif$
+#   title: Change in economic activity
+#   subtitle: 'Rate of change in nighttime radiance'
+#   group_id: Economic change
+#   palette: ['#404040', '#bababa', '#FFFFFF', '#f4a582', '#ca0020']
+#   center: 0
+#   bins: 0
 # SECTION 5 BUILT FORM
 builtup:
   fuzzy_string: built_over_time.tif$
@@ -109,27 +109,27 @@ builtup:
 #   bins: 1
 #   palette: ['#FBF9CD']
 #   group_id: Urban extent (2030)
-land_cover:
-  fuzzy_string: lc.tif$
-  title: Land Cover
-  group_id: Land cover
-  factor: TRUE
-  palette: ['transparent', '#277242', '#DEBA59', '#79A54F', '#E88B39', '#C62421', '#9C9085', '#DDDDDD', '#2491D7', '#707CBA', '#00C86E', '#f6e8a1']
-  breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
-  labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
-intersections:
-  fuzzy_string: intersection-density.tif$
-  title: Intersection Density
-  subtitle: Number of intersections per 1 km^2^
-  palette: ['transparent', '#9F4830']
-  group_id: Intersection density
-  domain: [0, 1]
-intersections_local:
-  fuzzy_string: intersection-density.tif$
-  title: Intersection Density
-  subtitle: Number of intersections per 1 km^2^
-  palette: ['transparent', '#9F4830']
-  group_id: Intersection density
+# land_cover:
+#   fuzzy_string: lc.tif$
+#   title: Land Cover
+#   group_id: Land cover
+#   factor: TRUE
+#   palette: ['transparent', '#277242', '#DEBA59', '#79A54F', '#E88B39', '#C62421', '#9C9085', '#DDDDDD', '#2491D7', '#707CBA', '#00C86E', '#f6e8a1']
+#   breaks: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100']
+#   labels: ['No data',  'Tree cover',  'Shrubland',  'Grassland',  'Cropland',  'Built-up',  'Bare/sparse vegetation',  'Snow and ice',  'Permanent water bodies',  'Herbaceous wetland',  'Mangroves',  'Moss and Lichen']
+# intersections:
+#   fuzzy_string: intersection-density.tif$
+#   title: Intersection Density
+#   subtitle: Number of intersections per 1 km^2^
+#   palette: ['transparent', '#9F4830']
+#   group_id: Intersection density
+#   domain: [0, 1]
+# intersections_local:
+#   fuzzy_string: intersection-density.tif$
+#   title: Intersection Density
+#   subtitle: Number of intersections per 1 km^2^
+#   palette: ['transparent', '#9F4830']
+#   group_id: Intersection density
 school_zones:
   fuzzy_string: school-journeys
   data_variable: thresh
@@ -350,21 +350,21 @@ communication_points:
   factor: TRUE
   group_id: communication proximity
 # SECTION 6 CLIMATE CONDITIONS
-solar:
-  fuzzy_string: solar.*.tif$
-  title: 'Photovoltaic Potential'
-  subtitle: Power potential of a theoretical 1 kWp PV system (kWh)
-  bins: 3
-  palette: ['#ffebcc', '#f07605']
-  group_id: Solar PV potential
-air_quality:
-  fuzzy_string: air.*.tif$
-  title: 'Concentrations of PM2.5 particles in 2019'
-  subtitle: 'Micrograms per cubic meter (µg/m<sup>3</sup>)'
-  # domain: [0,200]
-  palette: ['#fff4d1', '#f5cbab', '#e6a58c', '#d48172', '#c46673', '#ba6685', '#a86595', '#9467ab']
-  breaks: [0, 5, 10, 15, 20, 30, 40, 50, 100]
-  group_id: Air quality
+# solar:
+#   fuzzy_string: solar.*.tif$
+#   title: 'Photovoltaic Potential'
+#   subtitle: Power potential of a theoretical 1 kWp PV system (kWh)
+#   bins: 3
+#   palette: ['#ffebcc', '#f07605']
+#   group_id: Solar PV potential
+# air_quality:
+#   fuzzy_string: air.*.tif$
+#   title: 'Concentrations of PM2.5 particles in 2019'
+#   subtitle: 'Micrograms per cubic meter (µg/m<sup>3</sup>)'
+#   # domain: [0,200]
+#   palette: ['#fff4d1', '#f5cbab', '#e6a58c', '#d48172', '#c46673', '#ba6685', '#a86595', '#9467ab']
+#   breaks: [0, 5, 10, 15, 20, 30, 40, 50, 100]
+#   group_id: Air quality
 summer_lst:
   fuzzy_string: summer.*.tif$
   # palette: 'Spectral'
@@ -401,21 +401,21 @@ vegetation:
   breaks: [-1, 0.015, 0.14, 0.18, 0.27, 0.36, 1]
   labels: ['Water (-1 to 0.015)', 'Built-up (0.015 to 0.14)', 'Barren (0.14 to 0.18)', 'Shrub and Grassland (0.18 to 0.27)', 'Sparse (0.27 to 0.36)', 'Dense (0.36 to 1)']
   group_id: Vegetation
-forest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: forest_cover.*.tif$
-  title: 'Forest cover'
-  breaks: [1]
-  palette: ['#8CC056']
-  labels: ['Current Forest']
-  factor: TRUE
-  group_id: Forests
-deforest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: deforest.*.tif$
-  title: Deforestation
-  subtitle: Year of deforestation
-  domain: [2001, 2021]
-  palette: ['#EEEC00', '#D73837']
-  group_id: Deforestation
+# forest: # Requires preprocessing to combine forest and deforestation?
+#   fuzzy_string: forest_cover.*.tif$
+#   title: 'Forest cover'
+#   breaks: [1]
+#   palette: ['#8CC056']
+#   labels: ['Current Forest']
+#   factor: TRUE
+#   group_id: Forests
+# deforest: # Requires preprocessing to combine forest and deforestation?
+#   fuzzy_string: deforest.*.tif$
+#   title: Deforestation
+#   subtitle: Year of deforestation
+#   domain: [2001, 2021]
+#   palette: ['#EEEC00', '#D73837']
+#   group_id: Deforestation
 infrastructure:
   fuzzy_string: infrastructure.gpkg$
   title: Infrastructure and Services
@@ -426,33 +426,33 @@ infrastructure:
   alpha: 1
   size: 2
   group_id: Infrastructure
-fluvial:
-  fuzzy_string: fluvial_2020.tif$
-  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
-  labels: ['0.1–1%', '1–10%', '>10%']
-  title: 'Fluvial flood probability'
-  subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: Riverine flooding
-pluvial:
-  fuzzy_string: pluvial_2020.tif$
-  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
-  labels: ['0.1–1%', '1–10%', '>10%']
-  title: 'Pluvial flood probability'
-  subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: Surface water flooding
-coastal:
-  fuzzy_string: coastal_2020.tif$
-  palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
-  # palette: ['#4465893f', '#4465897f', '#446589bf']
-  breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
-  labels: ['0.1–1%', '1–10%', '>10%']
-  title: 'Coastal flood probability'
-  subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
-  group_id: Coastal flooding
+# fluvial:
+#   fuzzy_string: fluvial_2020.tif$
+#   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
+#   # palette: ['#4465893f', '#4465897f', '#446589bf']
+#   breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
+#   labels: ['0.1–1%', '1–10%', '>10%']
+#   title: 'Fluvial flood probability'
+#   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
+#   group_id: Riverine flooding
+# pluvial:
+#   fuzzy_string: pluvial_2020.tif$
+#   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
+#   # palette: ['#4465893f', '#4465897f', '#446589bf']
+#   breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
+#   labels: ['0.1–1%', '1–10%', '>10%']
+#   title: 'Pluvial flood probability'
+#   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
+#   group_id: Surface water flooding
+# coastal:
+#   fuzzy_string: coastal_2020.tif$
+#   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
+#   # palette: ['#4465893f', '#4465897f', '#446589bf']
+#   breaks: [0, .11, 1.1, 10.1]  # Values are slightly greater than their intended (0.1, 1, 10)  
+#   labels: ['0.1–1%', '1–10%', '>10%']
+#   title: 'Coastal flood probability'
+#   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
+#   group_id: Coastal flooding
 combined_flooding: # This will require pre-processing
   fuzzy_string: combined_flooding_2020.tif$
   palette: ['#A7BCEE', '#1B35C4'] # Changing color instead of opacity
@@ -462,38 +462,37 @@ combined_flooding: # This will require pre-processing
   title: 'Combined Flood probability'
   subtitle: 'Probability of a flood event within a 3-arc-second area in a given year'
   group_id: Combined flooding
-elevation:
-  title: Elevation
-  subtitle: Meters above sea level (MASL)
-  fuzzy_string: elevation.tif$
-  palette: ['#f5c4c0', '#762175']
-  bins: 0
-  group_id: Elevation
-elevation_local:
-  title: Elevation
-  subtitle: Meters above sea level (MASL)
-  fuzzy_string: elevation.tif$
-  palette: ['#f5c4c0', '#762175']
-  bins: 5
-  group_id: Elevation
-
-slope:
-  fuzzy_string: slope.tif$
-  title: Slope
-  subtitle: 'Angle of hillside in degrees'
-  breaks: [0, 2, 5, 10, 20, 90]
-  labels: ['<2°', '2–5°', '5–10', '10–20°', '>20°']
-  palette: ['#ffffd4', '#993404']
-  bins: 5
-  suffix: '°'
-  group_id: Slope
-landslides:
-  fuzzy_string: landslide.*.tif$
-  title: Landslide susceptibility
-  palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
-  labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
-  breaks: [0, 1, 2, 3, 4, 5]
-  group_id: Landslides
+# elevation:
+#   title: Elevation
+#   subtitle: Meters above sea level (MASL)
+#   fuzzy_string: elevation.tif$
+#   palette: ['#f5c4c0', '#762175']
+#   bins: 0
+#   group_id: Elevation
+# elevation_local:
+#   title: Elevation
+#   subtitle: Meters above sea level (MASL)
+#   fuzzy_string: elevation.tif$
+#   palette: ['#f5c4c0', '#762175']
+#   bins: 5
+#   group_id: Elevation
+# slope:
+#   fuzzy_string: slope.tif$
+#   title: Slope
+#   subtitle: 'Angle of hillside in degrees'
+#   breaks: [0, 2, 5, 10, 20, 90]
+#   labels: ['<2°', '2–5°', '5–10', '10–20°', '>20°']
+#   palette: ['#ffffd4', '#993404']
+#   bins: 5
+#   suffix: '°'
+#   group_id: Slope
+# landslides:
+#   fuzzy_string: landslide.*.tif$
+#   title: Landslide susceptibility
+#   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
+#   labels: ['Very low', 'Low', 'Medium', 'High', 'Very high']
+#   breaks: [0, 1, 2, 3, 4, 5]
+#   group_id: Landslides
 liquefaction:
   fuzzy_string: liquefaction.tif$
   title: Liquefaction susceptibility
@@ -537,13 +536,13 @@ roads_local:
     # breaks: [FALSE, TRUE]
     labels: ['Secondary', 'Primary']
   group_id: Road network criticality
-burnable:
-  fuzzy_string: burn-edit.tif$
-  title: Burnability Factor
-  palette: ['#FFFFFF', '#EFAD42', '#681A17']
-  breaks: [-1, 0, .17, .33, .5, .67, .83, 1]
-  labels: [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1]
-  group_id: Burnable area
+# burnable:
+#   fuzzy_string: burn-edit.tif$
+#   title: Burnability Factor
+#   palette: ['#FFFFFF', '#EFAD42', '#681A17']
+#   breaks: [-1, 0, .17, .33, .5, .67, .83, 1]
+#   labels: [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1]
+#   group_id: Burnable area
 burnt_area:
   fuzzy_string: burnt-area-density.tif
   title: History of fire
@@ -551,23 +550,23 @@ burnt_area:
   breaks: [0.008, 0.064, 0.216, 0.512, 1.000]
   labels: ['Lowest', 'Low', 'Medium', 'High', 'Highest']
   group_id: History of fire
-drought:
-  fuzzy_string: ndmi_season.*.tif$
-  title: Moisture
-  subtitle: 'Normalized difference moisture index (NDMI)'
-  palette: ['#F6F7F9', '#48A747']
-  # center: 0
-  bins: 5
-  breaks: [-1, -0.2, 0.1, 0.4, 0.7, 1]
-  labels: ['Dry (-1–-0.2)', 'More water stress (-0.2–0.1)', 'Water stress (0.1–0.4)', 'Wet (0.4–0.7)', 'Wetter (0.–1)']
-  group_id: Moisture
-drought_local:
-  fuzzy_string: ndmi_season.*.tif$
-  title: Moisture
-  subtitle: 'Normalized difference moisture index (NDMI)'
-  palette: ['#D45A35', '#F6F7F9', '#48A747']
-  center: 0
-  bins: 5
+# drought:
+#   fuzzy_string: ndmi_season.*.tif$
+#   title: Moisture
+#   subtitle: 'Normalized difference moisture index (NDMI)'
+#   palette: ['#F6F7F9', '#48A747']
+#   # center: 0
+#   bins: 5
+#   breaks: [-1, -0.2, 0.1, 0.4, 0.7, 1]
+#   labels: ['Dry (-1–-0.2)', 'More water stress (-0.2–0.1)', 'Water stress (0.1–0.4)', 'Wet (0.4–0.7)', 'Wetter (0.–1)']
+#   group_id: Moisture
+# drought_local:
+#   fuzzy_string: ndmi_season.*.tif$
+#   title: Moisture
+#   subtitle: 'Normalized difference moisture index (NDMI)'
+#   palette: ['#D45A35', '#F6F7F9', '#48A747']
+#   center: 0
+#   bins: 5
 seismic_hazard:
   fuzzy_string: seismic-hazard-masked.tif$
   title: Seismic hazard
