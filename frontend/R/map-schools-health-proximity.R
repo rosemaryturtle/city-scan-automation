@@ -23,6 +23,11 @@ c("public_space", "waste", "transportation", "sanitation", "electricity", "water
     p <- plots[[paste0(x, "_zones")]]
     if (inherits(points, "SpatVector") & !is.null(p)) {
       points <- points[static_map_bounds] # Filter added for SEZ labels
+      # Just use zones if nearest points are outside the mapping bounds
+      if (nrow(points) == 0) {
+        plots[[paste0(x, "_proximity")]] <<- p
+        return(NULL)
+      }
       # Points map
       plots[[paste0(x, "_points")]] <<- plot_static_layer(aoi_only = T, plot_aoi = T) +
         geom_spatvector(data = points, aes(color = group), size = 1) +
@@ -44,6 +49,11 @@ c("sez") %>%
     p <- plots[[paste0(x, "_zones")]]
     if (inherits(points, "SpatVector") & !is.null(p)) {
       points <- points[static_map_bounds] # Filter added for SEZ labels
+      # Just use zones if nearest points are outside the mapping bounds
+      if (nrow(points) == 0) {
+        plots[[paste0(x, "_proximity")]] <<- p
+        return(NULL)
+      }
       # Convert to sf for ggrepel
       points_sf <- points %>%
         mutate(.before = 1, text = pull(points[layer_params[[paste0(x, "_points")]]$data_variable])) %>%
