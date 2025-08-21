@@ -69,7 +69,7 @@ if (inherits(landmarks, "SpatVector")) {
 
 # Standard plots ---------------------------------------------------------------
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
-  discard_at(c("fluvial", "pluvial", "coastal", "combined_flooding", "burnt_area", "elevation")) %>%
+  discard_at(c("fluvial", "pluvial", "coastal", "combined_flooding", "burnt_area")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
@@ -91,7 +91,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
 source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
 source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
-source("R/map-historical-burnt-area.R", local = T)
+if (str_detect(basename(getwd()), "national")) source("R/map-historical-burnt-area.R", local = T)
 source("R/map-philippines-specific.R", local = T)
 
 # Save plots -------------------------------------------------------------------

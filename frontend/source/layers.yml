@@ -385,7 +385,7 @@ summer_lst_local:
 lst_extreme:
   fuzzy_string: lst_extreme.*.tif$
   title: 'Summer surface temperature<br>2015–2024'
-  subtitle: 'Area with 90th percentile temerature'
+  subtitle: 'Area with 90th percentile temperature'
   # palette: ['#5290C2', '#F0EE80', '#D33837']
   # breaks: [0, 25, 30, 35, 40]
   # labels: ['<25°C', '25–30°C', '30–35°C', '35–40°C']
@@ -508,7 +508,7 @@ roads:
     subtitle: 'Criticality %'
     variable: edge_centrality
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
-    breaks: [0, 0.05, 0.1, 0.15, 0.2, 1]
+    breaks: [0, 5, 10, 15, 20, 100]
     labels: ['0–5%', '5–10%', '10–15%', '15–20%', '>20%']
   weight: 
     title: Road type
