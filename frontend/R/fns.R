@@ -438,6 +438,15 @@ color_scale <- function(data_type, params) {
   } else {
     scale_color_stepsn(
       colors = params$stroke$palette,
+            # Length of labels is one less than breaks when we want a discrete legend
+            breaks = if (is.null(params$stroke$breaks)) waiver() else if (diff(lengths(list(params$stroke$labels, params$stroke$breaks))) == 1) params$stroke$breaks[-1] else params$stroke$breaks,
+            # breaks_midpoints() is important for getting the legend colors to match the specified colors
+            values = if (is.null(params$stroke$breaks)) NULL else breaks_midpoints(params$stroke$breaks, rescaler = if (!is.null(params$stroke$center)) scales::rescale_mid else scales::rescale, mid = params$stroke$center),
+            labels = if (is.null(params$stroke$labels)) waiver() else params$stroke$labels,
+            limits = if (is.null(params$stroke$breaks)) NULL else range(params$stroke$breaks),
+            rescaler = if (!is.null(params$stroke$center)) scales::rescale_mid else scales::rescale,
+            na.value = "transparent",
+            oob = scales::oob_squish,
       name = format_title(params$stroke$title, params$stroke$subtitle))
   }
 }
