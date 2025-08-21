@@ -96,3 +96,22 @@ if (inherits(liquefaction_data, c("SpatVector", "SpatRaster"))) {
       # …
     })
 }
+
+# Flooding overlays ------------------------------------------------------------
+flood_data <- fuzzy_read(spatial_dir, "combined_flooding_2020.tif$")
+if (inherits(flood_data, c("SpatRaster", "SpatVector"))) {
+  flood_data <- terra::crop(flood_data, static_map_bounds)
+  # Temporary fix for if layer is all NAs
+  if (all(is.na(values(flood_data)))) values(flood_data)[1] <- 0
+  flood_type <- "combined_flooding"
+  plots[[flood_type]] <<- plot_static_layer(
+    flood_data, yaml_key = flood_type,
+    plot_aoi = T, plot_wards = !is.null(wards))
+  names(plots) %>%
+    str_subset("population|builtup|building|proximity") %>%
+    str_subset("binary", negate = T) %>%
+    walk(\(x) {
+      overlay_plots[[paste0(flood_type, x)]] <<-
+        plot_static_layer(data = flood_data, yaml_key = flood_type, baseplot = plots[[x]])
+    })
+}
