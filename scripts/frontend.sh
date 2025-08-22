@@ -68,10 +68,10 @@ rm -rf $CITY_DIR/temp-repo
 
 # Download the city data from Google Cloud Storage
 if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
-  echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist. Exiting."
+  echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist or you do not have permission. (Try `gcloud auth login`?) Exiting."
   exit 1
 fi
-gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
+gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | grep -v '/00-reproduction-code/' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 
 # Write city-dir.txt to tell the R scripts where to work from ------------------
 echo "." > "$CITY_DIR/city-dir.txt"
@@ -98,11 +98,15 @@ if [[ $RUN_DOCKER -eq 1 && $RUN_NATIVE -eq 1 ]]; then
 fi
 
 if [[ $RUN_NATIVE -eq 1 ]]; then
-  Rscript "$CITY_DIR/R/maps-static.R" || {
+  ORIGINAL_DIR=$(pwd)
+  cd "$CITY_DIR"
+  trap 'cd "$ORIGINAL_DIR"' EXIT
+  Rscript R/maps-static.R || {
     echo "Error: Failed to run R script for static maps."
     exit 1
   }
   echo "Static maps generated successfully."
+  # trap - EXIT
 fi
 
 if [[ $RUN_DOCKER -eq 1 ]]; then
