@@ -136,3 +136,22 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster")) && length(hist
   historical_fire_density <- density_rast(historical_fire_data, n = 200, aoi = aoi)
   writeRaster(historical_fire_density, file.path(spatial_dir, "burnt-area-density.tif"), overwrite = T)
 }
+
+adjust_deforstation_years <- function() {
+  deforest <- fuzzy_read(spatial_dir, "deforestation.tif$", rast)
+  if (inherits(deforest, c("SpatRaster"))) {
+    vals <- na.omit(values(deforest))
+    if (length(vals) == 0) return(NULL)
+    if (all(vals %in% 1:99)) {
+      values(deforest) <- values(deforest) + 2000
+      writeRaster(deforest, file.path(spatial_dir, "deforestation-edit.tif"), overwrite = T)
+      return(NULL)
+    }
+    if (all(vals > 2000)) {
+      writeRaster(deforest, file.path(spatial_dir, "deforestation-edit.tif"), overwrite = T)
+      return(NULL)
+    }
+    stop("Deforestation raster has values both in 1-99 and above 2000; please fix source data")
+  }
+}
+adjust_deforstation_years()
