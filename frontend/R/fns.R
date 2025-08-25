@@ -127,8 +127,12 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   } else {
     layer_values <- get_layer_values(data)
     if(params$bins > 0 && is.null(params$breaks)) {
+      vals <- get_layer_values(data)
+      if (!is.null(params$center)) {
+        vals <- c(vals, params$center - vals)
+      }
       params$breaks <- break_pretty2(
-                  data = layer_values, n = params$bins + 1, FUN = signif,
+                  data = vals, n = params$bins + 1, FUN = signif,
                   method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
     }
     if (!is.null(params$breaks)) {
@@ -297,8 +301,12 @@ plot_static_layer <- function(
       params$palette <- setNames(params$palette, params$labels)
     }
     if(params$bins > 0 && is.null(params$breaks)) {
+      vals <- get_layer_values(data)
+      if (!is.null(params$center)) {
+        vals <- c(vals, params$center - vals)
+      }
       params$breaks <- break_pretty2(
-        data = get_layer_values(data), n = params$bins + 1, FUN = signif,
+        data = vals, n = params$bins + 1, FUN = signif,
         method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
     }
     geom <- create_geom(data, params)
