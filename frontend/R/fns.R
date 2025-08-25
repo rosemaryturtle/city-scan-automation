@@ -73,6 +73,12 @@ prepare_parameters <- function(yaml_key, ...) {
   kept_params <- yaml_params[!names(yaml_params) %in% names(new_params)]
   params <- c(new_params, kept_params)
 
+  # If labels are not null, convert literal \n to actual line breaks
+  if (!is.null(params$labels)) {
+    params$labels <- params$labels %>%
+      str_replace_all("\\\\n", "\n")
+  }
+
   params$breaks <- unlist(params$breaks) # Necessary for some color scales
   if (is.null(params$bins)) {
     params$bins <- if(is.null(params$breaks)) 0 else length(params$breaks)
