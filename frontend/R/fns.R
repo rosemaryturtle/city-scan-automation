@@ -284,7 +284,7 @@ writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
 plot_static_layer <- function(
     data, yaml_key, baseplot = NULL, static_map_bounds, zoom_adj = 0,
     expansion, aoi_stroke = list(color = "grey30", linewidth = 0.4),
-    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
+    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, packet = F, ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -337,6 +337,15 @@ plot_static_layer <- function(
     aspect_ratio <- as.vector(ext(project(static_map_bounds, "epsg:3857"))) %>%
       { diff(.[1:2])/diff(.[3:4]) }
     static_map_bounds <- aspect_buffer(static_map_bounds, aspect_ratio, buffer_percent = expansion - 1)
+  }
+
+  if (packet) {
+    p <- ggpacket() +
+      ggnewscale::new_scale_fill() + ggnewscale::new_scale_color() +
+      layer +
+      theme_custom() +
+      coord_3857_bounds(static_map_bounds)
+    return(p)
   }
 
   # Plot geom and scales on baseplot
