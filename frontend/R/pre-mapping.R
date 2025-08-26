@@ -105,13 +105,18 @@ erase_isochrone_overlaps <- function() {
         warning(paste("No zones for", x, "of distances specified in layers.yml"))
         return(NULL)
       }
-        # If multiple distances have the same zone, the erase output gets inverted.
-        # We remove the duplicate zones that have the longer distance
-        zones <- zones %>% arrange(distance) %>%
-          distinct(geometry, .keep_all = T) %>%
-          arrange(desc(distance))
+      # If multiple distances have the same zone, the erase output gets inverted.
+      # We remove the duplicate zones that have the longer distance
+      zones <- zones %>% arrange(distance) %>%
+        distinct(geometry, .keep_all = T) %>%
+        arrange(desc(distance))
       if (any(!is.valid(zones))) zones <- makeValid(zones)
-      zones <- erase(zones)
+      # Using the sequential version of erase often caused geometries with no attribute data
+      zones <- seq_along(zones) %>%
+        map(\(i) {
+          if (nrow(zones[i + 1]) == 0) return(zones[i,])
+          erase(zones[i,], zones[i+1,])
+        }) %>% reduce(rbind)
       writeVector(zones, filename = file.path(spatial_dir, paste0(x, "-journeys.gpkg")), overwrite = T)
     })
 }
@@ -175,7 +180,7 @@ if (inherits(seismic_data, c("SpatVector", "SpatRaster")) && length(seismic_data
   writeRaster(seismic_masked, file.path(spatial_dir, "seismic-hazard-masked.tif"), overwrite = T)
 }
 
-pop_2030 <- fuzzy_read(spatial_dir, "pop_2030")
+pop_2030 <- fuzzy_read(spatial_dir, "pop_2030\\.tif")
 if (inherits(pop_2030, "SpatRaster")) {
   values(pop_2030)[values(pop_2030) == 0] <- NA
   NAflag(pop_2030) <- NA
