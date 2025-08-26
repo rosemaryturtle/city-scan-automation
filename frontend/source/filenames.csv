@@ -53,3 +53,6 @@ extreme_lst_electricity_proximity,17x11-surface-temperature-electricity_proximit
 extreme_lst_water_proximity,17x12-surface-temperature-water_proximity
 extreme_lst_communication_proximity,17x13-surface-temperature-communication_proximity
 extreme_lst_sez_proximity,17x14-surface-temperature-sez_proximity
+burnt_area,02-historical_fire
+seismic_hazard,03-seismic_hazard
+ports,04-ports

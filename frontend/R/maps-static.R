@@ -95,19 +95,26 @@ if (str_detect(city_dir, "national")) source("R/map-historical-burnt-area.R", lo
 source("R/map-philippines-specific.R", local = T)
 
 # Save plots -------------------------------------------------------------------
+maps_dir <- file.path(output_dir, city_string)
+dir.create(maps_dir, showWarnings = F, recursive = T)
 filenames <- read_csv("source/filenames.csv", col_types = "cc")
-apply(filter(filenames, layer %in% names(plots)), 1, \(row) {
-  layer <- row[["layer"]]
-  filename <- row[["filename"]]
-  save_plot(plots[[layer]], filename = glue("{filename}.png"), directory = styled_maps_dir,
-    map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
-})
-apply(filter(filenames, layer %in% names(overlay_plots)), 1, \(row) {
-  layer <- row[["layer"]]
-  filename <- row[["filename"]]
-  save_plot(overlay_plots[[layer]], filename = glue("{filename}.png"), directory = styled_maps_dir,
-    map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
-})
+filter(filenames, layer %in% names(plots)) %>%
+  apply(1, \(row) {
+    if (identical(row, c(F, F))) return(NULL)
+    layer <- row[["layer"]]
+    filename <- row[["filename"]]
+    save_plot(plots[[layer]], filename = glue("{filename}.png"), directory = maps_dir,
+      map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
+  })
+filter(filenames, layer %in% names(overlay_plots)) %>%
+  apply(1, \(row) {
+    if (identical(row, c(F, F))) return(NULL)
+    layer <- row[["layer"]]
+    filename <- row[["filename"]]
+    print(paste("Saving overlay plot:", layer, "to", filename))
+    save_plot(overlay_plots[[layer]], filename = glue("{filename}.png"), directory = maps_dir,
+      map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
+  })
 
 # See which layers weren't successfully mapped
 unmapped <- setdiff(c(names(layer_params), "aoi", "forest_deforest", "burnt_area"), names(plots))
