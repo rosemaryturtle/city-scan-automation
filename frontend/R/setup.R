@@ -31,6 +31,8 @@ librarian::shelf(quiet = T,
   leaflet, 
   leafem,
   ggspatial, 
+  smoothr,
+  ggpattern,
 
   # Web
   curl,

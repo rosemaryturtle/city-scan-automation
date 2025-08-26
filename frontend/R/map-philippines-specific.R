@@ -15,8 +15,8 @@ if (inherits(buildings, "SpatVector")) {
 roads <- fuzzy_read(spatial_dir, "primary_roads")
 ports <- list(
   RoRo = fuzzy_read(spatial_dir, "roro_ports"),
-  Seaports = fuzzy_read(spatial_dir, "seaports"),
-  Airports = fuzzy_read(spatial_dir, "airports")) %>%
+  Seaport = fuzzy_read(spatial_dir, "seaports"),
+  Airport = fuzzy_read(spatial_dir, "airports")) %>%
   keep(~ inherits(.x, "SpatVector"))
 
 ports <- names(ports) %>%
@@ -25,7 +25,7 @@ ports <- names(ports) %>%
   })
 if (inherits(roads, "SpatVector") | length(ports) > 0) {
   ports <- reduce(ports, rbind)
-  plots$ports <- plot_static_layer(aoi_only = T, plot_aoi = F) +
+  plots$ports <- plot_static_layer(aoi_only = T, plot_aoi = F, zoom_adj = zoom_adjustment) +
     geom_spatvector(data = roads, aes(color = "Primary road")) +
     scale_color_manual(values = c("Primary road" = "grey20"), name = "") +
     ggnewscale::new_scale_color() +
@@ -56,12 +56,13 @@ if (inherits(built, c("SpatRaster", "SpatVector"))) {
     ggpattern::scale_pattern_manual(values = "stripe", name = "")   +
     coord_3857_bounds(static_map_bounds)
   veg <- fuzzy_read(spatial_dir, layer_params$vegetation$fuzzy_string)
-  overlay_plots$vegetation_builtup <- plot_static_layer(veg, "vegetation", baseplot = plots$builtup_binary)
+  if (inherits(veg, c("SpatRaster", "SpatVector"))) {
+    overlay_plots$vegetation_builtup <- plot_static_layer(veg, "vegetation", baseplot = plots$builtup_binary)
+  } 
 }
 
 # Extreme LST
 
-librarian::shelf(smoothr, ggpattern)
 lst_data <- fuzzy_read(spatial_dir, "extreme-lst")
 if (inherits(lst_data, c("SpatVector", "SpatRaster"))) {
   lst_data_smooth <- smooth(lst_data, method = "ksmooth", smoothness = 3)
@@ -104,14 +105,14 @@ if (inherits(flood_data, c("SpatRaster", "SpatVector"))) {
   # Temporary fix for if layer is all NAs
   if (all(is.na(values(flood_data)))) values(flood_data)[1] <- 0
   flood_type <- "combined_flooding"
-  plots[[flood_type]] <<- plot_static_layer(
+  plots[[flood_type]] <- plot_static_layer(
     flood_data, yaml_key = flood_type,
     plot_aoi = T, plot_wards = !is.null(wards))
   names(plots) %>%
     str_subset("population|builtup|building|proximity") %>%
     str_subset("binary", negate = T) %>%
     walk(\(x) {
-      overlay_plots[[paste0(flood_type, x)]] <<-
+      overlay_plots[[paste(flood_type, x, sep = "_")]] <<-
         plot_static_layer(data = flood_data, yaml_key = flood_type, baseplot = plots[[x]])
     })
 }

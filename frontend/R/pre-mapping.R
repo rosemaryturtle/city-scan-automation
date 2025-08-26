@@ -100,10 +100,14 @@ erase_isochrone_overlaps <- function() {
       zones <- fuzzy_read(spatial_dir, paste0(x, "_isochrone"))
       if (!"distance" %in% names(zones)) return(NULL)
       layer_distances <- layer_params[[paste0(x, "_zones")]]$breaks
-      zones <- filter(zones, distance %in% layer_distances) %>%
+      zones <- filter(zones, distance %in% layer_distances)
+      if (nrow(zones) == 0) {
+        warning(paste("No zones for", x, "of distances specified in layers.yml"))
+        return(NULL)
+      }
         # If multiple distances have the same zone, the erase output gets inverted.
         # We remove the duplicate zones that have the longer distance
-        arrange(distance) %>%
+      zones %>% arrange(distance) %>%
         distinct(geometry, .keep_all = T) %>%
         arrange(desc(distance))
       if (any(!is.valid(zones))) zones <- makeValid(zones)
@@ -167,7 +171,6 @@ if (inherits(historical_fire_data, c("SpatVector", "SpatRaster")) && length(hist
 
 seismic_data <- fuzzy_read(spatial_dir, "earthquake\\.tif$")
 if (inherits(seismic_data, c("SpatVector", "SpatRaster")) && length(seismic_data) > 0) {
-  browser()
   seismic_masked <- mask(seismic_data, aoi)
   writeRaster(seismic_masked, file.path(spatial_dir, "seismic-hazard-masked.tif"), overwrite = T)
 }
