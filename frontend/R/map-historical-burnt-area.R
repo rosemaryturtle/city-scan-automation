@@ -3,12 +3,10 @@
 tryCatch_named("burnt_area", {
   burnt_area <- fuzzy_read(spatial_dir, layer_params$burnt_area$fuzzy_string)
   if (inherits(burnt_area, c("SpatVector", "SpatRaster"), which = F)) {
-    burnt_extent <- aspect_buffer(
-      vect(ext(burnt_area), crs = crs(burnt_area)),
-      aspect_ratio, buffer_percent = 0.05)
     plots$burnt_area <- plot_static_layer(
       burnt_area, "burnt_area",
-      static_map_bounds = burnt_extent,
-      plot_aoi = T)
+      static_map_bounds = static_map_bounds,
+      plot_aoi = T,
+      zoom_adj = zoom_adjustment)
   }
 })
