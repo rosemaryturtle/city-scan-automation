@@ -20,7 +20,7 @@ source("R/pre-mapping.R", local = T)
 
 # Define map extent and zoom level adjustment
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
-zoom_adjustment <- 0
+zoom_adjustment <- 1
 
 # Custom themes
 theme_title <- \(...) theme(plot.title = element_text(size = 20, margin = margin(6, 0, 3.5, 40)), ...)
@@ -112,29 +112,29 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 # Non-standard static plots ----------------------------------------------------
 
 source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
-source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
-if ("zoom" %in% names(plots$elevation$layers[[2]]$mapping)) {
-  plots$elevation$layers[[2]] <- NULL
-}
-source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
-source("R/map-historical-burnt-area.R", local = T)
+# source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
+# if ("zoom" %in% names(plots$elevation$layers[[2]]$mapping)) {
+#   plots$elevation$layers[[2]] <- NULL
+# }
+# source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
+# source("R/map-historical-burnt-area.R", local = T)
 # plots$infrastructure <- plots$infrastructure + theme(legend.text = element_markdown())
 
 if (!is.null(plots$school_proximity)) plots$school_proximity <- plots$school_proximity +
-  labs(title = toupper(paste(
+  labs(title = paste(
     layer_params[["school_zones"]]$title,
     layer_params[["school_zones"]]$title_fr,
-    sep = "   /   ")))
+    sep = "   /   "))
 if (!is.null(plots$health_proximity)) plots$health_proximity <- plots$health_proximity +
-  labs(title = toupper(paste(
+  labs(title = paste(
     layer_params[["health_zones"]]$title,
     layer_params[["health_zones"]]$title_fr,
-    sep = "   /   ")))
+    sep = "   /   "))
 if (!is.null(plots$roads)) plots$roads <- plots$roads +
-  labs(title = toupper(paste(
+  labs(title = paste(
     layer_params[["roads"]]$stroke$title,
     layer_params[["roads"]]$stroke$title_fr,
-    sep = "   /   ")))
+    sep = "   /   "))
 
 # Remove grey background, add titles, remove scale bar and north arrow
 for (name in names(plots)) {
@@ -144,16 +144,16 @@ for (name in names(plots)) {
   }
   if (name == "vector") next
   if (name == "aerial") next
-  title <- toupper(paste(
+  title <- paste(
       layer_params[[name]]$title,
       layer_params[[name]]$title_fr,
-      sep = "   /   "))
+      sep = "   /   ")
   if (length(title) > 0) {
     plots[[name]] <- plots[[name]] +
-      labs(title = toupper(paste(
+      labs(title = paste(
         layer_params[[name]]$title,
         layer_params[[name]]$title_fr,
-        sep = "   /   ")))
+        sep = "   /   "))
   }
   plots[[name]] <- plots[[name]] +
     theme(
@@ -173,6 +173,13 @@ plots %>%
   # if (name != "aoi") return(NULL)
   save_plot(plot, filename = glue("{name}.png"), directory = transparencies_dir,
     map_height = map_height + .3, map_width = map_width, dpi = 200, rel_widths = map_portions)
+  # ggsave(
+  #   plot_grid(get_plot_component(plot, "guide-box-right")) +
+  #     theme(
+  #       legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
+  #       ),
+  #   filename = file.path(transparencies_dir, "legends", glue("{name}.png")),
+  #   height = map_height, width = map_portions[2]/2, dpi = 300)
 })
 
 # Save columns of legends by themselves ----------------------------------------
