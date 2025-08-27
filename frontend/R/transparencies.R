@@ -4,10 +4,11 @@ if ("frontend" %in% list.files()) setwd("frontend")
 
 # Set static map visualization parameters
 layer_alpha <- 0.7
-map_width <- 12.56 # Width of the map itself, excluding legend
+map_width <- 9.625 # 15.16 is total width (map_width + legend width)
 map_height <- 9.7
 aspect_ratio <- map_width / map_height
-map_portions <- c(map_width, 2.6) # First number is map width, second is legend width
+# map_portions <- c(map_width, 2.6) # First number is map width, second is legend width
+map_portions <- c(map_width, 5.535) # First number is map width, second is legend width
 
 # Load libraries and pre-process rasters
 source("R/setup.R", local = T)
@@ -83,6 +84,31 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     })
   }) %>% unlist() -> plot_log
 
+# Packets version (no reason for this to not be standard, replace above)
+packets <- list()
+unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
+  discard_at(c("burnt_area", "elevation")) %>%
+  # keep_at("economic_change") %>%
+  map2(names(.), \(fuzzy_string, yaml_key) {
+    tryCatch_named(yaml_key, {
+      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
+        vectorize_if_coarse()
+      titles <- unlist(layer_params[[yaml_key]][c("title", "title_fr")])
+      subtitles <- unlist(layer_params[[yaml_key]][c("subtitle", "subtitle_fr")])
+      p <- plot_static_layer(
+        packet = T,
+        data = data, yaml_key = yaml_key, zoom_adj = zoom_adjustment,
+        baseplot = ggplot(),
+        title = paste(titles, collapse = "<br>"),
+        subtitle = paste(subtitles, collapse = "<br>"),
+        plot_aoi = T, plot_wards = !is.null(wards)) +
+        labs(title = paste(titles, collapse = "   /   ")) +
+        theme_title()
+      packets[[yaml_key]] <<- p
+      message(paste("Success:", yaml_key))
+    })
+  }) %>% unlist() -> plot_log
+
 # Non-standard static plots ----------------------------------------------------
 
 source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
@@ -148,3 +174,73 @@ plots %>%
   save_plot(plot, filename = glue("{name}.png"), directory = transparencies_dir,
     map_height = map_height + .3, map_width = map_width, dpi = 200, rel_widths = map_portions)
 })
+
+# Save columns of legends by themselves ----------------------------------------
+# First column
+( ggplot() +
+    packets$population + guides(fill = guide_colorsteps(order = 1)) + guides(color = guide_colorsteps(order = 1)) +
+    packets$economic_activity + guides(fill = guide_colorsteps(order = 2)) + guides(color = guide_colorsteps(order = 2)) +
+    packets$economic_change + guides(fill = guide_colorsteps(order = 3)) + guides(color = guide_colorsteps(order = 3)) +
+    packets$wsf + guides(fill = guide_legend(order = 4)) + guides(color = guide_legend(order = 4)) +
+    theme(
+      panel.background = element_rect(fill = "white"),
+      legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
+      legend.box.spacing = unit(0, "pt"),
+      legend.justification = c("left", "top"))
+  ) %>%
+  get_plot_component("guide-box-right") %>%
+  ggsave(
+    filename = file.path(transparencies_dir, glue("legend-col1.png")),
+    height = map_height + 1, width = 2.3, dpi = 300)
+
+# Second column
+( ggplot() + 
+    packets$school_proximity + guides(fill = guide_legend(order = 2, theme = theme(legend.text = element_text(hjust = 0)))) + guides(color = guide_legend(order = 1, theme = theme(legend.text = element_text(hjust = 0)))) +
+    packets$health_proximity + guides(fill = guide_legend(order = 4, theme = theme(legend.text = element_text(hjust = 0)))) + guides(color = guide_legend(order = 3, theme = theme(legend.text = element_text(hjust = 0)))) +
+    packets$deforest + guides(fill = guide_colorsteps(order = 5)) + guides(color = guide_colorsteps(order = 5)) +
+    packets$forest + guides(fill = guide_legend(order = 6, theme = theme(legend.text = element_text(hjust = 0)))) + guides(color = guide_legend(order = 6, theme = theme(legend.text = element_text(hjust = 0)))) +
+    theme(
+      panel.background = element_rect(fill = "white"),
+      legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
+      legend.box.spacing = unit(0, "pt"),
+      legend.justification = c("left", "top"))
+  ) %>%
+  get_plot_component("guide-box-right") %>%
+  ggsave(
+    filename = file.path(transparencies_dir, glue("legend-col2.png")),
+    height = map_height + 1, width = 2.3, dpi = 300)
+
+# Third column
+
+# First, create fake flood plot that combines fluvial, pluvial, and coastal flood legend titles
+sample_flood_data <- fuzzy_read(spatial_dir, "fluvial_2020.tif$") %>%
+  aggregate_if_too_fine() %>%
+  vectorize_if_coarse()
+packets$sample_flood <- plot_static_layer(sample_flood_data, "fluvial", packet = T,
+  title = "Fluvial flood probability
+Probabilité d'inondation fluviale
+
+Pluvial flood probability
+Probabilité d'inondation pluviale
+
+Coastal flood probability
+Probabilité d'inondation côtière",
+
+subtitle = "Probability of a flood event of 15 centimeters or more within a 3-arc-second area in a given year
+Probabilité d'un événement d'inondation de 15 centimètres ou plus dans une zone de 3 secondes d'arc au cours d’une année donnée")
+
+(
+  ggplot() + 
+    packets$sample_flood + guides(fill = guide_legend(order = 1)) + guides(color = guide_legend(order = 1)) +
+    packets$landslide + guides(fill = guide_legend(order = 2)) + guides(color = guide_legend(order = 2)) +
+    packets$vegetation + guides(fill = guide_legend(order = 3)) + guides(color = guide_legend(order = 3)) +
+    theme(
+      panel.background = element_rect(fill = "white"),
+      legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
+      legend.box.spacing = unit(0, "pt"),
+      legend.justification = c("left", "top"))
+  ) %>%
+  get_plot_component("guide-box-right") %>%
+  ggsave(
+    filename = file.path(transparencies_dir, glue("legend-col3.png")),
+    height = map_height + 1, width = 2.3, dpi = 300)
