@@ -34,10 +34,10 @@ plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null
   baseplot = ggplot(),
   zoom_adj = zoom_adjustment,
   aoi_stroke = list(color = "black", linewidth = 0.4)) +
-  labs(title = toupper(paste(
+  labs(title = paste(
           "Area of interest",
-          "Domaine d'intérêt",
-          sep = "   /   "))) +
+          "Zone d'intérêt",
+          sep = "   /   ")) +
   theme_title()
 
 plots$vector <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.null(wards),
@@ -68,14 +68,15 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
         vectorize_if_coarse()
+      titles <- unlist(layer_params[[yaml_key]][c("title", "title_fr")])
+      subtitles <- unlist(layer_params[[yaml_key]][c("subtitle", "subtitle_fr")])
       plot <- plot_static_layer(
+        title = paste(titles, collapse = "<br>"),
+        subtitle = paste(subtitles, collapse = "<br>"),
         data = data, yaml_key = yaml_key, zoom_adj = zoom_adjustment,
         baseplot = ggplot(),
         plot_aoi = T, plot_wards = !is.null(wards)) +
-        labs(title = toupper(paste(
-          layer_params[[yaml_key]]$title,
-          layer_params[[yaml_key]]$title_fr,
-          sep = "   /   "))) +
+        labs(title = toupper(paste(titles, collapse = "   /   "))) +
         theme_title()
       plots[[yaml_key]] <<- plot
       message(paste("Success:", yaml_key))
