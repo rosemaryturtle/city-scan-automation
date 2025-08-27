@@ -32,7 +32,7 @@ plots <- list()
 # Plot AOI boundary, vector basemap, and aerial basemap  -----------------------
 plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards),
   baseplot = ggplot(),
-  zoom_adj = 1,
+  zoom_adj = zoom_adjustment,
   aoi_stroke = list(color = "black", linewidth = 0.4)) +
   labs(title = toupper(paste(
           "Area of interest",
@@ -41,7 +41,7 @@ plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null
   theme_title()
 
 plots$vector <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.null(wards),
-  zoom_adj = 1
+  zoom_adj = zoom_adjustment,
   # , aoi_stroke = list(color = "black", linewidth = 0.4)
   ) +
   labs(title = "   ") +
@@ -49,11 +49,17 @@ plots$vector <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.n
 
 # Plot aerial imagery ----------------------------------------------------------
 plots$aerial <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.null(wards),
-    zoom_adj = 1,
+    zoom_adj = zoom_adjustment,
     #  aoi_stroke = list(color = "yellow", linewidth = 0.4),
     baseplot = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}.jpg") +
   labs(title = "   ") +
   theme_title()
+
+# Plot blank map for scale bar only --------------------------------------------
+plots$scale_bar <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = F,
+  baseplot = ggplot()) +
+  theme_title() +
+  annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm"))
 
 # Standard plots ---------------------------------------------------------------
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
@@ -105,8 +111,10 @@ if (!is.null(plots$roads)) plots$roads <- plots$roads +
 
 # Remove grey background, add titles, remove scale bar and north arrow
 for (name in names(plots)) {
-  plots[[name]]$layers <- plots[[name]]$layers %>%
-    discard(\(x) inherits(x$geom, c("GeomNorthArrow", "GeomScaleBar")))
+  if (name != "scale_bar") {
+    plots[[name]]$layers <- plots[[name]]$layers %>%
+      discard(\(x) inherits(x$geom, c("GeomNorthArrow", "GeomScaleBar")))
+  }
   if (name == "vector") next
   if (name == "aerial") next
   title <- toupper(paste(
@@ -128,11 +136,10 @@ for (name in names(plots)) {
     theme_title()
 }
 
-
 # Save plots -------------------------------------------------------------------
 transparencies_dir <- file.path(output_dir, "transparent-maps")
 if (!dir.exists(transparencies_dir)) dir.create(transparencies_dir)
-plots %>% 
+plots %>%
   # keep_at(~ str_subset(.x, "luvial|coastal|combined")) %>%
   # keep_at(~ str_subset(.x, "aerial|vector")) %>%
   walk2(names(.), \(plot, name) {
