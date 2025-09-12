@@ -95,6 +95,7 @@ builtup:
   fuzzy_string: built_over_time.tif$
   title: Year of urban expansion, 1970–2030
   breaks: [1970, 1971, 1980, 1990, 2000, 2010, 2020, 2030]
+  oob: censor
   # labels: ['Before 1986', '1986', '1996', '2006', '2015']
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
   labels: ['Before 1971', '1971-1980', '1981-1990', '1991-2000', '2001-2009', '2011-2020', '2021-2030']

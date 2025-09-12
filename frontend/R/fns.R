@@ -424,7 +424,7 @@ fill_scale <- function(data_type, params) {
       limits = if (is.null(params$breaks)) NULL else range(params$breaks),
       rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale,
       na.value = "transparent",
-      oob = scales::oob_squish,
+      oob = list(squish = scales::oob_squish, censor = scales::oob_censor, squish_any = scales::oob_squish_any, censor_any = scales::oob_censor_any)[[params$oob %||% "squish"]],
       name = format_title(params$title, params$subtitle),
       guide = if (diff(lengths(list(params$labels, params$breaks))) == 1) "legend" else "colorsteps")
   }
@@ -446,7 +446,7 @@ color_scale <- function(data_type, params) {
             limits = if (is.null(params$stroke$breaks)) NULL else range(params$stroke$breaks),
             rescaler = if (!is.null(params$stroke$center)) scales::rescale_mid else scales::rescale,
             na.value = "transparent",
-            oob = scales::oob_squish,
+            oob = list(squish = scales::oob_squish, censor = scales::oob_censor, squish_any = scales::oob_squish_any, censor_any = scales::oob_censor_any)[[params$stroke$oob %||% "squish"]],
       name = format_title(params$stroke$title, params$stroke$subtitle))
   }
 }
