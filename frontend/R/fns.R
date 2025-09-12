@@ -501,14 +501,16 @@ coord_3857_bounds <- function(extent, expansion = 1, ...) {
   coord_sf(
     crs = "epsg:3857",
     expand = F,
+    default = T,
     xlim = extent[1:2] %>% { (. - mean(.)) * expansion + mean(.)},
     ylim = extent[3:4] %>% { (. - mean(.)) * expansion + mean(.)},
     ...)
 }
 
 get_zoom_level <- \(bounds, cap = 6) {
-  # cap & max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
-  zoom <- round(14.6 + -0.00015 * sqrt(expanse(project(bounds, "epsg:4326"))/3))
+  area <- sum(expanse(project(bounds, "epsg:3857")))
+  sq_area <- if (aspect_ratio >= 1) area * aspect_ratio else area / aspect_ratio
+  zoom <- round(28.10592 - .77015 * log(sq_area))
   if (is.na(cap)) return(zoom)
   max(zoom, cap)
 }
