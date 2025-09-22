@@ -362,6 +362,8 @@ def process_fathom(aoi_file, city_name_l, local_data_dir, city_inputs, menu, aws
     # set parameters
     flood_threshold = city_inputs['flood']['threshold']
     flood_years = city_inputs['flood']['year']
+    if isinstance(flood_years, int):
+        flood_years = [flood_years]
     flood_ssps = city_inputs['flood']['ssp']
     flood_rps = city_inputs['flood']['return_period']
     flood_types = ['coastal', 'fluvial', 'pluvial']
