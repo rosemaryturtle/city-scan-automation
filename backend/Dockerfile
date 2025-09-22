@@ -4,7 +4,7 @@ FROM python:3.10
 WORKDIR /app
 
 RUN apt-get update &&\
-    apt-get install -y binutils libproj-dev gdal-bin
+    apt-get install -y binutils libproj-dev gdal-bin libgdal-dev
 
 # Copy the requirements.txt file and install dependencies
 COPY requirements.txt .
