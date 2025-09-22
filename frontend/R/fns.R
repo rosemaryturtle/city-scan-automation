@@ -859,7 +859,10 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif,
 include_html_chart <- \(file) cat(str_replace_all(readLines(file), "\\s+", " "), sep="\n")
 
 break_lines <- function(x, width = 20, newline = "<br>") {
-  str_replace_all(x, paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline))
+  if (is.null(x)) return(NULL)
+  str_split_1(x, newline) %>%
+    str_replace_all(paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline)) %>%
+    paste(collapse = newline)
 }
 
 format_title <- function(title, subtitle, width = 20) {
