@@ -346,6 +346,10 @@ def main():
             if menu['flood_event']:
                 import flood_event
                 flood_event.plot_flood_event(data_bucket, cloud_bucket, global_inputs['flood_archive_dir'], global_inputs['flood_archive_blob'], features, local_data_dir, local_output_dir, city_name_l, output_dir, render_dir, font_dict)
+        elif task_index == 21:
+            if menu['ghs_population']:
+                import ghs_population
+                ghs_population.ghs_population(aoi_file,city_inputs, local_output_dir, city_name_l, cloud_bucket, output_dir)
             
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 
