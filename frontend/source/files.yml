@@ -1,0 +1,9 @@
+# Files that need placing
+oxford_locations: "/Users/bennotkin/Documents/world-bank/crp/city-scans/03-multi-scan-materials/oxford-locations.csv"
+oxford_file: "/Users/bennotkin/Documents/world-bank/crp/city-scans/03-multi-scan-materials/Oxford Global Cities Data.csv"
+oxford_areas_file: "/Users/bennotkin/Documents/world-bank/crp/city-scans/03-multi-scan-materials/oxford-economics-areas.csv"
+undata_file: "/Users/bennotkin/Documents/world-bank/crp/city-scans/03-multi-scan-materials/undata-pop.csv"
+koeppen_file: "../../03-multi-scan-materials/Koeppen-Geiger-ASCII.csv"
+flood_archive_file: "/Users/bennotkin/Documents/world-bank/crp/city-scans/03-multi-scan-materials/flood-archive"
+cyclone_archive_file: "/Users/bennotkin/Documents/world-bank/crp/city-scans/03-multi-scan-materials/IBTrACS-tropical-cyclones"
+# fwi_directory <- "../../wildfire-exploration.nosync/source-data.nosync/nasa-fwi/"
