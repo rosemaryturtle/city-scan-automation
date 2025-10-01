@@ -155,6 +155,7 @@ slide_texts$executive_summary_no_anchor_ids$takeaways <-
 #   str_replace_all("#### (.*$)", "<p class='pseudo-h4'>\\1</p>")
   unlist(slide_texts$executive_summary) %>% paste(collapse="\n") %>%
   str_split("#### ") %>% .[[1]] %>% str_subset("^$", negate = T) %>%
+  (\(x) modify_at(x, length(x), ~ paste0(.x, "\n\n")))() %>%
   lapply(\(x) {
     section <- str_extract(x, "^.*")
     x <- str_replace(x, "^(.*)",  "<p class='pseudo-h4'>\\1</p>")
@@ -181,13 +182,13 @@ print_slide_text(slide_texts$basic_city_info)
 //| output: asis
 fillSlide("population")
 
-import {chart_pg}
+import {chart_pga}
 with {columnWidth as plotWidth}
 from "@carolinecullinan/tunis-tunisia"
 // fillSlide("population_growth", chart_pas)
 html`<section class="level4">
     ${md`#### Population Growth`}
-    ${chart_pg ?? ""}
+    ${chart_pga ?? ""}
     ${addSlideText(slide_texts.population_growth)}
     </section>`
 ```
@@ -278,10 +279,10 @@ if (!is.na(plots_file)) {
 
 ```{ojs}
 //| output: true
-import {chart_uba} 
+import {chart_ubaa} 
 with {columnWidth as plotWidth}
 from "@carolinecullinan/tunis-tunisia"
-fillSlide("wsf", chart_uba)
+fillSlide("wsf", chart_ubaa)
 
 fillSlide("wsf_tracker")
 
@@ -374,6 +375,39 @@ import {chart_fwi}
 with {columnWidth as plotWidth}
 from "@carolinecullinan/tunis-tunisia"
 fillSlide("burnt_area", chart_fwi)
+```
+
+## Local Institutions and Planning
+
+### Administrative Structure
+
+```{r}
+#| output: asis
+print_slide_text(slide_texts$administrative_structure)
+```
+
+### Availability Of Development Plans And Policies
+
+```{r}
+#| output: asis
+print_slide_text(slide_texts$document_availability)
+```
+
+### The State of Urban Infrastructure and Service Delivery
+
+```{r}
+#| output: asis
+print_slide_text(slide_texts$infrastructure_and_service_delivery)
+```
+
+
+## Key Considerations for Investment Planning & Prioritization
+
+### Concluding Questions
+
+```{r}
+#| output: asis
+print_md(slide_texts$concluding_questions)
 ```
 
 :::
