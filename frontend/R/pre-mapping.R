@@ -103,7 +103,7 @@ if (inherits(wsf, "SpatRaster")) {
   # Using <- NA changes the datatype to unsigned, which ultimately results
   # in huge values when wsf is re-projected in maps-static.R
   # values(wsf_new)[values(wsf_new) == 0] <- NA
-  classify(wsf_new, cbind(0, NA))
+  wsf_new <- classify(wsf_new, cbind(0, NA)) # Added this for Uzbekistan, but I don't suspect it will cause problems on newer runs
   NAflag(wsf_new) <- NA
   writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
 }

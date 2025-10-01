@@ -651,6 +651,15 @@ read_md <- function(file) {
     bind_rows() #%>%
     # Do I want to remove header lines? For now, no
     # filter(!str_detect(text, "^#"))
+
+  # Remove empty lines
+  no_slide <- filter(mddf, is.na(slide))
+  if (nrow(no_slide) > 0) {
+    warning(paste0(
+      "There are", nrow(no_slide), "lines with no slide name:\n\n",
+      paste(knitr::kable(mutate(no_slide, .keep = "none", section, text = substr(text, 1, 25))), collapse = "\n")))
+    mddf <- filter(mddf, !is.na(slide))
+  }
   text_list <- sapply(unique(mddf$section), function(sect) {
     section_df <- filter(mddf, section == sect)
     section_list <- sapply(c(unique(section_df$slide)), function(s) {
@@ -850,7 +859,10 @@ break_pretty2 <- function(data, n = 6, method = "quantile", FUN = signif,
 include_html_chart <- \(file) cat(str_replace_all(readLines(file), "\\s+", " "), sep="\n")
 
 break_lines <- function(x, width = 20, newline = "<br>") {
-  str_replace_all(x, paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline))
+  if (is.null(x)) return(NULL)
+  str_split_1(x, newline) %>%
+    str_replace_all(paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline)) %>%
+    paste(collapse = newline)
 }
 
 format_title <- function(title, subtitle, width = 20) {

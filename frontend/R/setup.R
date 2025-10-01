@@ -26,7 +26,7 @@ librarian::shelf(quiet = T,
   cowplot,
   # Spatial
   sf,
-  rstudio/terra, # Only the github version of leaflet supports terra, in place of raster, which is now required as sp (on which raster depends) is being deprecated
+  rspatial/terra, # Only the github version of leaflet supports terra, in place of raster, which is now required as sp (on which raster depends) is being deprecated
   tidyterra, 
   leaflet, 
   leafem,
@@ -64,6 +64,7 @@ output_dir <- file.path(city_dir, "03-render-output/")
 styled_maps_dir <- file.path(output_dir, "maps/")
 charts_dir <- file.path(output_dir, "plots/")
 
+if (!dir.exists(fgb_dir)) dir.create(fgb_dir, recursive = T)
 if (!dir.exists(styled_maps_dir)) dir.create(styled_maps_dir, recursive = T)
 if (!dir.exists(charts_dir)) dir.create(charts_dir, recursive = T)
 
@@ -82,3 +83,5 @@ if (length(country) == 0 && is.list(basic_info)) country <- basic_info$country
 # 6. Read AOI & wards ----------------------------------------------------------
 aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
 wards <- tryCatch(fuzzy_read(user_input_dir, "wards") %>% project("epsg:4326"), error = \(e) NULL)
+
+writeVector(aoi, file.path(fgb_dir, "aoi.fgb"), overwrite = T, filetype = "FlatGeobuf")

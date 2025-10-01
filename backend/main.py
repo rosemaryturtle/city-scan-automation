@@ -159,7 +159,10 @@ def main():
             menu = yaml.safe_load(f)
 
         # Checks country based on which country aoi_file overlaps with the most
-        if country_iso3 is None:
+        country_name = country_name or city_inputs.get('country_name', None)
+        if country_name is not None:
+            country_name_l = country_name.replace(' ', '_').replace("'", "").lower()
+        if country_name_l is None:
             country_iso3, country_name, country_name_l = aoi_helper.find_country(data_bucket, global_inputs['countries_shp_dir'], global_inputs['countries_shp_blob'], local_data_dir, aoi_file = aoi_file)
 
         # Update directories and make a copy of city inputs and menu in city-specific directory
@@ -168,7 +171,7 @@ def main():
             # check if this directory exists on google cloud storage; if not, print message and exit
             if not utils.check_dir_exists(cloud_bucket, city_dir):
                 print(f"Directory {city_dir} does not exist in the {cloud_bucket} bucket. Please check prev_run_date in city_inputs.yml.")
-                exit()
+                exit(1)
         else:
             city_dir = f"{dt.now().strftime('%Y-%m')}-{country_name_l}-{city_name_l}"
         input_dir = f'{city_dir}/{input_dir}'

@@ -1,20 +1,21 @@
-# City Scan Data Processing Pipeline as a Google Cloud Run Job
+# City Scan Data Processing Pipeline as a Google Cloud Run Job  <!-- omit in toc -->
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Prerequisites](#prerequisites)
-3. [Directory Structure](#directory-structure)
-4. [Initial Build and Deploy](#initial-build-and-deploy)
-    - [Authenticate with Google Cloud](#authenticate-with-google-cloud)
-    - [Create an Artifact Registry Repository](#create-an-artifact-registry-repository)
-    - [Build and Push the Docker Image to Artifact Registry](#build-and-push-the-docker-image-to-artifact-registry)
-    - [Deploy the Docker Image to Cloud Run Job](#deploy-the-docker-image-to-cloud-run-job)
-    - [Execute the Cloud Run Job](#execute-the-cloud-run-job)
-5. [Access the Data Outputs](#access-the-data-outputs)
-6. [Modify the Container](#modify-the-container)
-7. [Simultaneous Data Processing for Multiple Cities](#simultaneous-data-processing)
-8. [Environment Variables](#environment-variables)
-9. [Troubleshooting](#troubleshooting)
+## Table of Contents  <!-- omit in toc -->
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [Directory Structure](#directory-structure)
+- [Initial Build and Deploy](#initial-build-and-deploy)
+  - [Authenticate with Google Cloud](#authenticate-with-google-cloud)
+  - [Create an Artifact Registry Repository](#create-an-artifact-registry-repository)
+  - [Build and Push the Docker Image to Artifact Registry](#build-and-push-the-docker-image-to-artifact-registry)
+  - [Deploy the Docker Image to Cloud Run Job](#deploy-the-docker-image-to-cloud-run-job)
+  - [Updating an Existing Job](#updating-an-existing-job)
+  - [Execute the Cloud Run Job](#execute-the-cloud-run-job)
+- [Access the Data Outputs](#access-the-data-outputs)
+- [Modify the Container](#modify-the-container)
+- [Simultaneous Data Processing for Multiple Cities](#simultaneous-data-processing-for-multiple-cities)
+- [Environment Variables](#environment-variables)
+- [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -72,6 +73,7 @@ Before you can run this pipeline, ensure you have the following installed:
 ### Authenticate with Google Cloud
 
 1. Authenticate with Google Cloud and set your project:
+
     ```bash
     gcloud auth login
     gcloud config set project <your-project-id>
@@ -85,6 +87,7 @@ Before you can run this pipeline, ensure you have the following installed:
     ```
 
 2. Enable the Artifact Registry and Cloud Run APIs if they are not already enabled:
+
     ```bash
     gcloud services enable artifactregistry.googleapis.com run.googleapis.com
     ```
@@ -103,7 +106,7 @@ gcloud artifacts repositories create <repository-name> \
 Example:
 
 ```bash
-gcloud artifacts repositories create city-scan-data \
+gcloud artifacts repositories create city-scan-backend-dev \
     --repository-format=docker \
     --location=us \
     --description="City Scan data processing repository"
@@ -119,6 +122,7 @@ gcloud artifacts repositories create city-scan-data \
     - `output_dir`: name of the directory where the data outputs are stored
 
 2. Configure **Docker** to authenticate with **Artifact Registry**:
+
     ```bash
     gcloud auth configure-docker <region>-docker.pkg.dev
     ```
@@ -129,7 +133,8 @@ gcloud artifacts repositories create city-scan-data \
     gcloud auth configure-docker us-docker.pkg.dev
     ```
 
-3. Build your Docker image:
+3. Build your Docker image (Docker must be running):
+
     ```bash
     docker build -t <region>-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag> .
     ```
@@ -137,10 +142,17 @@ gcloud artifacts repositories create city-scan-data \
     Example:
 
     ```bash
-    docker build -t us-docker.pkg.dev/city-scan/city-scan-data/csd:latest .
+    docker build -t us-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest .
     ```
 
+> ![NOTE]
+> If you are working on macOS, you will need to specify to use the `linux/amd64` platform when building the Docker image:
+> ```bash
+> docker build --platform linux/amd64 -t us-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest .
+> ```
+
 4. Push the image to **Artifact Registry**:
+
     ```bash
     docker push <region>-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag>
     ```
@@ -148,15 +160,16 @@ gcloud artifacts repositories create city-scan-data \
     Example:
 
     ```bash
-    docker push us-docker.pkg.dev/city-scan/city-scan-data/csd:latest
+    docker push us-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest
     ```
 
 ### Deploy the Docker Image to Cloud Run Job
 
 1. Deploy the job to **Cloud Run Jobs** using the following command:
+
     ```bash
     gcloud run jobs create <your-job-name> \
-    --image <region>-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag> \
+    --image us-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag> \
     --region <your-region> \
     --max-retries 1 \
     --timeout 1d \
@@ -167,13 +180,34 @@ gcloud artifacts repositories create city-scan-data \
     Example:
 
     ```bash
-    gcloud run jobs create csd \
-    --image us-docker.pkg.dev/city-scan/city-scan-data/csd:latest \
-    --region us-east4 \
+    gcloud run jobs create csb-dev \
+    --image us-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest \
+    --region us-central1 \
     --max-retries 1 \
-    --timeout 1d \
+    --tasks 21 \
+    --task-timeout 24h \
     --cpu 8 \
     --memory 32Gi
+    ```
+
+### Updating an Existing Job
+
+After you have made local changes, you will need to rebuild and repush the Docker image. You then may need to update the Cloud Run job, such as to use the new image or to change the number of tasks.
+
+To rebuild and repush, follow the steps above in [Build and Push the Docker Image to Artifact Registry](#build-and-push-the-docker-image-to-artifact-registry) (though you shouldn't need to reconfigure Docker).
+
+To update the existing job, use the following, making note of the existing job's name and region (e.g., `us-central1`) so that you update the correct job: `gcloud run jobs update <your-job-name> --region <your-region> --tasks <NEW_TASK_COUNT>`, followed by any specific options you want to change, such as `--tasks 21`. (Tasks allow the job to run in parallel, so that multiple parts of the processing have their own CPU and memory allocation. The script `main.py` determines which task number is used for which processing steps).
+
+    Examples, for changing the number of tasks or updating the image (these can also be combined into one command):
+
+    ```bash
+    gcloud run jobs update csb-dev --region us-central1 --tasks 21
+    ```
+
+    ```bash
+    gcloud run jobs update csb-dev \
+    --image us-central1-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest \
+    --region us-central1
     ```
 
 ### Execute the Cloud Run Job
@@ -186,6 +220,7 @@ gcloud artifacts repositories create city-scan-data \
     - **AOI shapefile**: The entire shapefile must be uploaded to a subdirectory named `AOI/` within the input directory. The AOI must be a polygon shapefile (i.e., no lines or points accepted) that does not exceed 1,000 square kilometers. It can be of any projection.
 
 2. You can then execute the job using:
+
     ```
     gcloud run jobs execute <your-job-name> --region <your-region>
     ```
@@ -210,8 +245,9 @@ To access the data outputs, simply download the files from the output subdirecto
 This containerized pipeline is intended to be flexible and adaptable toward your own use. After modifying the pipeline, simply rebuild the Docker image and repush it to the Artifact Registry, in three quick steps:
 
 1. Rebuild your Docker image under the same name:
+
     ```bash
-    docker build -t <region>-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag> .
+    docker build -t us-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag> .
     ```
 
     Example:
@@ -221,8 +257,9 @@ This containerized pipeline is intended to be flexible and adaptable toward your
     ```
 
 2. Push the new image to **Artifact Registry**:
+
     ```bash
-    docker push <region>-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag>
+    docker push us-docker.pkg.dev/<your-project-id>/<repository-name>/<image-name>:<tag>
     ```
 
     Example:
@@ -232,6 +269,7 @@ This containerized pipeline is intended to be flexible and adaptable toward your
     ```
 
 3. You can then execute the job using:
+
     ```
     gcloud run jobs execute <your-job-name> --region <your-region>
     ```
@@ -242,7 +280,7 @@ This containerized pipeline is intended to be flexible and adaptable toward your
     gcloud run jobs execute csd --region us-east4
     ```
 
-If you need support adapting the data processing pipeline, please contact Rui Su to discuss your needs and potential solutions.
+If you need support adapting the data processing pipeline, please contact Ben Notkin to discuss your needs and potential solutions.
 
 ## Simultaneous Data Processing for Multiple Cities
 
@@ -260,5 +298,5 @@ No Cloud Run job-level environment variables are needed to run the Cloud Run job
 
 ## Troubleshooting
 
-- **Issues**: As the pipeline is still in the testing phase, unexpected issues may arise and cause the Cloud Run job to fail. In that case, please note the execution ID of the job and contact Rui Su, who will examine the logs, help resolve the issues, and improve the pipeline for the future.
+- **Issues**: As the pipeline is still in the testing phase, unexpected issues may arise and cause the Cloud Run job to fail. In that case, please note the execution ID of the job and contact Ben Notkin, who will examine the logs, help resolve the issues, and improve the pipeline for the future.
 - **Logs**: Logs for the Cloud Run job can be accessed via [Google Cloud Console > Logging](https://console.cloud.google.com/logs).
