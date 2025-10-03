@@ -1,33 +1,38 @@
-accessibility: False
-basic_info: False
-burned_area: False
-demographics: False
+accessibility: True
+# accessibility analysis parameters
+basic_info: True
+burned_area: True
+demographics: True
+# The City Scan standardly uses WorldPop for population data;
+# to use GHSL instead, set population: False & ghs_population: True
 population: True
+ghs_population: False
 wsf: True
 earthquake: False   # under development
-elevation: False
-# if slope is set to False, please also set elevation to False
+elevation: True
+# if slope is set to True, please also set elevation to True
 # because slope is derived from elevation
 # unless the elevation raster file is already on cloud storage
-slope: False
+slope: True
 flood_coastal: True
 flood_fluvial: True
 flood_pluvial: True
 flood_comb: True
 flood_event: False
-fwi: False
-landcover_burn: False
-road_network: False
-rwi: False
-air: False
-landslide: False
-liquefaction: False
+fwi: True
+landcover_burn: True
+road_network: True
+rwi: True
+air: True
+landslide: True
+liquefaction: True
 oe_plot: False
-solar: False
-forest: False
-green: False
-landcover: False
-lst_summer: False
+solar: True
+forest: True
+green: True
+landcover: True
+lst_summer: True
 lst_winter: False
-ndmi: False
-nightlight: False
+ndmi: True
+nightlight: True
+
