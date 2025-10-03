@@ -1,19 +1,20 @@
 accessibility: False
-basic_info: False
+# accessibility analysis parameters
+basic_info: True
 burned_area: False
 demographics: False
-population: True
-wsf: True
+population: False
+wsf: False
 earthquake: False   # under development
 elevation: False
-# if slope is set to False, please also set elevation to False
+# if slope is set to True, please also set elevation to True
 # because slope is derived from elevation
 # unless the elevation raster file is already on cloud storage
 slope: False
-flood_coastal: True
-flood_fluvial: True
-flood_pluvial: True
-flood_comb: True
+flood_coastal: False
+flood_fluvial: False
+flood_pluvial: False
+flood_comb: False
 flood_event: False
 fwi: False
 landcover_burn: False
@@ -31,3 +32,4 @@ lst_summer: False
 lst_winter: False
 ndmi: False
 nightlight: False
+ghs_population: True
