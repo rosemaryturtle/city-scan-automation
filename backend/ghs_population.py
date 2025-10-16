@@ -14,6 +14,7 @@ from rasterio.mask import mask
 from shapely.geometry import mapping
 from tqdm import tqdm
 import utils  # your upload_blob helper
+from pathlib import Path
 
 
 def _find_tile_id_column(gdf):
@@ -25,7 +26,7 @@ def _find_tile_id_column(gdf):
     return None
 
 
-def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_bucket, output_dir):
+def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, ghsl_bucket, cloud_bucket, output_dir, ghsl_blob):
     """
     Download, mosaic, clip (in Mollweide), reproject to EPSG:4326, save and upload
     GHS population rasters for an AOI.
@@ -44,6 +45,10 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
         GCS bucket name (used by utils.upload_blob).
     output_dir : str
         Destination prefix inside the bucket (utils.upload_blob will add subfolders).
+    ghsl_bucket : str
+        GCS bucket name where the GHSL shapefile is stored (from global_inputs.yml).
+    ghsl_blob : str
+        GCS blob path of the GHSL shapefile (from global_inputs.yml).
     """
     # config
     years = list(range(1975, 2035, 5))
@@ -74,30 +79,77 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
     # ----------------------------
     # STEP 1: Download and read tile shapefile (auto-detect internal .shp)
     # ----------------------------
-    print("Downloading tile shapefile...")
-    r = requests.get(tile_shp_link)
-    r.raise_for_status()
+    print("Downloading GHSL tile shapefile...")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp_zipfile:
-        tmp_zipfile.write(r.content)
-        tmp_zip_path = tmp_zipfile.name
+    # Define projection used later
+    mollweide_proj = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs"
 
-    with zipfile.ZipFile(tmp_zip_path, "r") as z:
-        shp_candidates = [n for n in z.namelist() if n.endswith(".shp")]
-        if not shp_candidates:
-            os.remove(tmp_zip_path)
-            raise FileNotFoundError("No shapefile inside downloaded tile ZIP.")
-        shp_name = shp_candidates[0]
-        print(f"Found shapefile inside ZIP: {shp_name}")
+    # Temporary directory to store shapefile components or zip
+    tmp_dir = tempfile.mkdtemp()
+    tile_gdf = None
 
-    # read tile index and reproject to Mollweide
-    tile_gdf = gpd.read_file(f"zip://{tmp_zip_path}!{shp_name}").to_crs(mollweide_proj)
+    # --- Try downloading from GCS first ---
+    gcs_success = False
+    if ghsl_blob:
+        print(f"Attempting to download GHSL tile shapefile from GCS: {ghsl_blob}")
+        try:
+            # Get base name (e.g., 'GHSL2_0_MWD_L1_tile_schema_land')
+            base_name = Path(ghsl_blob).stem
+            prefix = str(Path(ghsl_blob).parent)
 
-    # determine tile id column name
+            # Download the full set of shapefile components
+            for suf in ["shp", "dbf", "shx", "prj"]:
+                blob_path = f"{prefix}/{base_name}.{suf}"
+                local_path = os.path.join(tmp_dir, f"{base_name}.{suf}")
+                ok = utils.download_blob(ghsl_bucket, blob_path, local_path)
+                gcs_success = gcs_success or ok  # mark success if any downloaded
+
+            if gcs_success:
+                shp_path = os.path.join(tmp_dir, f"{base_name}.shp")
+                tile_gdf = gpd.read_file(shp_path).to_crs(mollweide_proj)
+                print("✅ Loaded GHSL tile shapefile from GCS.")
+        except Exception as e:
+            print(f"GCS download failed: {e}")
+            gcs_success = False
+
+    # --- If GCS fails, fall back to GHSL website (ZIP) ---
+    if not gcs_success:
+        tile_shp_link = "https://ghsl.jrc.ec.europa.eu/download/GHSL_data_54009_shapefile.zip"
+        print("Falling back to GHSL website...")
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp_zipfile:
+            tmp_zip_path = tmp_zipfile.name
+
+        try:
+            r = requests.get(tile_shp_link, timeout=60)
+            r.raise_for_status()
+            with open(tmp_zip_path, "wb") as f:
+                f.write(r.content)
+            print("✅ Downloaded GHSL shapefile ZIP from website.")
+
+            with zipfile.ZipFile(tmp_zip_path, "r") as z:
+                shp_candidates = [n for n in z.namelist() if n.endswith(".shp")]
+                if not shp_candidates:
+                    raise FileNotFoundError("No shapefile found inside downloaded ZIP.")
+                shp_name = shp_candidates[0]
+                print(f"Found shapefile inside ZIP: {shp_name}")
+                tile_gdf = gpd.read_file(f"zip://{tmp_zip_path}!{shp_name}").to_crs(mollweide_proj)
+        except Exception as e:
+            raise ConnectionError(f"❌ Failed to download GHSL shapefile from both GCS and website: {e}")
+        finally:
+            if os.path.exists(tmp_zip_path):
+                os.remove(tmp_zip_path)
+
+    # --- Verify and detect tile id column ---
+    if tile_gdf is None:
+        raise RuntimeError("Failed to load GHSL tile shapefile from any source.")
+
     tile_id_col = _find_tile_id_column(tile_gdf)
     if tile_id_col is None:
-        # fallback to common names if not found
         raise KeyError("Could not find tile id column in tile shapefile.")
+
+    print("✅ GHSL tile shapefile successfully prepared.")
+
 
     # ----------------------------
     # STEP 2: Find intersecting tiles (use actual AOI geometry NOT bbox)
@@ -120,7 +172,8 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
     # ----------------------------
     for year in tqdm(years, desc="Years"):
         tifs = []
-        tmp_tile_paths = []  # keep track to delete temp zips
+        memfiles = []  # Keep MemoryFiles alive until merge() is done
+        tmp_tile_paths = []  # Keep track to delete temp zips
 
         for tile in tile_ids:
             # build remote filename, e.g. GHS_POP_E1975_..._R10_C29.zip
@@ -129,8 +182,7 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
             url = f"{download_base_url}/{sub_path}/{file_name}"
 
             try:
-                r = requests.get(url)
-                # some tiles may not exist for older/other years
+                r = requests.get(url, timeout=90)
                 r.raise_for_status()
             except Exception as e:
                 print(f"Tile not available or failed to download: {url} -> {e}")
@@ -146,12 +198,24 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
             with zipfile.ZipFile(tile_zip_path, "r") as z:
                 tif_members = [m for m in z.namelist() if m.endswith(".tif")]
                 if not tif_members:
+                    print(f"⚠️ No .tif found in {tile_zip_path}")
                     continue
                 for member in tif_members:
-                    with z.open(member) as tif_bytes:
-                        mem = MemoryFile(tif_bytes.read())
-                        ds = mem.open()
+                    try:
+                        tif_data = z.read(member)
+                        # Basic sanity check: GHSL .tif should be > 1 MB
+                        if len(tif_data) < 1_000_000:
+                            print(f"⚠️ Skipping tiny or invalid TIFF: {member} ({len(tif_data)} bytes)")
+                            continue
+
+                        mem = MemoryFile(tif_data)
+                        ds = mem.open()  # <-- keep both open
                         tifs.append(ds)
+                        memfiles.append(mem)  # <-- store mem so it stays alive
+
+                    except Exception as e:
+                        print(f"⚠️ Failed to read TIFF {member}: {e}")
+                        continue
 
         if not tifs:
             print(f"No tiles downloaded for year {year} (skipping).")
@@ -166,7 +230,13 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
         # ----------------------------
         # Mosaic (in Mollweide CRS).  merge() returns array (bands, rows, cols) and transform
         # ----------------------------
-        mosaic_arr, mosaic_transform = merge(tifs)
+        try:
+            mosaic_arr, mosaic_transform = merge(tifs)
+        except Exception as e:
+            print(f"⚠️ Merge failed, trying with valid-only datasets: {e}")
+            valid_tifs = [t for t in tifs if not t.closed and t.width > 0 and t.height > 0]
+            mosaic_arr, mosaic_transform = merge(valid_tifs)
+
         src_meta = tifs[0].meta.copy()
         src_crs = tifs[0].crs  # should be Mollweide (EPSG:54009)
         # Ensure we set correct meta for in-memory mosaic
@@ -200,11 +270,17 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
                     "count": clipped_arr.shape[0]
                 })
 
-        # close opened tile datasets and delete temp zips
+        # ----------------------------
+        # Cleanup temporary objects
+        # ----------------------------
         for ds in tifs:
             try:
                 ds.close()
-                # MemoryFile backing the ds will be cleaned when ds is garbage-collected
+            except Exception:
+                pass
+        for mem in memfiles:
+            try:
+                mem.close()
             except Exception:
                 pass
         for p in tmp_tile_paths:
@@ -212,6 +288,7 @@ def ghs_population(aoi_file, city_inputs, local_output_dir, city_name_l, cloud_b
                 os.remove(p)
             except Exception:
                 pass
+
 
         # ----------------------------
         # STEP 5: Reproject clipped raster to EPSG:4326 and save to local_output_dir
