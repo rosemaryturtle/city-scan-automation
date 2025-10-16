@@ -12,9 +12,10 @@ else
   shift
 fi
 
-# Check for --docker and --native flags, and remove them from arguments
+# Check for --docker, --native, and --no-gcs flags, and remove from arguments
 RUN_DOCKER=0
 RUN_NATIVE=0
+DOWNLOAD_GCS=1
 DOCKER_FLAGS=()
 for arg in "$@"; do
   case "$arg" in
@@ -23,6 +24,9 @@ for arg in "$@"; do
       ;;
     --native)
       RUN_NATIVE=1
+      ;;
+    --no-gcs)
+      DOWNLOAD_GCS=0
       ;;
     *)
       DOCKER_FLAGS+=("$arg")
@@ -35,7 +39,7 @@ CITY_DIR="$(pwd)/mnt/${GCS_CITY_DIR}"
 
 # Repository for City Scan code
 REPO="https://github.com/rosemaryturtle/city-scan-automation.git"
-BRANCH="main"
+BRANCH="phl-atlas"
 
 # Shallow clone the repository and download city data --------------------------
 
@@ -66,12 +70,14 @@ fi
 shopt -u dotglob nullglob
 rm -rf $CITY_DIR/temp-repo
 
-# Download the city data from Google Cloud Storage
-if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
-  echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist. Exiting."
-  exit 1
+if [[ ${DOWNLOAD_GCS:-1} -eq 1 ]]; then
+  # Download the city data from Google Cloud Storage
+  if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
+    echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist or you do not have permission. (Try \`gcloud auth login\`?) Exiting."
+    exit 1
+  fi
+  gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | grep -v '/00-reproduction-code/' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 fi
-gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 
 # Write city-dir.txt to tell the R scripts where to work from ------------------
 echo "." > "$CITY_DIR/city-dir.txt"
@@ -98,11 +104,15 @@ if [[ $RUN_DOCKER -eq 1 && $RUN_NATIVE -eq 1 ]]; then
 fi
 
 if [[ $RUN_NATIVE -eq 1 ]]; then
-  Rscript "$CITY_DIR/R/maps-static.R" || {
+  ORIGINAL_DIR=$(pwd)
+  cd "$CITY_DIR"
+  trap 'cd "$ORIGINAL_DIR"' EXIT
+  Rscript R/maps-static.R || {
     echo "Error: Failed to run R script for static maps."
     exit 1
   }
   echo "Static maps generated successfully."
+  # trap - EXIT
 fi
 
 if [[ $RUN_DOCKER -eq 1 ]]; then
