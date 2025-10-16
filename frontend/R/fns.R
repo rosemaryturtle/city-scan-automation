@@ -280,7 +280,7 @@ writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
 plot_static_layer <- function(
     data, yaml_key, baseplot = NULL, static_map_bounds, zoom_adj = 0,
     expansion, aoi_stroke = list(color = "grey30", linewidth = 0.4),
-    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
+    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, captions = "force", ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -308,8 +308,8 @@ plot_static_layer <- function(
       color_scale(data_type, params),
       linewidth_scale(data_type, params)) %>%
       .[lengths(.) > 1]
-    theme <- theme_legend(data, params)
-    layer <- list(geom = geom, scale = scales, theme = theme)
+    lab <- labs(caption = params$caption %||% "")
+    layer <- list(geom = geom, scale = scales, labs = lab) 
   }
 
   # I should make all these functions into a package and then define city_dir,
@@ -482,8 +482,9 @@ theme_custom <- function(...) {
   theme(
   # legend.key = element_rect(fill = "#FAFAF8"),
   legend.justification = c("left", "bottom"),
-  legend.box.margin = margin(0, 0, 0, 12, unit = "pt"),
+  legend.box.margin = margin(0, 0, 18, 12, unit = "pt"), # Add bottom spacing b/c caption
   legend.margin = margin(4,0,4,0, unit = "pt"),
+  plot.caption = element_text(hjust = 0, size = 8, color = "grey40"),
   axis.title = element_blank(),
   axis.text = element_blank(),
   axis.ticks = element_blank(),

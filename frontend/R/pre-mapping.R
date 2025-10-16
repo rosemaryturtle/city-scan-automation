@@ -94,12 +94,18 @@ rename_health_points <- function() {
 }
 rename_health_points()
 
-erase_isochrone_overlaps <- function() {
-  c("public_space", "waste", "transportation", "sanitation", "electricity", "sez", "water", "communication") %>%
-    map(\(x) {
+tryCatch_named("health_proximity", {
+  health_points <- fuzzy_read(spatial_dir, "health-points", vect)
+  if (inherits(health_points, "SpatVector")) {
+    writeVector(health_points, filename = file.path(spatial_dir, "health_POI.gpkg"), overwrite = T)
+  }
+})
+
+erase_isochrone_overlaps <- function(x) {
       zones <- fuzzy_read(spatial_dir, paste0(x, "_isochrone"))
       if (!"distance" %in% names(zones)) return(NULL)
       layer_distances <- layer_params[[paste0(x, "_zones")]]$breaks
+      # browser()
       zones <- filter(zones, distance %in% layer_distances)
       if (nrow(zones) == 0) {
         warning(paste("No zones for", x, "of distances specified in layers.yml"))
@@ -118,9 +124,9 @@ erase_isochrone_overlaps <- function() {
           erase(zones[i,], zones[i+1,])
         }) %>% reduce(rbind)
       writeVector(zones, filename = file.path(spatial_dir, paste0(x, "-journeys.gpkg")), overwrite = T)
-    })
-}
-erase_isochrone_overlaps()
+    }
+c("landfill", "education", "public_space", "waste", "transportation", "sanitation", "electricity", "sez", "water", "communication") %>%
+  map(erase_isochrone_overlaps)
 
 lst <- fuzzy_read(spatial_dir, "summer.*.tif$")
 if (inherits(lst, "SpatRaster")) {
@@ -180,9 +186,21 @@ if (inherits(seismic_data, c("SpatVector", "SpatRaster")) && length(seismic_data
   writeRaster(seismic_masked, file.path(spatial_dir, "seismic-hazard-masked.tif"), overwrite = T)
 }
 
-pop_2030 <- fuzzy_read(spatial_dir, "pop_2030\\.tif")
-if (inherits(pop_2030, "SpatRaster")) {
-  values(pop_2030)[values(pop_2030) == 0] <- NA
-  NAflag(pop_2030) <- NA
-  writeRaster(pop_2030, file.path(spatial_dir, "pop_2030-edit.tif"), overwrite = T)
+pop_2025 <- fuzzy_read(spatial_dir, "pop_2025\\.tif")
+if (inherits(pop_2025, "SpatRaster")) {
+  values(pop_2025)[values(pop_2025) == 0] <- NA
+  NAflag(pop_2025) <- NA
+  writeRaster(pop_2025, file.path(spatial_dir, "pop_2025-edit.tif"), overwrite = T)
+}
+
+built_2030 <- fuzzy_read(spatial_dir, "built_over_time\\.tif$")
+if (inherits(built_2030, "SpatRaster")) {
+  built_2030 <- ifel(built_2030 == 2030, 2030, NA)
+  NAflag(built_2030) <- NA
+  writeRaster(built_2030, file.path(spatial_dir, "built_2030-edit.tif"), overwrite = T)
+}
+
+ndvi <- fuzzy_read(spatial_dir, "ndvi.seaso")
+if (inherits(ndvi, "SpatRaster")) {
+  writeRaster(filter(ndvi, NDVI >= .18), file.path(spatial_dir, "vegetation-edit.tif"), overwrite = T)
 }

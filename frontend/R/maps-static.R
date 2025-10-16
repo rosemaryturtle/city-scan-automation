@@ -69,7 +69,9 @@ if (inherits(landmarks, "SpatVector")) {
 
 # Standard plots ---------------------------------------------------------------
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
+  discard_at(\(x) str_detect(x, "local")) %>%
   discard_at(c("fluvial", "pluvial", "coastal", "combined_flooding", "burnt_area")) %>%
+  discard_at(\(x) str_detect(x, "points")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
@@ -89,8 +91,8 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 # Non-standard static plots ----------------------------------------------------
 
 source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
-source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
-source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
+# source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
+# source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
 if (str_detect(city_dir, "national")) source("R/map-historical-burnt-area.R", local = T)
 source("R/map-philippines-specific.R", local = T)
 
@@ -98,14 +100,16 @@ source("R/map-philippines-specific.R", local = T)
 maps_dir <- file.path(output_dir, city_string)
 dir.create(maps_dir, showWarnings = F, recursive = T)
 filenames <- read_csv("source/filenames.csv", col_types = "cc")
+print("Saving standard plots...")
 filter(filenames, layer %in% names(plots)) %>%
   apply(1, \(row) {
     if (identical(row, c(F, F))) return(NULL)
     layer <- row[["layer"]]
     filename <- row[["filename"]]
     save_plot(plots[[layer]], filename = glue("{filename}.png"), directory = maps_dir,
-      map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
+      map_height = map_height + .2, map_width = map_width, dpi = 200, rel_widths = map_portions) # .2 is added for caption
   })
+print("Saving overlay plots...")
 filter(filenames, layer %in% names(overlay_plots)) %>%
   apply(1, \(row) {
     if (identical(row, c(F, F))) return(NULL)
@@ -113,7 +117,7 @@ filter(filenames, layer %in% names(overlay_plots)) %>%
     filename <- row[["filename"]]
     print(paste("Saving overlay plot:", layer, "to", filename))
     save_plot(overlay_plots[[layer]], filename = glue("{filename}.png"), directory = maps_dir,
-      map_height = map_height, map_width = map_width, dpi = 200, rel_widths = map_portions)
+      map_height = map_height + .2, map_width = map_width, dpi = 200, rel_widths = map_portions)  # .2 is added for caption
   })
 
 # See which layers weren't successfully mapped
