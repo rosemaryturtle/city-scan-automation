@@ -352,7 +352,13 @@ def main():
         elif task_index == 21:
             if menu['ghs_population']:
                 import ghs_population
-                ghs_population.ghs_population(aoi_file,city_inputs, local_output_dir, city_name_l, cloud_bucket, output_dir)
+                ghs_population.ghs_population(aoi_file,city_inputs, local_output_dir, city_name_l, global_inputs['ghsl_bucket'],cloud_bucket, output_dir, global_inputs['ghsl_blob'])
+        elif task_index == 22:
+            if menu['ghs_builtup']:
+                import ghs_builtup
+                ghs_builtup.ghs_builtup(aoi_file,city_inputs, local_output_dir, city_name_l, global_inputs['ghsl_bucket'],cloud_bucket, output_dir, global_inputs['ghsl_blob'])
+                ghs_builtup.ghs_builtup_overtime(aoi_file, city_inputs, local_output_dir, city_name_l, global_inputs['ghsl_bucket'], cloud_bucket, output_dir, global_inputs['ghsl_blob'], threshold=1200)
+
             
         # TODO: Add a step to copy the user provided data in 01-user-input/ to the city directory
 

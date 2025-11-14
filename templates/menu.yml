@@ -35,4 +35,4 @@ lst_summer: True
 lst_winter: False
 ndmi: True
 nightlight: True
-
+ghs_builtup: True
