@@ -1,0 +1,123 @@
+layer,filename,scale,single layer,title,subtitle,caption
+aoi,01-boundary,both,single layer,,,Map data from Esri (World Imagery).
+burnt_area,02-historical_fire,island group,single layer,History of fire,,Map data from Global Wildfire Information System.
+population,02-population_density,city,single layer,Population density,Number of persons per hectare in 2025,Map data from GHSL (GHS-POP R2023A).
+rwi,03-relative_wealth,city,single layer,Relative wealth,"Average household wealth, relative to the Philippines",Map data from Meta Data for Good (2021). Bins correspond to quintiles of modeled national distribution.
+seismic_hazard,03-seismic_hazard,island group,single layer,Seismic hazard,Peak ground acceleration (PGA),Map data from Global Earthquake Model (2023).
+vegetation,04-green_space,city,single layer,Vegetated Areas,Normalized difference vegetation index (NDVI)<br>2025–2024,"Map data from ESA, Sentinel-2."
+vegetation_2_6,04b-green_space_2_6,city,single layer,Vegetated Areas,Normalized difference vegetation index (NDVI)<br>2025–2024,"Map data from ESA, Sentinel-2."
+ports,04-ports,island group,single layer,Ports,,Map data from internal.
+builtup,05-builtup_area_change,city,single layer,Built-up area,"Year of urban expansion, 1980–2020",Map data from GHSL (GHS-BUILT-S R2023A).
+builtup_projected,05b-builtup_area_projected_2030,city,single layer,Projected urban expansion,2025–2030,Map data from GHSL: GHS-BUILT-S R2023A).
+buildings,06-buildings,city,single layer,Buildings,,Map data from Google Open Buildings.
+building_morphology,06b-building_morphology,city,single layer,Residential & non-residential buildings,Building height in meters (2018),Map data from GHSL (GHS-BUILT-C R2023A).
+roads,07-road_criticality,city,single layer,Road network segment criticality,Percentage of all hypothetical in-city trips using this road segment,Map data from OpenStreetMap.
+education_proximity,10-education_proximity,city,single layer,Travel distance to nearest college or university,Distance along road network in kilometers,Map data from OpenStreetMap.
+education_points,10b-education_points,city,single layer,Colleges & Universities,,Map data from OpenStreetMap.
+health_proximity,11-health_proximity,city,single layer,Travel distance to nearest health facility,Distance along road network in kilometers,Map data from OpenStreetMap.
+health_points,11b-health_points,city,single layer,Health Facilities,,Map data from OpenStreetMap.
+public_space_proximity,12-public_space_proximity,city,single layer,Travel distance to nearest public space,Distance along road network in meters,Map data from OpenStreetMap.
+public_space_points,12b-public_space_points,city,single layer,Public Space,,Map data from OpenStreetMap.
+transportation_proximity,13-transportation_proximity,city,single layer,Travel distance to nearest transportation,Distance along road network in meters,Map data from OpenStreetMap.
+transportation_points,13b-transportation_points,city,single layer,Public transportation,,Map data from OpenStreetMap.
+electricity_proximity,14-electricity_proximity,city,single layer,Travel distance to nearest electricity infrastructure,Distance along road network in meters,Map data from OpenStreetMap.
+electricity_points,14b-electricity_points,city,single layer,Electricity infrastructure,,Map data from OpenStreetMap.
+water_proximity,15-water_proximity,city,single layer,Travel distance to nearest water,Distance along road network in meters,Map data from OpenStreetMap.
+water_points,15b-water_points,city,single layer,Water,,Map data from OpenStreetMap.
+communication_proximity,16-communication_proximity,city,single layer,Travel distance to nearest communication infrastructure,Distance along road network in kilometers,Map data from OpenStreetMap.
+communication_points,16b-communication_points,city,single layer,Communication infrastructure,,Map data from OpenStreetMap.
+sez_proximity,17-sez_proximity,city,single layer,Travel distance to nearest special economic zone (SEZ),Distance along road network in kilometers,Map data from OpenStreetMap.
+sez_points,17b-sez_points,city,single layer,Special Economic Zone,,Map data from internal.
+waste_proximity,18-waste_proximity,city,single layer,Travel distance to nearest waste disposal site,Distance along road network in meters,Map data from internal.
+waste_points,18b-waste_points,city,single layer,Waste disposal,,Map data from OpenStreetMap.
+landfill_proximity,19-landfill_proximity,city,single layer,Travel distance to nearest landfill,Distance along road network in kilometers,Map data from OpenStreetMap.
+landfill_points,19b-landfill_points,city,single layer,Landfills,,Map data from OpenStreetMap.
+sanitation_proximity,20-sanitation_proximity,city,single layer,Travel distance to nearest wastewater plant,Distance along road network in kilometers,Map data from OpenStreetMap.
+sanitation_points,20b-sanitation_points,city,single layer,Sanitation,,Map data from OpenStreetMap.
+combined_infrastructure,21-infrastructure_points,city,single layer,<Combination of all community infrastucture points>,,Map data from OpenStreetMap.
+combined_flooding,30-flooding,city,single layer,Combined Flood probability,Probability of a flood event within a 3-arc-second area in a given year,Map data from Fathom. Flood probabilities are modeled for 2020.
+liquefaction,31-liquefaction,city,single layer,Liquefaction susceptibility,Proneness to liqueraction given the occurrence of a trigger event,"Map data from Zorn, Conrad, and Elco Koks (2019)."
+summer_lst,32-surface_temperature_summer,city,single layer,Summer surface temperature<br>2015–2024,Mean temperature (°C),"Map data from USGS (Landsat 9, Collection 2)."
+vegetation_builtup,05x04-builtup_area-green_space,city,overlay,,,
+vegetation_2_6_builtup,05x04b-builtup_area-green_space_2_6,city,overlay,,,
+combined_flooding_population,30x02-flooding-population_density,city,overlay,,,
+combined_flooding_builtup,30x05-flooding-builtup_area_change,city,overlay,,,
+combined_flooding_builtup_projected,30x05b-flooding-builtup_area_projected_2030,city,overlay,,,
+combined_flooding_buildings,30x06-flooding-buildings,city,overlay,,,
+combined_flooding_education_proximity,30x10-flooding-education_proximity,city,overlay,,,
+combined_flooding_education_points,30x10b-flooding-education_points,city,overlay,,,
+combined_flooding_health_proximity,30x11-flooding-health_proximity,city,overlay,,,
+combined_flooding_health_points,30x11b-flooding-health_points,city,overlay,,,
+combined_flooding_public_space_proximity,30x12-flooding-public_space_proximity,city,overlay,,,
+combined_flooding_public_space_points,30x12b-flooding-public_space_points,city,overlay,,,
+combined_flooding_transportation_proximity,30x13-flooding-transportation_proximity,city,overlay,,,
+combined_flooding_transportation_points,30x13b-flooding-transportation_points,city,overlay,,,
+combined_flooding_electricity_proximity,30x14-flooding-electricity_proximity,city,overlay,,,
+combined_flooding_electricity_points,30x14b-flooding-electricity_points,city,overlay,,,
+combined_flooding_water_proximity,30x15-flooding-water_proximity,city,overlay,,,
+combined_flooding_water_points,30x15b-flooding-water_points,city,overlay,,,
+combined_flooding_communication_proximity,30x16-flooding-communication_proximity,city,overlay,,,
+combined_flooding_communication_points,30x16b-flooding-communication_points,city,overlay,,,
+combined_flooding_sez_proximity,30x17-flooding-sez_proximity,city,overlay,,,
+combined_flooding_sez_points,30x17b-flooding-sez_points,city,overlay,,,
+combined_flooding_waste_proximity,30x18-flooding-waste_proximity,city,overlay,,,
+combined_flooding_waste_points,30x18b-flooding-waste_points,city,overlay,,,
+combined_flooding_landfill_proximity,30x19-flooding-landfill_proximity,city,overlay,,,
+combined_flooding_landfill_points,30x19b-flooding-landfill_points,city,overlay,,,
+combined_flooding_sanitation_proximity,30x20-flooding-sanitation_proximity,city,overlay,,,
+combined_flooding_sanitation_points,30x20b-flooding-sanitation_points,city,overlay,,,
+combined_flooding_combined_infrastructure,30x21-flooding-infrastructure_points,city,overlay,,,
+liquefaction_population,31x02-liquefaction-population_density,city,overlay,,,
+liquefaction_builtup,31x05-liquefaction-builtup_area_change,city,overlay,,,
+liquefaction_builtup_projected,31x05b-liquefaction-builtup_area_projected_2030,city,overlay,,,
+liquefaction_buildings,31x06-liquefaction-buildings,city,overlay,,,
+liquefaction_education_proximity,31x10-liquefaction-education_proximity,city,overlay,,,
+liquefaction_education_points,31x10b-liquefaction-education_points,city,overlay,,,
+liquefaction_health_proximity,31x11-liquefaction-health_proximity,city,overlay,,,
+liquefaction_health_points,31x11b-liquefaction-health_points,city,overlay,,,
+liquefaction_public_space_proximity,31x12-liquefaction-public_space_proximity,city,overlay,,,
+liquefaction_public_space_points,31x12b-liquefaction-public_space_points,city,overlay,,,
+liquefaction_transportation_proximity,31x13-liquefaction-transportation_proximity,city,overlay,,,
+liquefaction_transportation_points,31x13b-liquefaction-transportation_points,city,overlay,,,
+liquefaction_electricity_proximity,31x14-liquefaction-electricity_proximity,city,overlay,,,
+liquefaction_electricity_points,31x14b-liquefaction-electricity_points,city,overlay,,,
+liquefaction_water_proximity,31x15-liquefaction-water_proximity,city,overlay,,,
+liquefaction_water_points,31x15b-liquefaction-water_points,city,overlay,,,
+liquefaction_communication_proximity,31x16-liquefaction-communication_proximity,city,overlay,,,
+liquefaction_communication_points,31x16b-liquefaction-communication_points,city,overlay,,,
+liquefaction_sez_proximity,31x17-liquefaction-sez_proximity,city,overlay,,,
+liquefaction_sez_points,31x17b-liquefaction-sez_points,city,overlay,,,
+liquefaction_waste_proximity,31x18-liquefaction-waste_proximity,city,overlay,,,
+liquefaction_waste_points,31x18b-liquefaction-waste_points,city,overlay,,,
+liquefaction_landfill_proximity,31x19-liquefaction-landfill_proximity,city,overlay,,,
+liquefaction_landfill_points,31x19b-liquefaction-landfill_points,city,overlay,,,
+liquefaction_sanitation_proximity,31x20-liquefaction-sanitation_proximity,city,overlay,,,
+liquefaction_sanitation_points,31x20b-liquefaction-sanitation_points,city,overlay,,,
+liquefaction_combined_infrastructure,31x21-liquefaction-infrastructure_points,city,overlay,,,
+extreme_lst_population,32x02-surface_temperature-population_density,city,overlay,,,
+extreme_lst_builtup,32x05-surface_temperature-builtup_area_change,city,overlay,,,
+extreme_lst_builtup_projected,32x05b-surface_temperature-builtup_area_projected_203,city,overlay,,,
+extreme_lst_buildings,32x06-surface_temperature-buildings,city,overlay,,,
+extreme_lst_education_proximity,32x10-surface_temperature-education_proximity,city,overlay,,,
+extreme_lst_education_points,32x10b-surface_temperature-education_points,city,overlay,,,
+extreme_lst_health_proximity,32x11-surface_temperature-health_proximity,city,overlay,,,
+extreme_lst_health_points,32x11b-surface_temperature-health_points,city,overlay,,,
+extreme_lst_public_space_proximity,32x12-surface_temperature-public_space_proximity,city,overlay,,,
+extreme_lst_public_space_points,32x12b-surface_temperature-public_space_points,city,overlay,,,
+extreme_lst_transportation_proximity,32x13-surface_temperature-transportation_proximity,city,overlay,,,
+extreme_lst_transportation_points,32x13b-surface_temperature-transportation_points,city,overlay,,,
+extreme_lst_electricity_proximity,32x14-surface_temperature-electricity_proximity,city,overlay,,,
+extreme_lst_electricity_points,32x14b-surface_temperature-electricity_points,city,overlay,,,
+extreme_lst_water_proximity,32x15-surface_temperature-water_proximity,city,overlay,,,
+extreme_lst_water_points,32x15b-surface_temperature-water_points,city,overlay,,,
+extreme_lst_communication_proximity,32x16-surface_temperature-communication_proximity,city,overlay,,,
+extreme_lst_communication_points,32x16b-surface_temperature-communication_points,city,overlay,,,
+extreme_lst_sez_proximity,32x17-surface_temperature-sez_proximity,city,overlay,,,
+extreme_lst_sez_points,32x17b-surface_temperature-sez_points,city,overlay,,,
+extreme_lst_waste_proximity,32x18-surface_temperature-waste_proximity,city,overlay,,,
+extreme_lst_waste_points,32x18b-surface_temperature-waste_points,city,overlay,,,
+extreme_lst_landfill_proximity,32x19-surface_temperature-landfill_proximity,city,overlay,,,
+extreme_lst_landfill_points,32x19b-surface_temperature-landfill_points,city,overlay,,,
+extreme_lst_sanitation_proximity,32x20-surface_temperature-sanitation_proximity,city,overlay,,,
+extreme_lst_sanitation_points,32x20b-surface_temperature-sanitation_points,city,overlay,,,
+extreme_lst_combined_infrastructure,32x21-surface_temperature-infrastructure_points,city,overlay,,,

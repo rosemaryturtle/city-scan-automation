@@ -12,12 +12,20 @@ else
   shift
 fi
 
-# Check for --docker and --native flags, and remove them from arguments
+# Check for --no-gcs, --branch, --docker and --native flags, and remove them from arguments
+DOWNLOAD_GCS=1
+BRANCH="main"
 RUN_DOCKER=0
 RUN_NATIVE=0
 DOCKER_FLAGS=()
 for arg in "$@"; do
   case "$arg" in
+    --no-gcs)
+      GCS_DOWNLOAD=0
+      ;;
+    --branch=*)
+      BRANCH="${arg#*=}"
+      ;;
     --docker)
       RUN_DOCKER=1
       ;;
@@ -35,7 +43,6 @@ CITY_DIR="$(pwd)/mnt/${GCS_CITY_DIR}"
 
 # Repository for City Scan code
 REPO="https://github.com/rosemaryturtle/city-scan-automation.git"
-BRANCH="main"
 
 # Shallow clone the repository and download city data --------------------------
 
@@ -67,11 +74,16 @@ shopt -u dotglob nullglob
 rm -rf $CITY_DIR/temp-repo
 
 # Download the city data from Google Cloud Storage
-if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
-  echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist or you do not have permission. (Try `gcloud auth login`?) Exiting."
-  exit 1
+if [[ $GCS_DOWNLOAD -eq 0 ]]; then
+  echo "--no-gcs flag detected. Skipping download of city data from Google Cloud Storage."
+else
+  echo "Downloading city data from gs://crp-city-scan/$GCS_CITY_DIR to $CITY_DIR ..."
+  if ! gcloud storage ls "gs://crp-city-scan/$GCS_CITY_DIR" > /dev/null 2>&1; then
+    echo "Error: gs://crp-city-scan/$GCS_CITY_DIR does not exist or you do not have permission. (Try `gcloud auth login`?) Exiting."
+    exit 1
+  fi
+  gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | grep -v '/00-reproduction-code/' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 fi
-gcloud storage ls gs://crp-city-scan/$GCS_CITY_DIR | grep '^gs://' | grep -v '/00-reproduction-code/' | xargs -I {} gcloud storage cp -R {} "$CITY_DIR"
 
 # Write city-dir.txt to tell the R scripts where to work from ------------------
 echo "." > "$CITY_DIR/city-dir.txt"
@@ -106,7 +118,6 @@ if [[ $RUN_NATIVE -eq 1 ]]; then
     exit 1
   }
   echo "Static maps generated successfully."
-  # trap - EXIT
 fi
 
 if [[ $RUN_DOCKER -eq 1 ]]; then

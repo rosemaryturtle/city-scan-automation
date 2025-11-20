@@ -280,7 +280,7 @@ writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
 plot_static_layer <- function(
     data, yaml_key, baseplot = NULL, static_map_bounds, zoom_adj = 0,
     expansion, aoi_stroke = list(color = "grey30", linewidth = 0.4),
-    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, ...) {
+    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, captions = F, ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -308,8 +308,9 @@ plot_static_layer <- function(
       color_scale(data_type, params),
       linewidth_scale(data_type, params)) %>%
       .[lengths(.) > 1]
+    lab <- if (captions) labs(caption = params$caption %||% "") else NULL
     theme <- theme_legend(data, params)
-    layer <- list(geom = geom, scale = scales, theme = theme)
+    layer <- list(geom = geom, scale = scales, labs = lab, theme = theme)
   }
 
   # I should make all these functions into a package and then define city_dir,
@@ -346,6 +347,7 @@ plot_static_layer <- function(
     annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
     annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
     theme_custom()
+  if (captions) p <- p + theme(legend.box.margin = margin(0, 0, 18, 12, unit = "pt"), plot.caption = element_text(hjust = 0, size = 8, color = "grey40"))
   if (plot_roads) p <- p +
     geom_spatvector(data = roads, aes(linewidth = road_type), color = "white") +
     scale_linewidth_manual(values = c("Secondary" = 0.25, "Primary" = 1), guide = "none")
@@ -424,7 +426,7 @@ fill_scale <- function(data_type, params) {
       limits = if (is.null(params$breaks)) NULL else range(params$breaks),
       rescaler = if (!is.null(params$center)) scales::rescale_mid else scales::rescale,
       na.value = "transparent",
-      oob = scales::oob_squish,
+      oob = list(squish = scales::oob_squish, censor = scales::oob_censor, squish_any = scales::oob_squish_any, censor_any = scales::oob_censor_any)[[params$oob %||% "squish"]],
       name = format_title(params$title, params$subtitle),
       guide = if (diff(lengths(list(params$labels, params$breaks))) == 1) "legend" else "colorsteps")
   }
@@ -438,6 +440,15 @@ color_scale <- function(data_type, params) {
   } else {
     scale_color_stepsn(
       colors = params$stroke$palette,
+      # Length of labels is one less than breaks when we want a discrete legend
+      breaks = if (is.null(params$stroke$breaks)) waiver() else if (diff(lengths(list(params$stroke$labels, params$stroke$breaks))) == 1) params$stroke$breaks[-1] else params$stroke$breaks,
+      # breaks_midpoints() is important for getting the legend colors to match the specified colors
+      values = if (is.null(params$stroke$breaks)) NULL else breaks_midpoints(params$stroke$breaks, rescaler = if (!is.null(params$stroke$center)) scales::rescale_mid else scales::rescale, mid = params$stroke$center),
+      labels = if (is.null(params$stroke$labels)) waiver() else params$stroke$labels,
+      limits = if (is.null(params$stroke$breaks)) NULL else range(params$stroke$breaks),
+      rescaler = if (!is.null(params$stroke$center)) scales::rescale_mid else scales::rescale,
+      na.value = "transparent",
+      oob = list(squish = scales::oob_squish, censor = scales::oob_censor, squish_any = scales::oob_squish_any, censor_any = scales::oob_censor_any)[[params$stroke$oob %||% "squish"]],
       name = format_title(params$stroke$title, params$stroke$subtitle))
   }
 }
@@ -492,14 +503,16 @@ coord_3857_bounds <- function(extent, expansion = 1, ...) {
   coord_sf(
     crs = "epsg:3857",
     expand = F,
+    default = T,
     xlim = extent[1:2] %>% { (. - mean(.)) * expansion + mean(.)},
     ylim = extent[3:4] %>% { (. - mean(.)) * expansion + mean(.)},
     ...)
 }
 
-get_zoom_level <- \(bounds, cap = 10) {
-  # cap & max() is a placeholder. The formula was developed for smaller cities, but calculates 7 for Guiyang which is far too coarse
-  zoom <- round(14.6 + -0.00015 * sqrt(expanse(project(bounds, "epsg:4326"))/3))
+get_zoom_level <- \(bounds, cap = 6) {
+  area <- sum(expanse(project(bounds, "epsg:3857")))
+  sq_area <- if (aspect_ratio >= 1) area * aspect_ratio else area / aspect_ratio
+  zoom <- round(28.10592 - .77015 * log(sq_area))
   if (is.na(cap)) return(zoom)
   max(zoom, cap)
 }
@@ -607,7 +620,7 @@ label_maker <- function(x, levels = NULL, labels = NULL, suffix = NULL) {
     x <- paste0(x, suffix)
   }
   return(x)
-  }
+}
 
 add_aoi <- function(map, data = aoi, color = 'black', weight = 2, fill = F, dashArray = '12', ...) {
   addPolygons(map, data = data, color = color, weight = weight, fill = fill, dashArray = dashArray, ...)
@@ -999,7 +1012,6 @@ prepare_html <- \(in_file, out_file, css_file) {
   library(rvest)
   library(xml2)
   pdf <- read_html(in_file)
-  # browser()
   stylesheet_nodes <- html_elements(pdf, "link[rel=stylesheet]")
   xml_attr(stylesheet_nodes[1], "href") <- css_file
   xml2::xml_remove(stylesheet_nodes[-1])
