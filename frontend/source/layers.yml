@@ -75,7 +75,7 @@ school_zones:
 school_points:
   fuzzy_string: school-points
   title: School
-  title_fr: Écoles
+  title_fr: École
   data_variable: Feature # To show individual school types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
   palette: ['#FBAF00']
   alpha: 1
@@ -99,24 +99,22 @@ health_zones:
   group_id: Healthcare proximity
 health_points:
   fuzzy_string: health-points
-  title: Health Facility
-  title_fr: Établissements de santé
+  title: Hospital or clinic
+  title_fr: Hôpital et clinique
   data_variable: Feature # To show individual health facility types, use `amenity` and set factor: FALSE (but also requires changes to fns.R)
   palette: ['#523249']
   alpha: 1
-  labels: ['Hospital or clinic\nHôpitaux ou cliniques']
+  labels: ['Hospital or clinic\nHôpital et clinique']
   factor: TRUE
   group_id: Healthcare proximity
 # SECTION 6 CLIMATE CONDITIONS
 vegetation:
   fuzzy_string: ndvi_season.*.tif$
   title: Vegetated Areas
-  title_fr: Zones végétalisées
+  title_fr: Espace vert
   subtitle: 'Normalized difference vegetation index (NDVI)'
   subtitle_fr: Indice de végétation par différence normalisée (NDVI)
-  palette: ['#9999cc', '#f0f8d1', '#c2e3b8', '#87c27e', '#54a159', '#2e6a34']
-  breaks: [-1, 0.015, 0.14, 0.18, 0.27, 0.36, 1]
-  labels: ['Water\nEau\n-1 – 0.015', 'Built-up\nZone bâtie\n0.015 – 0.14', 'Barren\nTerrain nu\n0.14 – 0.18', 'Shrub and Grassland\nArbustes et prairies\n0.18 – 0.27', 'Sparse\nVégétation clairsemée\n0.27 – 0.36', 'Dense\nVégétation dense\n0.36 – 1']
+  labels: ['Shrub and Grassland\nLandes et prairies\n0.18 – 0.27', 'Sparse vegetation\nVégétation clairsemée\n0.27 – 0.36', 'Dense vegetation\nVégétation dense\n0.36 – 1']
   group_id: Vegetation 
 forest: # Requires preprocessing to combine forest and deforestation?
   fuzzy_string: forest_cover.*.tif$
@@ -124,13 +122,13 @@ forest: # Requires preprocessing to combine forest and deforestation?
   # title_fr: Couverture forestière
   breaks: [1]
   palette: ['#8CC056']
-  labels: ['Current Forest\nForêt actuelle ']
+  labels: ['Forest cover (2012)\nCouverture forestière (2012)']
   factor: TRUE
   group_id: Forests
 deforest: # Requires preprocessing to combine forest and deforestation?
   fuzzy_string: deforestation-edit.tif$
   title: Deforestation
-  title_fr: Perte de couverture forestière
+  title_fr: Déforestation
   subtitle: Year of deforestation
   subtitle_fr: Année de déforestation
   # domain: [2001, 2021]
@@ -175,6 +173,6 @@ landslides:
   title: Rainfall-triggered landslide susceptibility
   title_fr: Susceptibilité aux glissements de terrain déclenché par les précipitations 
   palette: ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
-  labels: ['Very low\nTrès faible', 'Low\nFaible', 'Medium\nModéré', 'High\nFort', 'Very high\nTrès fort']
+  labels: ['Very low\nTrès faible', 'Low\nFaible', 'Medium\nModéré', 'High\nÉlevé', 'Very high\nTrès élevé']
   breaks: [0, 1, 2, 3, 4, 5]
   group_id: Landslides
