@@ -21,7 +21,7 @@ DOCKER_FLAGS=()
 for arg in "$@"; do
   case "$arg" in
     --no-gcs)
-      GCS_DOWNLOAD=0
+      DOWNLOAD_GCS=0
       ;;
     --branch=*)
       BRANCH="${arg#*=}"
@@ -74,7 +74,7 @@ shopt -u dotglob nullglob
 rm -rf $CITY_DIR/temp-repo
 
 # Download the city data from Google Cloud Storage
-if [[ $GCS_DOWNLOAD -eq 0 ]]; then
+if [[ $DOWNLOAD_GCS -eq 0 ]]; then
   echo "--no-gcs flag detected. Skipping download of city data from Google Cloud Storage."
 else
   echo "Downloading city data from gs://crp-city-scan/$GCS_CITY_DIR to $CITY_DIR ..."
