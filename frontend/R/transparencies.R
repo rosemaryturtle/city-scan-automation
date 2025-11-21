@@ -4,11 +4,11 @@ if ("frontend" %in% list.files()) setwd("frontend")
 
 # Set static map visualization parameters
 layer_alpha <- 0.7
-map_width <- 9.625 # 15.16 is total width (map_width + legend width)
+map_width <- 11.2 # 15.16 is total width (map_width + legend width)
 map_height <- 9.7
 aspect_ratio <- map_width / map_height
 # map_portions <- c(map_width, 2.6) # First number is map width, second is legend width
-map_portions <- c(map_width, 5.535) # First number is map width, second is legend width
+map_portions <- c(map_width, 4.06) # First number is map width, second is legend width
 
 # Load libraries and pre-process rasters
 source("R/setup.R", local = T)
@@ -29,6 +29,7 @@ theme_title <- \(...) theme(plot.title = element_text(size = 20, margin = margin
 
 # Initiate plots list ----------------------------------------------------------
 plots <- list()
+packets <- list()
 
 # Plot AOI boundary, vector basemap, and aerial basemap  -----------------------
 plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null(wards),
@@ -67,8 +68,10 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   discard_at(c("burnt_area", "elevation")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch_named(yaml_key, {
-      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
-        vectorize_if_coarse()
+      file_path <- fuzzy_read(spatial_dir, fuzzy_string, FUN = paste)
+      if (is.na(file_path)) stop(glue("File {file_path} does not exist"))
+      data <- fuzzy_read(spatial_dir, fuzzy_string)
+      if (inherits(data, "SpatRaster")) data <- vectorize_if_coarse(data)
       titles <- unlist(layer_params[[yaml_key]][c("title", "title_fr")])
       subtitles <- unlist(layer_params[[yaml_key]][c("subtitle", "subtitle_fr")])
       plot <- plot_static_layer(
@@ -80,21 +83,8 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         labs(title = toupper(paste(titles, collapse = "   /   "))) +
         theme_title()
       plots[[yaml_key]] <<- plot
-      message(paste("Success:", yaml_key))
-    })
-  }) %>% unlist() -> plot_log
-
-# Packets version (no reason for this to not be standard, replace above)
-packets <- list()
-unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
-  discard_at(c("burnt_area", "elevation")) %>%
-  map2(names(.), \(fuzzy_string, yaml_key) {
-    tryCatch_named(yaml_key, {
-      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
-        vectorize_if_coarse()
-      titles <- unlist(layer_params[[yaml_key]][c("title", "title_fr")])
-      subtitles <- unlist(layer_params[[yaml_key]][c("subtitle", "subtitle_fr")])
-      p <- plot_static_layer(
+      # Should fully switch to using packets
+      packet <- plot_static_layer(
         packet = T,
         data = data, yaml_key = yaml_key, zoom_adj = zoom_adjustment,
         baseplot = ggplot(),
@@ -103,7 +93,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
         plot_aoi = T, plot_wards = !is.null(wards)) +
         labs(title = paste(titles, collapse = "   /   ")) +
         theme_title()
-      packets[[yaml_key]] <<- p
+      packets[[yaml_key]] <<- packet
       message(paste("Success:", yaml_key))
     })
   }) %>% unlist() -> plot_log
@@ -180,12 +170,30 @@ plots %>%
 })
 
 # Save columns of legends by themselves ----------------------------------------
+
+# First, create fake flood plot that combines fluvial, pluvial, and coastal flood legend titles
+# This would be quicker if we didn't use actual flood data, but works fine
+flood_types <- c("fluvial", "pluvial", "coastal")
+found_flood_type <- flood_types[which(flood_types %in% names(plots))[1]]
+packets$sample_flood <- if (is.na(found_flood_type)) { NULL } else {
+  plot_static_layer(
+    fuzzy_read(spatial_dir, layer_params[[found_flood_type]]$fuzzy_string),
+    found_flood_type, packet = T,
+    title = "Flood probability
+Probabilité d'inondation",
+    subtitle = "Probability of a flood event of 15 centimeters or more within a 3-arc-second area in a given year
+Probabilité d'un événement d'inondation de 15 centimètres ou plus dans une zone de 3 secondes d'arc au cours d’une année donnée")
+}
+
 # First column
-( ggplot() +
-    packets$population + guides(fill = guide_colorsteps(order = 1)) + guides(color = guide_colorsteps(order = 1)) +
-    packets$economic_activity + guides(fill = guide_colorsteps(order = 2)) + guides(color = guide_colorsteps(order = 2)) +
-    packets$economic_change + guides(fill = guide_colorsteps(order = 3)) + guides(color = guide_colorsteps(order = 3)) +
-    packets$wsf + guides(fill = guide_legend(order = 4)) + guides(color = guide_legend(order = 4)) +
+print("Starting first legend column")
+(
+  ggplot() +
+    packets$forest + guides(fill = guide_legend(order = 1, theme = theme(legend.title = element_blank(), legend.text = element_text(hjust = 0))), color = guide_legend(order = 1, theme = theme(legend.text = element_text(hjust = 0)))) +
+    packets$deforest + guides(fill = guide_colorsteps(order = 2)) + guides(color = guide_colorsteps(order = 2)) +
+    packets$vegetation + guides(fill = guide_legend(order = 3)) + guides(color = guide_legend(order = 3)) +
+    packets$sample_flood + guides(fill = guide_legend(order = 4)) + guides(color = guide_legend(order = 4)) +
+    packets$landslide + guides(fill = guide_legend(order = 5)) + guides(color = guide_legend(order = 5)) +
     theme(
       panel.background = element_rect(fill = "white"),
       legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
@@ -198,11 +206,15 @@ plots %>%
     height = map_height + 1, width = 2.3, dpi = 300)
 
 # Second column
-( ggplot() + 
-    packets$school_proximity + guides(fill = guide_legend(order = 2, theme = theme(legend.text = element_text(hjust = 0)))) + guides(color = guide_legend(order = 1, theme = theme(legend.text = element_text(hjust = 0)))) +
-    packets$health_proximity + guides(fill = guide_legend(order = 4, theme = theme(legend.text = element_text(hjust = 0)))) + guides(color = guide_legend(order = 3, theme = theme(legend.text = element_text(hjust = 0)))) +
-    packets$deforest + guides(fill = guide_colorsteps(order = 5)) + guides(color = guide_colorsteps(order = 5)) +
-    packets$forest + guides(fill = guide_legend(order = 6, theme = theme(legend.text = element_text(hjust = 0)))) + guides(color = guide_legend(order = 6, theme = theme(legend.text = element_text(hjust = 0)))) +
+print("Starting second legend column")
+( 
+  ggplot() + 
+    packets$population + guides(fill = guide_colorsteps(order = 3)) + guides(color = guide_colorsteps(order = 3)) +
+    packets$economic_activity + guides(fill = guide_colorsteps(order = 4)) + guides(color = guide_colorsteps(order = 2)) +
+    packets$school_points +
+      guides(color = guide_legend(order = 5, theme = theme(legend.text = element_text(hjust = 0)))) +
+    packets$health_points + guides(color = guide_legend(order = 6, theme = theme(legend.text = element_text(hjust = 0)))) +
+    packets$ghsl + guides(fill = guide_legend(order = 7, theme = theme(legend.text = element_text(hjust = 0))), color = guide_legend(order = 7, theme = theme(legend.text = element_text(hjust = 0)))) +
     theme(
       panel.background = element_rect(fill = "white"),
       legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
@@ -212,39 +224,4 @@ plots %>%
   get_plot_component("guide-box-right") %>%
   ggsave(
     filename = file.path(transparencies_dir, glue("legend-col2.png")),
-    height = map_height + 1, width = 2.3, dpi = 300)
-
-# Third column
-
-# First, create fake flood plot that combines fluvial, pluvial, and coastal flood legend titles
-sample_flood_data <- fuzzy_read(spatial_dir, "fluvial_2020.tif$") %>%
-  aggregate_if_too_fine() %>%
-  vectorize_if_coarse()
-packets$sample_flood <- plot_static_layer(sample_flood_data, "fluvial", packet = T,
-  title = "Fluvial flood probability
-Probabilité d'inondation fluviale
-
-Pluvial flood probability
-Probabilité d'inondation pluviale
-
-Coastal flood probability
-Probabilité d'inondation côtière",
-
-subtitle = "Probability of a flood event of 15 centimeters or more within a 3-arc-second area in a given year
-Probabilité d'un événement d'inondation de 15 centimètres ou plus dans une zone de 3 secondes d'arc au cours d’une année donnée")
-
-(
-  ggplot() + 
-    packets$sample_flood + guides(fill = guide_legend(order = 1)) + guides(color = guide_legend(order = 1)) +
-    packets$landslide + guides(fill = guide_legend(order = 2)) + guides(color = guide_legend(order = 2)) +
-    packets$vegetation + guides(fill = guide_legend(order = 3)) + guides(color = guide_legend(order = 3)) +
-    theme(
-      panel.background = element_rect(fill = "white"),
-      legend.box.margin = margin(0, 0, 0, 0, unit = "pt"),
-      legend.box.spacing = unit(0, "pt"),
-      legend.justification = c("left", "top"))
-  ) %>%
-  get_plot_component("guide-box-right") %>%
-  ggsave(
-    filename = file.path(transparencies_dir, glue("legend-col3.png")),
     height = map_height + 1, width = 2.3, dpi = 300)

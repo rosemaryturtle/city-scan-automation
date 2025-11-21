@@ -56,6 +56,16 @@ wsf_tracker:
   labels: ['Before July 2016 / Avant juillet 2016', 'July/juillet 2016-2018', 'July/juillet 2018-2020', 'July/juillet 2020–2022', 'July/juillet 2022–2024']
   palette: ['#FBF9CD', '#D18158', '#25115B']
   group_id: Urban extent, 2016–2024
+ghsl:
+  fuzzy_string: ghsl-threshold-year.tif$
+  title: Built-up area change, 1975-2025
+  title_fr: Evolution de la zone bâtie 1975-2025
+  subtitle: Year of urban expansion
+  subtitle_fr: Année d'expansion urbaine
+  breaks: [1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025]
+  labels: ['Before/Avant 1975', '1976-1980', '1981-1985', '1986-1990', '1991-1995', '1996-2000', '2001-2005', '2006-2010', '2011-2015', '2016-2020', '2021-2025']
+  palette: ['#FBF9CD', '#E3B854', '#BF4A3B', '#25110B']
+  group_id: Urban extent
 school_zones:
   fuzzy_string: school-journeys
   data_variable: thresh
@@ -80,6 +90,7 @@ school_points:
   palette: ['#FBAF00']
   alpha: 1
   labels: ['School\nÉcole']
+  breaks: ['School']
   factor: TRUE
   group_id: School proximity
 health_zones:
@@ -105,21 +116,34 @@ health_points:
   palette: ['#523249']
   alpha: 1
   labels: ['Hospital or clinic\nHôpital et clinique']
+  breaks: ['Health facility']
   factor: TRUE
   group_id: Healthcare proximity
 # SECTION 6 CLIMATE CONDITIONS
 vegetation:
-  fuzzy_string: ndvi_season.*.tif$
-  title: Vegetated Areas
+  fuzzy_string: vegetation-edit.tif$
+  title: Green Space
   title_fr: Espace vert
   subtitle: 'Normalized difference vegetation index (NDVI)'
   subtitle_fr: Indice de végétation par différence normalisée (NDVI)
+  palette: ['#87c27e', '#54a159', '#2e6a34']
+  breaks: [0.18, 0.27, 0.36, 1]
   labels: ['Shrub and Grassland\nLandes et prairies\n0.18 – 0.27', 'Sparse vegetation\nVégétation clairsemée\n0.27 – 0.36', 'Dense vegetation\nVégétation dense\n0.36 – 1']
+  group_id: Vegetation 
+vegetation_binary:
+  fuzzy_string: vegetation-binary-edit.tif$
+  title: Green Space
+  title_fr: Espace vert
+  palette: ['#2e6a34', '#2e6a35']
+  # domain: [0.18, 1]
+  factor: TRUE
+  labels: ['Vegetated areas\nZones végétalisées']
+  breaks: [1]
   group_id: Vegetation 
 forest: # Requires preprocessing to combine forest and deforestation?
   fuzzy_string: forest_cover.*.tif$
-  # title: 'Forest cover'
-  # title_fr: Couverture forestière
+  title: 'Forest cover'
+  title_fr: Couverture forestière
   breaks: [1]
   palette: ['#8CC056']
   labels: ['Forest cover (2012)\nCouverture forestière (2012)']

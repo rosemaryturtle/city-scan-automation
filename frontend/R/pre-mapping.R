@@ -154,3 +154,11 @@ adjust_deforstation_years <- function() {
   }
 }
 adjust_deforstation_years()
+
+ndvi <- fuzzy_read(spatial_dir, "ndvi.seaso")
+if (inherits(ndvi, "SpatRaster")) {
+  writeRaster(filter(ndvi, NDVI >= .18), file.path(spatial_dir, "vegetation-edit.tif"), overwrite = T)
+  veg_binary <- mutate(ndvi, NDVI = NDVI >= .18) + 0
+  values(veg_binary)[values(veg_binary) == 0] <- NA
+  writeRaster(veg_binary, file.path(spatial_dir, "vegetation-binary-edit.tif"), overwrite = T)
+}
