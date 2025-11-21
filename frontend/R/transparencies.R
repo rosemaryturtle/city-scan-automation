@@ -14,7 +14,7 @@ map_portions <- c(map_width, 5.535) # First number is map width, second is legen
 source("R/setup.R", local = T)
 source("R/pre-mapping.R", local = T)
 
-# If you want layers.yml file, change it here
+# If you want to change the layers.yml file, change it here
 # layer_params_file <- 'source/layers-uzbek.yml' # Also used by fns.R
 # layer_params <- read_yaml(layer_params_file)
 
@@ -88,7 +88,6 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 packets <- list()
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   discard_at(c("burnt_area", "elevation")) %>%
-  # keep_at("economic_change") %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
     tryCatch_named(yaml_key, {
       data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
@@ -167,8 +166,6 @@ for (name in names(plots)) {
 transparencies_dir <- file.path(output_dir, "transparent-maps")
 if (!dir.exists(transparencies_dir)) dir.create(transparencies_dir)
 plots %>%
-  # keep_at(~ str_subset(.x, "luvial|coastal|combined")) %>%
-  # keep_at(~ str_subset(.x, "aerial|vector")) %>%
   walk2(names(.), \(plot, name) {
   # if (name != "aoi") return(NULL)
   save_plot(plot, filename = glue("{name}.png"), directory = transparencies_dir,

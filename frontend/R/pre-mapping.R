@@ -141,13 +141,12 @@ adjust_deforstation_years <- function() {
   deforest <- fuzzy_read(spatial_dir, "deforestation.tif$", rast)
   if (inherits(deforest, c("SpatRaster"))) {
     vals <- na.omit(values(deforest))
-    if (length(vals) == 0) return(NULL)
     if (all(vals %in% 1:99)) {
       values(deforest) <- values(deforest) + 2000
       writeRaster(deforest, file.path(spatial_dir, "deforestation-edit.tif"), overwrite = T)
       return(NULL)
     }
-    if (all(vals > 2000)) {
+    if (all(vals > 2000) | length(vals) == 0) {
       writeRaster(deforest, file.path(spatial_dir, "deforestation-edit.tif"), overwrite = T)
       return(NULL)
     }

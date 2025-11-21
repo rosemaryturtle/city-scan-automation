@@ -883,12 +883,13 @@ include_html_chart <- \(file) cat(str_replace_all(readLines(file), "\\s+", " "),
 
 break_lines <- function(x, width = 20, newline = "<br>") {
   if (is.null(x)) return(NULL)
-  str_split_1(x, newline) %>%
+  # Consider using stringr::str_wrap() instead
+  str_split_1(x, paste0(newline, "|\\\n|<br>")) %>%
     str_replace_all(paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline)) %>%
     paste(collapse = newline)
 }
 
-format_title <- function(title, subtitle, width = 20) {
+format_title <- function(title, subtitle, width = 24) {
   if ((is.null(title) || title == "") & (is.null(subtitle) || subtitle == "")) return(NULL)
   title_broken <- paste0(break_lines(title, width = width, newline = "<br>"), "<br>")
   if (is.null(subtitle) || subtitle == "") return(title_broken)
