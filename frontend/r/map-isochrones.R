@@ -1,22 +1,44 @@
-# Map isochrones
+# Isochrones with unlabeled points
 
-# Schools
-tryCatch_named("school_proximity", {
-  school_points <- fuzzy_read(spatial_dir, "school-points", vect)
-  if (inherits(school_points, "SpatVector")) {
-    plots$school_proximity <- plot_static_layer(school_points, "school_points", baseplot = plots$school_zones)
-  }
-})
-# Health facilities
-tryCatch_named("health_proximity", {
-  health_points <- fuzzy_read(spatial_dir, "health-points", vect)
-  if (inherits(health_points, "SpatVector")) {
-    plots$health_proximity <- plot_static_layer(health_points, "health_points", baseplot = plots$health_zones)
-  }
-})
+# Ideally, set up to use city_params? Though need to add layers to layers.yml too
+# city_params$osm_query %>%
 
-# Below was used for the Philippines; may be more rigorous than the above, and
-# worth re-using for the future
+c("school", "health") %>%
+  walk(\(x) {
+    yaml_key <- paste0(x, "_points")
+    params <- layer_params[[yaml_key]]
+    points <- fuzzy_read(spatial_dir, params$fuzzy_string)
+    group <- params$label
+    p <- plots[[paste0(x, "_zones")]]
+    if (inherits(points, "SpatVector") & !is.null(p)) {
+      points <- points[static_map_bounds]
+      points_packet <- ggpacket() +
+        ggnewscale::new_scale_color() +
+        geom_spatvector(data = points, aes(color = group), size = 1) +
+        scale_color_manual(values = params$palette, name = NULL) +
+        # scale_color_manual(values = params$palette, name = NULL, guide = guide_legend(order = 2)) +
+        coord_3857_bounds(static_map_bounds) +
+        theme_custom()
+      # Points & isochrones map
+      plots[[paste0(x, "_proximity")]] <<- p +
+        points_packet
+      # Previous approach
+      # plot_static_layer(points, yaml_key],
+      #   title = NULL, subtitle = NULL,
+      #   baseplot = p
+      if (exists("packets")) {
+        packets[[yaml_key]] <<- points_packet
+        if (!is.null(packets[[paste0(x, "_zones")]])) {
+          packets[[paste0(x, "_proximity")]] <<- packets[[paste0(x, "_zones")]] +
+            points_packet
+        }
+      }
+    }
+  })
+
+
+# Below was used for the Philippines; it is more comprehensive than the above as
+# it allows for non-point data. May be worth re-using for the future.
 
 # # Isochrones with unlabeled points
 # c("health", "public_space", "waste", "transportation", "sanitation", "electricity", "water", "communication", "landfill") %>%

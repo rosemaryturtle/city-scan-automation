@@ -73,6 +73,12 @@ prepare_parameters <- function(yaml_key, ...) {
   kept_params <- yaml_params[!names(yaml_params) %in% names(new_params)]
   params <- c(new_params, kept_params)
 
+  # If labels are not null, convert literal \n to actual line breaks
+  if (!is.null(params$labels)) {
+    params$labels <- params$labels %>%
+      str_replace_all("\\\\n", "\n")
+  }
+
   params$breaks <- unlist(params$breaks) # Necessary for some color scales
   if (is.null(params$bins)) {
     params$bins <- if(is.null(params$breaks)) 0 else length(params$breaks)
@@ -127,8 +133,12 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   } else {
     layer_values <- get_layer_values(data)
     if(params$bins > 0 && is.null(params$breaks)) {
+      vals <- get_layer_values(data)
+      if (!is.null(params$center)) {
+        vals <- c(vals, params$center - vals)
+      }
       params$breaks <- break_pretty2(
-                  data = layer_values, n = params$bins + 1, FUN = signif,
+                  data = vals, n = params$bins + 1, FUN = signif,
                   method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
     }
     if (!is.null(params$breaks)) {
@@ -280,7 +290,7 @@ writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
 plot_static_layer <- function(
     data, yaml_key, baseplot = NULL, static_map_bounds, zoom_adj = 0,
     expansion, aoi_stroke = list(color = "grey30", linewidth = 0.4),
-    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, captions = F, ...) {
+    plot_aoi = T, aoi_only = F, plot_wards = F, plot_roads = F, captions = F, packet = F, ...) {
   if (aoi_only) {
     layer <- NULL
   } else { 
@@ -297,8 +307,12 @@ plot_static_layer <- function(
       params$palette <- setNames(params$palette, params$labels)
     }
     if(params$bins > 0 && is.null(params$breaks)) {
+      vals <- get_layer_values(data)
+      if (!is.null(params$center)) {
+        vals <- c(vals, params$center - vals)
+      }
       params$breaks <- break_pretty2(
-        data = get_layer_values(data), n = params$bins + 1, FUN = signif,
+        data = vals, n = params$bins + 1, FUN = signif,
         method = params$breaks_method %>% {if(is.null(.)) "quantile" else .})
     }
     geom <- create_geom(data, params)
@@ -332,21 +346,28 @@ plot_static_layer <- function(
     static_map_bounds <- aspect_buffer(static_map_bounds, aspect_ratio, buffer_percent = expansion - 1)
   }
 
-  # Plot geom and scales on baseplot
-  baseplot <- if (is.null(baseplot) || identical(baseplot, "vector")) {
-    ggplot() +
-      geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
-      annotation_map_tile(type = "cartolight", zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
-  } else if (is.character(baseplot)) {
-    ggplot() +
-      geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
-      annotation_map_tile(type = baseplot, zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
-  } else { baseplot + ggnewscale::new_scale_fill() }
-  p <- baseplot +
-    layer + 
-    annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
-    annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
-    theme_custom()
+  if (packet) {
+    p <- ggpacket() +
+      ggnewscale::new_scale_fill() + ggnewscale::new_scale_color() +
+      layer +
+      theme_custom()
+  } else {
+    # Plot geom and scales on baseplot
+    baseplot <- if (is.null(baseplot) || identical(baseplot, "vector")) {
+      ggplot() +
+        geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
+        annotation_map_tile(type = "cartolight", zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
+    } else if (is.character(baseplot)) {
+      ggplot() +
+        geom_spatvector(data = static_map_bounds, fill = NA, color = NA) +
+        annotation_map_tile(type = baseplot, zoom = get_zoom_level(static_map_bounds) + zoom_adj, progress = "none")
+    } else { baseplot + ggnewscale::new_scale_fill() }
+    p <- baseplot +
+      layer + 
+      annotation_north_arrow(style = north_arrow_minimal, location = "br", height = unit(1, "cm")) +
+      annotation_scale(style = "ticks", aes(unit_category = "metric", width_hint = 0.33), height = unit(0.25, "cm")) +        
+      theme_custom()
+  }
   if (captions) p <- p + theme(legend.box.margin = margin(0, 0, 18, 12, unit = "pt"), plot.caption = element_text(hjust = 0, size = 8, color = "grey40"))
   if (plot_roads) p <- p +
     geom_spatvector(data = roads, aes(linewidth = road_type), color = "white") +
@@ -873,14 +894,16 @@ include_html_chart <- \(file) cat(str_replace_all(readLines(file), "\\s+", " "),
 
 break_lines <- function(x, width = 20, newline = "<br>") {
   if (is.null(x)) return(NULL)
-  str_split_1(x, newline) %>%
+  # Consider using stringr::str_wrap() instead
+  str_split_1(x, paste0(newline, "|\\\n|<br>")) %>%
     str_replace_all(paste0("(.{", width, "}[^\\s]*)\\s"), paste0("\\1", newline)) %>%
     paste(collapse = newline)
 }
 
-format_title <- function(title, subtitle, width = 20) {
+format_title <- function(title, subtitle, width = 20) { # transparencies.R is maybe better suited for 24
+  if ((is.null(title) || title == "") & (is.null(subtitle) || subtitle == "")) return(NULL)
   title_broken <- paste0(break_lines(title, width = width, newline = "<br>"), "<br>")
-  if (is.null(subtitle)) return(title_broken)
+  if (is.null(subtitle) || subtitle == "") return(title_broken)
   subtitle_broken <- break_lines(subtitle, width = width, newline = "<br>")
   formatted_title <- paste0(title_broken, "<br><em>", subtitle_broken, "</em><br>")
   return(formatted_title)

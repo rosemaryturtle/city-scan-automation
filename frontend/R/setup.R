@@ -31,6 +31,7 @@ librarian::shelf(quiet = T,
   leaflet, 
   leafem,
   ggspatial, 
+  ggpackets,
 
   # Web
   curl,
@@ -75,6 +76,7 @@ layer_params <- read_yaml(layer_params_file)
 # 5. Load city parameters ------------------------------------------------------
 city_params <- read_yaml(file.path(user_input_dir, "city_inputs.yml"))
 city <- str_to_title(city_params$city_name)
+message(glue("City set to {city} (City directory: {city_dir})"))
 city_string <- tolower(city) %>% stringr::str_replace_all(" ", "-")
 country <- str_to_title(city_params$country_name)
 basic_info <- fuzzy_read(tabular_dir, "basic_info.yml", read_yaml)
