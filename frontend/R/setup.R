@@ -83,7 +83,10 @@ basic_info <- fuzzy_read(tabular_dir, "basic_info.yml", read_yaml)
 if (length(country) == 0 && is.list(basic_info)) country <- basic_info$country
 
 # 6. Read AOI & wards ----------------------------------------------------------
-aoi <- fuzzy_read(user_input_dir, "AOI") %>% project("epsg:4326")
+# Defining layer because of bug where AOI always includes South Jakarta shapefile;
+# ideally would not need to specify like this, for greater flexibility
+aoi <- fuzzy_read(user_input_dir, "AOI", layer = city_params$AOI_shp_name) %>%
+  project("epsg:4326")
 wards <- tryCatch(fuzzy_read(user_input_dir, "wards") %>% project("epsg:4326"), error = \(e) NULL)
 
 writeVector(aoi, file.path(fgb_dir, "aoi.fgb"), overwrite = T, filetype = "FlatGeobuf")
