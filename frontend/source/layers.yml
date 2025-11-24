@@ -214,7 +214,7 @@ forest: # Requires preprocessing to combine forest and deforestation?
   factor: TRUE
   group_id: Forests
 deforest: # Requires preprocessing to combine forest and deforestation?
-  fuzzy_string: deforest.*.tif$
+  fuzzy_string: deforestation-edit.tif$
   title: Deforestation
   subtitle: Year of deforestation
   domain: [2001, 2021]

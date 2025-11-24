@@ -45,10 +45,10 @@ plots$aoi <- plot_static_layer(aoi_only = T, plot_aoi = T, plot_wards = !is.null
   baseplot = ggplot(),
   zoom_adj = zoom_adjustment,
   aoi_stroke = list(color = "black", linewidth = 0.4)) +
-  labs(title = paste(
+  labs(title = paste(c(
           "Area of interest",
-          "Zone d'intérêt",
-          sep = "   /   ")) +
+          "Zone d'intérêt"),
+          collapse = "   /   ")) +
   theme_title()
 
 plots$vector <- plot_static_layer(aoi_only = T, plot_aoi = F, plot_wards = !is.null(wards),
@@ -83,7 +83,6 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
       if (inherits(data, "SpatRaster")) data <- vectorize_if_coarse(data)
       titles <- unlist(layer_params[[yaml_key]][c("title", "title_fr")])
       subtitles <- unlist(layer_params[[yaml_key]][c("subtitle", "subtitle_fr")])
-      browser()
       packet <- plot_static_layer(
         title = paste(titles, collapse = "<br>"),
         subtitle = paste(subtitles, collapse = "<br>"),
@@ -99,7 +98,7 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
 
 # Non-standard static plots ----------------------------------------------------
 
-source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
+source("R/map-isochrones.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
 source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
 if ("zoom" %in% names(plots$elevation$layers[[2]]$mapping)) {
   plots$elevation$layers[[2]] <- NULL
@@ -109,20 +108,20 @@ source("R/map-historical-burnt-area.R", local = T)
 # plots$infrastructure <- plots$infrastructure + theme(legend.text = element_markdown())
 
 if (!is.null(plots$school_proximity)) plots$school_proximity <- plots$school_proximity +
-  labs(title = paste(
+  labs(title = paste(c(
     layer_params[["school_zones"]]$title,
-    layer_params[["school_zones"]]$title_fr,
-    sep = "   /   "))
+    layer_params[["school_zones"]]$title_fr),
+    collapse = "   /   "))
 if (!is.null(plots$health_proximity)) plots$health_proximity <- plots$health_proximity +
-  labs(title = paste(
+  labs(title = paste(c(
     layer_params[["health_zones"]]$title,
-    layer_params[["health_zones"]]$title_fr,
-    sep = "   /   "))
+    layer_params[["health_zones"]]$title_fr),
+    collapse = "   /   "))
 if (!is.null(plots$roads)) plots$roads <- plots$roads +
-  labs(title = paste(
+  labs(title = paste(c(
     layer_params[["roads"]]$stroke$title,
-    layer_params[["roads"]]$stroke$title_fr,
-    sep = "   /   "))
+    layer_params[["roads"]]$stroke$title_fr),
+    collapse = "   /   "))
 
 # Remove grey background, add titles, remove scale bar and north arrow
 for (name in names(plots)) {
@@ -132,16 +131,13 @@ for (name in names(plots)) {
   }
   if (name == "vector") next
   if (name == "aerial") next
-  title <- paste(
+  title <- paste(c(
       layer_params[[name]]$title,
-      layer_params[[name]]$title_fr,
-      sep = "   /   ")
+      layer_params[[name]]$title_fr),
+      collapse = "   /   ")
   if (length(title) > 0) {
     plots[[name]] <- plots[[name]] +
-      labs(title = paste(
-        layer_params[[name]]$title,
-        layer_params[[name]]$title_fr,
-        sep = "   /   "))
+      labs(title = title)
   }
   plots[[name]] <- plots[[name]] +
     theme(
@@ -159,6 +155,7 @@ plots %>%
   # if (name != "aoi") return(NULL)
   save_plot(plot, filename = glue("{name}.png"), directory = transparencies_dir,
     map_height = map_height + .3, map_width = map_width, dpi = 200, rel_widths = map_portions)
+  })
 
 # Save columns of legends by themselves ----------------------------------------
 
