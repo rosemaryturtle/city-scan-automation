@@ -1,0 +1,35 @@
+accessibility: False
+basic_info: False
+burned_area: False
+demographics: False
+population: False
+ghs_population: True
+wsf: False
+earthquake: False   # under development
+elevation: False
+# if slope is set to False, please also set elevation to False
+# because slope is derived from elevation
+# unless the elevation raster file is already on cloud storage
+slope: False
+flood_coastal: True
+flood_fluvial: True
+flood_pluvial: True
+flood_comb: True
+flood_event: True
+fwi: False
+landcover_burn: False
+road_network: False
+rwi: False
+air: False
+landslide: False
+liquefaction: False
+oe_plot: False
+solar: False
+forest: False
+green: False
+landcover: False
+lst_summer: False
+lst_winter: False
+ndmi: False
+nightlight: False
+ghs_builtup: True

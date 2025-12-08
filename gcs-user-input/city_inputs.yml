@@ -1,0 +1,116 @@
+# city basic info (no need for country name)
+city_name: 'Gunungkidul'
+
+# optional: AOI shapefile name
+# If no AOI shapefile is provided, an AOI will automatically be identified from
+# the UCDB dataset, OSM, or a 5-km buffer around the city centroid
+AOI_shp_name: 'Gunungkidul-Yogyakarta'
+
+# optional: use the directory from a previous run by specifying the year and month in the format of yyyy-mm
+# default value is null
+prev_run_date: 2025-10
+
+# accessibility analysis parameters
+osm_query:
+  schools:
+    amenity:
+    - school
+    - kindergarten
+    - university
+    - college
+  health:
+    amenity:
+    - clinic
+    - hospital
+    - health
+  police:
+    amenity: police
+  fire:
+    amenity: fire_station
+  swm:
+    amenity: waste_disposal
+    landuse: landfill
+  public_space:
+  commercial:
+    landuse: commercial
+  residential:
+    landuse: residential
+  industrial:
+    landuse: industrial
+  retail:
+    landuse: retail
+  farmland:
+    landuse: farmland
+  office_buildings:
+    building: office
+  apartments:
+    building: apartments
+  retail_buildings:
+    building: retail
+  warehouses:
+    building:
+    - warehouse
+    - industrial
+  parks:
+    leisure: park
+  recreation:
+    leisure:
+    - recreation_ground
+    - playground
+    - sports_centre
+  green_spaces:
+    landuse:
+    - grass
+    - meadow
+    - forest
+  transport_hubs:
+    amenity:
+    - bus_station
+    - ferry_terminal
+  parking:
+    amenity: parking
+  government:
+    amenity: townhall
+  religious:
+    amenity: place_of_worship
+  education:
+    amenity:
+    - school
+    - university
+    - library
+  tourism:
+    tourism:
+    - museum
+    - gallery
+    - attraction
+    - hotel 
+isochrone:
+  schools:
+  - 800
+  - 1600
+  - 2400
+  health:
+  - 1000
+  - 2000
+  - 3000
+  swm:
+  - 1800
+  - 2400
+  - 3000
+  public_space:
+  - 300
+  - 600
+  - 900
+accessibility_buffer: 5
+flood:
+  threshold: 15
+  year: 2020
+  ssp: ~
+  return_period:
+  - 10
+  - 100
+  - 1000
+fwi_first_year: 2016
+fwi_last_year: 2021
+first_year: 2015
+last_year: 2024
