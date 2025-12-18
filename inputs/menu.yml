@@ -19,12 +19,12 @@ flood_event: False
 fwi: False
 landcover_burn: False
 road_network: False
-rwi: False
-air: False
-landslide: False
-liquefaction: False
+rwi: True
+air: True
+landslide: True
+liquefaction: True
 oe_plot: False
-solar: False
+solar: True
 forest: False
 green: False
 landcover: False

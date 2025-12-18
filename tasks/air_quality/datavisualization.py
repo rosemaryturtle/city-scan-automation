@@ -12,7 +12,7 @@ logger = setup_logger(__name__)
 # HELPER: load clipped raster from output_dir if needed
 # ----------------------------------------------------------
 def _load_clipped_raster(city_name, output_dir):
-    raster_path = os.path.join(output_dir, "spatial", f"{city_name}_population.tif")
+    raster_path = os.path.join(output_dir, "spatial", f"{city_name}_air.tif")
 
     if not os.path.exists(raster_path):
         logger.error(f"Raster not found for visualization: {raster_path}")
@@ -34,10 +34,10 @@ def plot_rastermap(
     clipped_image=None,
     clipped_meta=None,
     figsize=(16, 16),
-    cmap="magma",
+    cmap="RdYlBu_r",
 ):
     """
-    Plot population density map using raster clipped to the AOI.
+    Plot air quality map using raster clipped to the AOI.
     Includes basemap (CartoDB Positron No Labels).
     """
 
@@ -99,16 +99,16 @@ def plot_rastermap(
 
     # Colorbar
     cbar = fig.colorbar(raster_show, ax=ax, fraction=0.036, pad=0.04)
-    cbar.set_label("Population Count per Pixel", rotation=90)
+    cbar.set_label("PM 2.5 concentrations in micrograms per cubic meter", rotation=90)
 
-    ax.set_title(f"{city_name} – Population Density (WorldPop)")
+    ax.set_title(f"{city_name} – air quality")
     ax.axis("off")
 
     # Save
     img_dir = os.path.join(output_dir, "images")
     os.makedirs(img_dir, exist_ok=True)
 
-    out_path = os.path.join(img_dir, f"{city_name}_population_map.png")
+    out_path = os.path.join(img_dir, f"{city_name}_air_map.png")
     plt.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close()
 
@@ -154,13 +154,13 @@ def plot_histogram(
     # Clean labels
     ax.set_xlabel("")
     ax.set_ylabel("")
-    ax.set_title(f"{city_name} – Population Distribution Histogram")
+    ax.set_title(f"{city_name} – Air Quality Distribution Histogram")
 
     # Save
     img_dir = os.path.join(output_dir, "images")
     os.makedirs(img_dir, exist_ok=True)
 
-    out_path = os.path.join(img_dir, f"{city_name}_population_histogram.png")
+    out_path = os.path.join(img_dir, f"{city_name}_air_histogram.png")
     plt.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close()
 

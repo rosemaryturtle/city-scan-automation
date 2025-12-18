@@ -16,7 +16,7 @@ def find_country(aoi):
 
     # define global public bucket and relevant blobs 
     global_bucket_dir = 'https://storage.googleapis.com/city-scan-global-public/'
-    country_blob_dir = 'wb_countries_admin0_10m/WB_countries_Admin0_10m.shp'
+    country_blob_dir = 'wb_countries/WB_countries_Admin0_10m.shp'
     # extract ISO3 from AOI
     countries = gpd.read_file(f'{global_bucket_dir}{country_blob_dir}').to_crs(epsg=4326)
     # Perform spatial join to find intersections

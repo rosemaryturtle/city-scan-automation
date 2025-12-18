@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 import rasterio
 import contextily as ctx
+from matplotlib.colors import ListedColormap, BoundaryNorm
 
 from utils.log_module import setup_logger
 logger = setup_logger(__name__)
@@ -12,7 +13,7 @@ logger = setup_logger(__name__)
 # HELPER: load clipped raster from output_dir if needed
 # ----------------------------------------------------------
 def _load_clipped_raster(city_name, output_dir):
-    raster_path = os.path.join(output_dir, "spatial", f"{city_name}_population.tif")
+    raster_path = os.path.join(output_dir, "spatial", f"{city_name}_landslide.tif")
 
     if not os.path.exists(raster_path):
         logger.error(f"Raster not found for visualization: {raster_path}")
@@ -26,7 +27,7 @@ def _load_clipped_raster(city_name, output_dir):
 
 
 # ----------------------------------------------------------
-# 1. CHOROPLETH MAP (FIXED VERSION)
+# 1. RASTER MAP (FIXED VERSION)
 # ----------------------------------------------------------
 def plot_rastermap(
     city_name: str,
@@ -37,7 +38,7 @@ def plot_rastermap(
     cmap="magma",
 ):
     """
-    Plot population density map using raster clipped to the AOI.
+    Plot landslide susceptability map using raster clipped to the AOI.
     Includes basemap (CartoDB Positron No Labels).
     """
 
@@ -73,6 +74,18 @@ def plot_rastermap(
     extent = [x_min, x_max, y_min, y_max]
 
     # ----------------------------------
+    # Categorical settings
+    # ----------------------------------
+    categories = [1, 2, 3, 4, 5]
+    labels = ["Very low", "Low", "Medium", "High", "Very high"]
+    palette = ['#FCEFE2', '#F2C08C', '#E89251', '#D66136', '#993F2B']
+
+    cmap = ListedColormap(palette)
+    bounds = np.arange(0.5, 6.5, 1)  # boundaries for 1–5
+    norm = BoundaryNorm(bounds, cmap.N)
+
+
+    # ----------------------------------
     # Plot
     # ----------------------------------
     fig, ax = plt.subplots(figsize=figsize)
@@ -80,9 +93,10 @@ def plot_rastermap(
     raster_show = ax.imshow(
         data,
         cmap=cmap,
+        norm=norm,
         extent=extent,
         origin="upper",
-        interpolation="nearest", 
+        interpolation="nearest",
         zorder=10
     )
 
@@ -98,17 +112,26 @@ def plot_rastermap(
         logger.warning("Basemap failed to load; continuing without background.")
 
     # Colorbar
-    cbar = fig.colorbar(raster_show, ax=ax, fraction=0.036, pad=0.04)
-    cbar.set_label("Population Count per Pixel", rotation=90)
+    cbar = fig.colorbar(
+        raster_show,
+        ax=ax,
+        fraction=0.036,
+        pad=0.04,
+        ticks=categories
+    )
 
-    ax.set_title(f"{city_name} – Population Density (WorldPop)")
+    cbar.ax.set_yticklabels(labels)
+    cbar.set_label("landslide Susceptibility", rotation=90)
+
+
+    ax.set_title(f"{city_name} – Landslide Susceptibility")
     ax.axis("off")
 
     # Save
     img_dir = os.path.join(output_dir, "images")
     os.makedirs(img_dir, exist_ok=True)
 
-    out_path = os.path.join(img_dir, f"{city_name}_population_map.png")
+    out_path = os.path.join(img_dir, f"{city_name}_landslide_map.png")
     plt.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close()
 
@@ -154,13 +177,13 @@ def plot_histogram(
     # Clean labels
     ax.set_xlabel("")
     ax.set_ylabel("")
-    ax.set_title(f"{city_name} – Population Distribution Histogram")
+    ax.set_title(f"{city_name} – Landslide Susceptibility Distribution Histogram")
 
     # Save
     img_dir = os.path.join(output_dir, "images")
     os.makedirs(img_dir, exist_ok=True)
 
-    out_path = os.path.join(img_dir, f"{city_name}_population_histogram.png")
+    out_path = os.path.join(img_dir, f"{city_name}_landslide_histogram.png")
     plt.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close()
 

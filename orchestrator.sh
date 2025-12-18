@@ -11,47 +11,50 @@ cd "$PROJECT_ROOT"
 echo "Project root: $PROJECT_ROOT"
 
 ###########################################
-# 1. Select Python interpreter
+# 1. Enforce Python 3.11 via pyenv
 ###########################################
 
-# Prefer pyenv local Python if available
-if command -v pyenv &>/dev/null; then
-    echo "pyenv detected."
-
-    # Ensure local version is installed
-    PYENV_PYTHON_VERSION=$(cat .python-version 2>/dev/null || true)
-
-    if [ -n "$PYENV_PYTHON_VERSION" ]; then
-        echo "pyenv local version: $PYENV_PYTHON_VERSION"
-
-        # Find python executable
-        PYTHON_BIN=$(pyenv which python 2>/dev/null || true)
-
-        if [[ "$PYTHON_BIN" == *"$PYENV_PYTHON_VERSION"* ]]; then
-            echo "Using pyenv Python: $PYTHON_BIN"
-        else
-            echo "ERROR: pyenv Python version not installed."
-            echo "Run: pyenv install $PYENV_PYTHON_VERSION"
-            exit 1
-        fi
-    fi
-fi
-
-# Fallback if pyenv isn't used
-if [ -z "$PYTHON_BIN" ]; then
-    echo "pyenv not used. Falling back to system python3."
-    PYTHON_BIN=$(command -v python3)
-fi
-
-if [ -z "$PYTHON_BIN" ]; then
-    echo "ERROR: No suitable Python 3 installed."
+if ! command -v pyenv &>/dev/null; then
+    echo "ERROR: pyenv is required but not installed."
     exit 1
 fi
 
-echo "Python interpreter: $PYTHON_BIN"
+if [ ! -f ".python-version" ]; then
+    echo "ERROR: .python-version file not found."
+    exit 1
+fi
+
+PYENV_PYTHON_VERSION=$(cat .python-version)
+
+echo "Required Python version: $PYENV_PYTHON_VERSION"
+
+# Ensure version is installed
+if ! pyenv versions --bare | grep -q "^${PYENV_PYTHON_VERSION}$"; then
+    echo "ERROR: Python $PYENV_PYTHON_VERSION not installed."
+    echo "Run: pyenv install $PYENV_PYTHON_VERSION"
+    exit 1
+fi
+
+# Activate pyenv local version explicitly
+export PYENV_VERSION="$PYENV_PYTHON_VERSION"
+PYTHON_BIN="$(pyenv which python)"
+
+echo "Using Python interpreter: $PYTHON_BIN"
+
+# Hard version check
+PYTHON_MAJOR_MINOR=$("$PYTHON_BIN" - <<EOF
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}")
+EOF
+)
+
+if [[ "$PYTHON_MAJOR_MINOR" != "3.11" ]]; then
+    echo "ERROR: Python 3.11 required, got $PYTHON_MAJOR_MINOR"
+    exit 1
+fi
 
 ###########################################
-# 2. Remove old venv safely
+# 2. Remove old venv
 ###########################################
 if [ -d "venv" ]; then
     echo "Removing old virtual environment..."
@@ -71,7 +74,7 @@ source venv/bin/activate
 # 4. Install dependencies
 ###########################################
 echo "Upgrading pip..."
-pip install --upgrade pip
+pip install --upgrade pip setuptools wheel
 
 if [ -f "requirements.txt" ]; then
     echo "Installing requirements..."
@@ -82,18 +85,21 @@ else
 fi
 
 ###########################################
-# 5. Register Jupyter kernel cleanly
+# 5. Register Jupyter kernel
 ###########################################
 echo "Registering Jupyter kernel..."
 
-# Remove old kernel if exists
 if jupyter kernelspec list 2>/dev/null | grep -q "cityscan"; then
     jupyter kernelspec remove -f cityscan
 fi
 
-python -m ipykernel install --user --name cityscan --display-name "Cityscan (Python 3.11)"
+python -m ipykernel install \
+  --user \
+  --name cityscan \
+  --display-name "Cityscan (Python 3.11)"
 
 echo "======================================"
 echo "Setup complete."
+echo "Python locked to 3.11"
 echo "Use kernel: Cityscan (Python 3.11)"
 echo "======================================"

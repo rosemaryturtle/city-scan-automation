@@ -14,7 +14,7 @@ def compute_stats(
         return_df: bool = False
     ):
     """
-    Perform statistics on clipped population raster.
+    Perform statistics on clipped liquefaction raster.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def compute_stats(
     # 1. Load raster from disk if not provided
     # -----------------------------------------------------
     if clipped_image is None or clipped_meta is None:
-        raster_path = os.path.join(output_dir, "spatial", f"{city_name}_population.tif")
+        raster_path = os.path.join(output_dir, "spatial", f"{city_name}_liquefaction.tif")
 
         if not os.path.exists(raster_path):
             logger.error(f"Clipped raster not found at: {raster_path}")
@@ -96,11 +96,11 @@ def compute_stats(
     tabular_dir = os.path.join(output_dir, "tabular")
     os.makedirs(tabular_dir, exist_ok=True)
 
-    output_path = os.path.join(tabular_dir, f"{city_name}_population_stats.csv")
+    output_path = os.path.join(tabular_dir, f"{city_name}_liquefaction_stats.csv")
 
     try:
         stats_df.to_csv(output_path, index=False)
-        logger.info(f"Population statistics saved to: {output_path}")
+        logger.info(f"liquefaction statistics saved to: {output_path}")
     except Exception as e:
         logger.error(f"Error saving statistics CSV: {e}")
 

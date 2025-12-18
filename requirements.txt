@@ -9,12 +9,13 @@ osmnx==1.6.0
 networkx==3.3
 pandas==2.0.3
 numpy==1.25.2
+contextily ==1.5.0
 shapely==2.0.4
 matplotlib==3.7.2
 google-api-core==2.19.0
 requests==2.31.0
 boto3==1.28.37
-# pyquadkey2==0.2.2 # need to resolve for python 3.11
+# pyquadkey2==0.2.2 
 scipy==1.11.2
 xarray==2023.8.0
 fiona==1.10.1

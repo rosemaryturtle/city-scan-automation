@@ -44,11 +44,22 @@ os.makedirs(f'{output_dir}/images/', exist_ok=True)
 os.makedirs(f'{output_dir}/spatial/', exist_ok=True)
 os.makedirs(f'{output_dir}/tabular/', exist_ok=True)
 os.makedirs(render_dir, exist_ok=True)
+os.makedirs(f'{render_dir}/plots/png', exist_ok=True)
+os.makedirs(f'{render_dir}/plots/html', exist_ok=True)
+
 
 # Load menu file
 menu_path = INPUTS / "menu.yml"
 menu = yaml.safe_load(open(menu_path))
 
+# Configure plot fonts
+font_dict = {
+    'family': 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, '
+            '"Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", '
+            '"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+    'size': 12,  
+    'color': 'black'  
+}
 
 ########################################################
 ################ RUN TASKS COMPONENTS ##################
@@ -59,16 +70,72 @@ from tasks.population_worldpop import datacollection as wp_collect
 from tasks.population_worldpop import dataanalysis as wp_analysis
 from tasks.population_worldpop import datavisualization as wp_vis
 
-if menu.get("population"):
-    logger.info("Running WorldPop population workflow...")
-    pop_array, pop_meta = wp_collect.datacollection(aoi=aoi, city_name=city_name, country_iso3=country_iso3, output_dir=output_dir, return_raster=True)
-    wp_analysis.compute_stats(city_name=city_name, output_dir=output_dir, clipped_image=pop_array, clipped_meta=pop_meta, return_df=False)
-    wp_vis.plot_rastermap(city_name=city_name, output_dir=output_dir, clipped_image=pop_array, clipped_meta=pop_meta)
-    wp_vis.plot_histogram(city_name=city_name, output_dir=output_dir, clipped_image=pop_array, clipped_meta=pop_meta)
-    logger.info("Done with population WorldPop analysis")
+from tasks.liquefaction import datacollection as liq_collect
+from tasks.liquefaction import dataanalysis as liq_analysis
+from tasks.liquefaction import datavisualization as liq_vis
+
+from tasks.rwi import datacollection as rwi_collect
+from tasks.rwi import dataanalysis as rwi_analysis
+from tasks.rwi import datavisualization as rwi_vis
+
+from tasks.landslide import datacollection as ls_collect
+from tasks.landslide import dataanalysis as ls_analysis
+from tasks.landslide import datavisualization as ls_vis
+
+from tasks.air_quality import datacollection as air_collect
+from tasks.air_quality import dataanalysis as air_analysis
+from tasks.air_quality import datavisualization as air_vis
+
+from tasks.solar import datacollection as sol_collect
+from tasks.solar import dataanalysis as sol_analysis
 
 
+# if menu.get("population"):
+#     logger.info("Running WorldPop population workflow...")
+#     pop_array, pop_meta = wp_collect.datacollection(aoi=aoi, city_name=city_name, country_iso3=country_iso3, output_dir=output_dir, return_raster=True)
+#     wp_analysis.compute_stats(city_name=city_name, output_dir=output_dir, clipped_image=pop_array, clipped_meta=pop_meta, return_df=False)
+#     wp_vis.plot_rastermap(city_name=city_name, output_dir=output_dir, clipped_image=pop_array, clipped_meta=pop_meta)
+#     wp_vis.plot_histogram(city_name=city_name, output_dir=output_dir, clipped_image=pop_array, clipped_meta=pop_meta)
+#     logger.info("Done with population WorldPop analysis")
 
+# if menu.get("liquefaction"):
+#     logger.info("Running liquefaction workflow...")
+#     liq_array, liq_meta = liq_collect.datacollection(aoi=aoi, city_name=city_name, output_dir=output_dir, return_raster=True)
+#     liq_analysis.compute_stats(city_name=city_name, output_dir=output_dir, clipped_image=liq_array, clipped_meta=liq_meta, return_df=False)
+#     liq_vis.plot_rastermap(city_name=city_name, output_dir=output_dir, clipped_image=liq_array, clipped_meta=liq_meta)
+#     liq_vis.plot_histogram(city_name=city_name, output_dir=output_dir, clipped_image=liq_array, clipped_meta=liq_meta)
+#     logger.info("Done with liquefaction analysis")
+
+# if menu.get("landslide"):
+#     logger.info("Running landslide workflow..")
+#     ls_array, ls_meta = ls_collect.datacollection(aoi=aoi, city_name=city_name, output_dir=output_dir, return_raster=True)
+#     ls_analysis.compute_stats(city_name=city_name, output_dir=output_dir, clipped_image=ls_array, clipped_meta=ls_meta, return_df=False)
+#     ls_vis.plot_rastermap(city_name=city_name, output_dir=output_dir, clipped_image=ls_array, clipped_meta=ls_meta)
+#     ls_vis.plot_histogram(city_name=city_name, output_dir=output_dir, clipped_image=ls_array, clipped_meta=ls_meta)
+#     logger.info("Done with landslide analysis")
+
+# if menu.get("rwi"):
+#     logger.info("Running relative wealth index workflow...")
+#     rwi_gdf = rwi_collect.datacollection(aoi=aoi, city_name=city_name, country_iso3=country_iso3, output_dir=output_dir, return_gdf=True)
+#     rwi_analysis.compute_stats_gdf(city_name=city_name, output_dir=output_dir, gdf=rwi_gdf, value_col='rwi')
+#     rwi_vis.run_viz_gdf(city_name=city_name, output_dir=output_dir, gdf=rwi_gdf, value_col='rwi')
+#     logger.info("Done with relative wealth index analysis")
+
+# if menu.get("air"):
+#     logger.info("Running air quality workflow..")
+#     air_array, air_meta = air_collect.datacollection(aoi=aoi, city_name=city_name, output_dir=output_dir, return_raster=True)
+#     air_analysis.compute_stats(city_name=city_name, output_dir=output_dir, clipped_image=air_array, clipped_meta=air_meta, return_df=False)
+#     air_vis.plot_rastermap(city_name=city_name, output_dir=output_dir, clipped_image=air_array, clipped_meta=air_meta)
+#     air_vis.plot_histogram(city_name=city_name, output_dir=output_dir, clipped_image=air_array, clipped_meta=air_meta)
+#     logger.info("Done with air quality analysis")
+
+if menu.get("solar"):
+    logger.info("Running solar workflow..")
+    sol_array, sol_meta = sol_collect.datacollection(aoi=aoi, city_name=city_name, output_dir=output_dir, return_raster=True)
+    sol_monthly_array, sol_monthly_meta = sol_collect.datacollection_monthly(aoi=aoi, city_name=city_name, output_dir=output_dir, return_raster=True)
+    sol_analysis.compute_stats(city_name=city_name, output_dir=output_dir, clipped_image=sol_array, clipped_meta=sol_meta, return_df=False)
+    sol_analysis.plot_solar_seasonality(city_name=city_name, output_dir=output_dir, render_dir=render_dir, font_dict=font_dict, clipped_image=sol_monthly_array, clipped_meta=sol_monthly_meta, return_df=False)
+    logger.info("Done with solar analysis")
 
 
 

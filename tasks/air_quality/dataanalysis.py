@@ -14,7 +14,7 @@ def compute_stats(
         return_df: bool = False
     ):
     """
-    Perform statistics on clipped population raster.
+    Perform statistics on clipped air quality raster.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def compute_stats(
     # 1. Load raster from disk if not provided
     # -----------------------------------------------------
     if clipped_image is None or clipped_meta is None:
-        raster_path = os.path.join(output_dir, "spatial", f"{city_name}_population.tif")
+        raster_path = os.path.join(output_dir, "spatial", f"{city_name}_air.tif")
 
         if not os.path.exists(raster_path):
             logger.error(f"Clipped raster not found at: {raster_path}")
@@ -83,7 +83,7 @@ def compute_stats(
         "p95": float(np.percentile(arr, 95)),
         "max": float(np.max(arr)),
         "sum": float(np.sum(arr)), 
-        "stdev": float(np.std(arr, ddof=0)), # population std dev
+        "stdev": float(np.std(arr, ddof=0)), # air quality std dev
         "count": int(arr.size)
     }
 
@@ -96,11 +96,11 @@ def compute_stats(
     tabular_dir = os.path.join(output_dir, "tabular")
     os.makedirs(tabular_dir, exist_ok=True)
 
-    output_path = os.path.join(tabular_dir, f"{city_name}_population_stats.csv")
+    output_path = os.path.join(tabular_dir, f"{city_name}_air.csv")
 
     try:
         stats_df.to_csv(output_path, index=False)
-        logger.info(f"Population statistics saved to: {output_path}")
+        logger.info(f"air quality statistics saved to: {output_path}")
     except Exception as e:
         logger.error(f"Error saving statistics CSV: {e}")
 

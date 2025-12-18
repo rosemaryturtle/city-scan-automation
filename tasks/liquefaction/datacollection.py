@@ -1,3 +1,5 @@
+# https://storage.googleapis.com/city-scan-global-public/
+
 # import
 import os
 import geopandas as gpd
@@ -10,12 +12,11 @@ logger = setup_logger(__name__)
 def datacollection(
         aoi: gpd.GeoDataFrame,
         city_name: str,
-        country_iso3: str,
         output_dir: str,
         return_raster: bool = True
     ):
     """
-    Download WorldPop raster from global bucket for the AOI country and clip it.
+    Download Liquefaction raster from global bucket and clip it to AOI.
 
     Parameters
     ----------
@@ -23,8 +24,6 @@ def datacollection(
         AOI polygon(s).
     city_name : str
         City name for naming output files.
-    country_iso3 : str
-        ISO3 country code (e.g. "IDN", "KHM").
     output_dir : str
         Directory where clipped raster will be saved.
     return_raster : bool
@@ -35,7 +34,7 @@ def datacollection(
     (array, metadata) or None
     """
 
-    logger.info("Starting WorldPop data collection…")
+    logger.info("Starting liquefaction data collection…")
 
     # Validate AOI
     if aoi is None or aoi.empty:
@@ -51,16 +50,16 @@ def datacollection(
 
     # Construct GCS URL
     bucket_base = "https://storage.googleapis.com/city-scan-global-public/"
-    worldpop_blob = f"world_population/{country_iso3}_ppp_2020_constrained.tif"
-    worldpop_url = bucket_base + worldpop_blob
+    liquefaction_blob = f"liquefaction/liquefaction_v1_deg.tif"
+    liquefaction_url = bucket_base + liquefaction_blob
 
     # Rasterio requires /vsicurl/ for HTTP-based TIFFs
-    raster_path = f"/vsicurl/{worldpop_url}"
-    logger.info(f"Requesting WorldPop raster: {worldpop_url}")
+    raster_path = f"/vsicurl/{liquefaction_url}"
+    logger.info(f"Requesting liquefaction raster: {liquefaction_url}")
 
     try:
         with rasterio.open(raster_path) as src:
-            logger.info("WorldPop raster opened successfully.")
+            logger.info("liquefaction raster opened successfully.")
 
             shapes = [geom.__geo_interface__ for geom in aoi.geometry]
 
@@ -81,25 +80,25 @@ def datacollection(
             })
 
     except Exception as e:
-        logger.error(f"Error reading or clipping WorldPop raster: {e}")
+        logger.error(f"Error reading or clipping liquefaction raster: {e}")
         return None
 
     # Create output directory
     spatial_dir = os.path.join(output_dir, "spatial")
     os.makedirs(spatial_dir, exist_ok=True)
 
-    output_path = os.path.join(spatial_dir, f"{city_name}_population.tif")
+    output_path = os.path.join(spatial_dir, f"{city_name}_liquefaction.tif")
 
     # Save clipped raster
     try:
         with rasterio.open(output_path, "w", **clipped_meta) as dst:
             dst.write(clipped_image)
-        logger.info(f"Clipped WorldPop saved to: {output_path}")
+        logger.info(f"Clipped liquefaction saved to: {output_path}")
     except Exception as e:
         logger.error(f"Error saving clipped raster: {e}")
         return None
 
-    logger.info("WorldPop complete.")
+    logger.info("liquefaction complete.")
 
     if return_raster:
         return clipped_image, clipped_meta
