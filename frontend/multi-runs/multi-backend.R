@@ -13,28 +13,31 @@ city_inputs <- yaml::read_yaml("gcs-user-input/city_inputs.yml")
 # Function to run a city on Google Cloud Run; regions alternated to distribute load
 # Takes dataframe with columns for 'city', 'aoi', 'yearmonth' (e.g., `runs` above)
 # Updates and uploads city_inputs 
-run_on_cloud <- function(x, regions = c("us-central1", "us-south1")) {
+run_on_cloud <- function(x, job = "csb", regions = c("us-central1", "us-south1", "us-east1")) {
   counter <- 0
-  regions <- system("gcloud run jobs list --format='csv(JOB,REGION)'", intern = TRUE) %>%
-    str_subset("csb-dev") %>% 
-    str_extract("(?<=,).*")
   apply(x, 1, \(x) {
+    if (!all(are_jobs_started(job, regions))) {
+      cat("Previous job is yet to complete first task. It could be just starting, or it could have failed with no successful tasks.\n")
+      choice <- menu(c("Proceed (may override existing job)", "Exit"), title = "Do you want to proceed?")
+      if (choice == 2) stop("User chose to stop waiting.")
+    }
     counter <<- counter + 1
     city_inputs$city_name <- x[["city"]]
     city_inputs$AOI_shp_name <- x[["aoi"]]
-    city_inputs$prev_run_date <- x[["yearmonth"]]
+    # city_inputs$prev_run_date <- x[["yearmonth"]]
     yaml::write_yaml(city_inputs, file.path("gcs-user-input", paste0("city_inputs-", x[["city"]], ".yml")))
     system("gcloud storage cp gcs-user-input/menu.yml gs://crp-city-scan/01-user-input/menu.yml")
     system(paste0("gcloud storage cp gcs-user-input/city_inputs-", x[['city']], ".yml gs://crp-city-scan/01-user-input/city_inputs.yml"))
     # I should add the same check as below to ensure a job is not already running
-    if (counter %% 2 == 0) region <- "us-central1" else region <- "us-south1"
-    print(glue("Starting job for {x[['city']]} in region {region}"))
-    system(glue("gcloud run jobs execute csb-dev --region={region}"))
+    # if (counter %% 2 == 0) region <- "us-central1" else region <- "us-south1"
+    region <- regions[(counter - 1) %% length(regions) + 1]
+    print(glue::glue("Starting job for {x[['city']]} in region {region}"))
+    system(glue::glue("gcloud run jobs execute {job} --region={region}"))
     # wait 20 seconds for the job to complete
     started <- 0
     # To avoiding overriding previous job's city_inputs.yml, wait until previous job has started
     while(!all(started)) {
-      started <- are_jobs_started(regions)
+      started <- are_jobs_started(job, regions)
       if (all(started)) break
       print("Previous job is yet to complete first task. Waiting to not override.")
       Sys.sleep(20)
@@ -42,11 +45,11 @@ run_on_cloud <- function(x, regions = c("us-central1", "us-south1")) {
   })
 }
 
-are_jobs_started <- function(regions) {
+are_jobs_started <- function(job = "csb", regions) {
   unlist(lapply(regions, \(r) {
-    system(glue("gcloud run jobs executions list --job=csb-dev --region={r} --limit=1 --format=\"value(COMPLETE)\""), intern = TRUE) %>%
+    system(glue::glue("gcloud run jobs executions list --job={job} --region={r} --limit=1 --format=\"value(COMPLETE)\""), intern = TRUE) %>%
       str_extract("^\\d+") %>% as.numeric()
-  })) == 1
+  })) >= 1
 }
 
 ##### Define which cities to run -----------------------------------------------

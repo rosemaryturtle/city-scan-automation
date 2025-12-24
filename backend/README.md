@@ -184,7 +184,7 @@ gcloud artifacts repositories create city-scan-backend-dev \
     --image us-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest \
     --region us-central1 \
     --max-retries 1 \
-    --tasks 21 \
+    --tasks 30 \
     --task-timeout 24h \
     --cpu 8 \
     --memory 32Gi
@@ -201,12 +201,12 @@ To update the existing job, use the following, making note of the existing job's
     Examples, for changing the number of tasks or updating the image (these can also be combined into one command):
 
     ```bash
-    gcloud run jobs update csb-dev --region us-central1 --tasks 21
+    gcloud run jobs update csb-dev --region us-central1 --tasks 30
     ```
 
     ```bash
     gcloud run jobs update csb-dev \
-    --image us-central1-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest \
+    --image us-docker.pkg.dev/city-scan-gee-test/city-scan-backend-dev/csb-dev:latest \
     --region us-central1
     ```
 
