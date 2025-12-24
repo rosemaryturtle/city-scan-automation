@@ -191,3 +191,14 @@ adjust_deforstation_years()
 #   values(veg_binary)[values(veg_binary) == 0] <- NA
 #   writeRaster(veg_binary, file.path(spatial_dir, "vegetation-binary-edit.tif"), overwrite = T)
 # }
+
+landslides <- fuzzy_read(spatial_dir, "landslide.tif")
+if (inherits(landslides, "SpatRaster")) {
+  NAflag(landslides) <- 0
+  writeRaster(landslides, file.path(spatial_dir, "landslide-edit.tif"), overwrite = T)
+}
+liquefaction <- fuzzy_read(spatial_dir, "liquefaction.tif")
+if (inherits(liquefaction, "SpatRaster")) {
+  NAflag(liquefaction) <- 0
+  writeRaster(liquefaction, file.path(spatial_dir, "liquefaction-edit.tif"), overwrite = T)
+}

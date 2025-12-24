@@ -178,8 +178,9 @@ create_layer_function <- function(data, yaml_key = NULL, params = NULL, color_sc
   #   )
   # }
 
-v <- data %>%
-  as.polygons(digits = 4)
+if (inherits(data, "SpatRaster")) v <- as.polygons(data, digits = 4)
+if (inherits(data, "SpatVector")) v <- data
+
 v_styled <- v %>%
   rename(value = 1) %>%
   mutate(
@@ -265,7 +266,7 @@ writeVector(v_styled, fgb_path, overwrite = T, filetype = "FlatGeobuf")
       # pal = if (is.null(params$labels) | is.null(params$breaks)) color_scale else NULL,
       pal = if (diff(lengths(list(params$labels, params$breaks))) == 1) NULL else color_scale,
       # colors = if (is.null(params$labels) | is.null(params$breaks)) NULL else if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(head(params$breaks, -1)) else color_scale(params$breaks),
-      colors = if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(head(params$breaks, -1)) else NULL,
+      colors = if (diff(lengths(list(params$labels, params$breaks))) == 1) color_scale(tail(params$breaks, -1)) else NULL,
       opacity = legend_opacity,
       # bins = params$bins,
       # bins = 3,  # legend color ramp does not render if there are too many bins
@@ -608,10 +609,10 @@ create_color_scale <- function(domain, palette, center = NULL, bins = 5, reverse
     alpha = T)
   # if (!is.null(breaks)) bins <- length(breaks)
   if (!is.null(factor) && factor) {
-      color_scale <- rlang::inject(colorFactor(
-        !!!args,
-        levels = levels,
-        ordered = TRUE))
+    color_scale <- rlang::inject(colorFactor(
+      !!!args,
+      levels = levels,
+      ordered = TRUE))
   } else if (bins == 0) {
     color_scale <- rlang::inject(colorNumeric(
       # Why did I find it necessary to use colorRamp previously? For setting "linear"?
@@ -624,6 +625,7 @@ create_color_scale <- function(domain, palette, center = NULL, bins = 5, reverse
       bins = if (!is.null(breaks)) breaks else bins,
       # Might want to turn pretty back on
       pretty = FALSE,
+      right = TRUE, # Important for matching ggplot2 scale_fill_stepsn
       reverse = reverse))       
   }
   return(color_scale)

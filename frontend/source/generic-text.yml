@@ -62,6 +62,10 @@ built_form:
     method: NULL
     footnote: Map data from DLR, 2015, "World Settlement Footprint Evolution - Landsat 5/7 - Global".
     plot: urban_built_up_area.html|wsf-uba-plot.png
+  wsf_tracker:
+    title: Urban Extent and Change, 2016–2025
+    method: NULL
+    footnote: Map data from DLR, 2025, "World Settlement Footprint Tracker".
   impervious:
     title: Built-up Density
     method: |
