@@ -1,6 +1,5 @@
 # Generating City Scan Maps
-if ("frontend" %in% list.files()) setwd("frontend")
-
+if (dir.exists("frontend")) setwd("frontend")
 # WARNING: Some raster plotting breaks with terra 1.8+, when reprojected, such
 # as to EPSG: 3857. It results in the following error. Would upgrading tidyterra
 # also solve this?
@@ -18,7 +17,7 @@ include_captions <- FALSE
 
 # Load libraries and pre-process rasters
 source("R/setup.R", local = T)
-source("R/pre-mapping.R", local = T)
+source("R/pre-mapping.R")
 
 # Define map extent and zoom level adjustment
 static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
@@ -73,8 +72,18 @@ if (inherits(landmarks, "SpatVector")) {
 unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   discard_at(c("fluvial", "pluvial", "coastal", "combined_flooding", "burnt_area", "elevation")) %>%
   map2(names(.), \(fuzzy_string, yaml_key) {
-    tryCatch_named(yaml_key, {
-      data <- fuzzy_read(spatial_dir, fuzzy_string) %>%
+    tryCatch_named(yaml_key, browse = F, {
+      variables_to_use <- c(
+        layer_params[[yaml_key]]$data_variable,
+        layer_params[[yaml_key]]$stroke$variable,
+        layer_params[[yaml_key]]$weight$variable)  %||% 1
+      data <- fuzzy_read(spatial_dir, fuzzy_string)
+      # Variable selection lets us use the same folder for multiple layers, such
+      # as air quality, plotting 2022 value and trend from the same raster stack.
+      # However, we can't vectorize if using multiple variables as
+      # as.polygons(aggregate = T) drops all but the first variable.
+      if (length(variables_to_use) == 1) data <- data %>%
+        select(variables_to_use) %>%
         vectorize_if_coarse()
       if (nrow(data) == 0) {
         message(paste("No data for:", yaml_key))

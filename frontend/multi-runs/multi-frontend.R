@@ -49,13 +49,15 @@ scan_ids %>%
 
 #### 2.a. Simple loop
 # For a small batch of cities, the loop is very easy, and similar to approach 1:
-setwd("frontend")
+if (dir.exists("frontend")) setwd("frontend")
 scan_ids %>%
   walk(\(x) {
     lap_start(x)
     message(glue("{x}..."))
     writeLines(file.path("mnt", x), "city-dir.txt")
-    source("R/maps-static.R", local = T)
+    source("R/orchestrator.R", local = T)
+    # To only run static maps:
+    # source("R/maps-static.R", local = T)
     # If, instead, you want to create transparencies:
     # source("R/transparencies.R", local = T)
     lap_print(x, glue("**** Finished! ({x}"))
@@ -104,7 +106,7 @@ scan_ids <- ready_to_run$folder
 # - READY.txt, IN-PROCESS.txt, DONE.txt are helpful for tracking progress in
 #   parallel runs; READY.txt was created by multi-runs/multi-download.R
 parallel::mclapply(scan_ids, \(x) {
-  if ("frontend" %in% list.files()) setwd("frontend")
+  if (dir.exists("frontend")) setwd("frontend")
   city_dir <- file.path("mnt", x)
   # Only run if READY.txt exists and neither IN-PROCESS.txt nor DONE.txt exist
   if (!file.exists(file.path(city_dir, "READY.txt"))) return(NULL)
@@ -134,7 +136,7 @@ parallel::mclapply(scan_ids, \(x) {
 # For the Philippines Atlas we had to rerun some maps, with modifications. It
 # was easiest to create adjusted copies of maps-static.R for this purpose.
 lapply((ready_to_run$folder, \(x) {
-  if ("frontend" %in% list.files()) setwd("frontend")
+  if (dir.exists("frontend")) setwd("frontend")
   city_dir <- file.path("mnt", x)
   lap_start(x)
   message(glue("{x}..."))

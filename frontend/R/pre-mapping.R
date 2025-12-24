@@ -137,16 +137,16 @@ if (inherits(wsf, "SpatRaster")) {
   writeRaster(wsf_new, file.path(spatial_dir, "wsf-edit.tif"), overwrite = T)
 }
 
-wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
-if (inherits(wsf_tracker, "SpatRaster")) {
-  # # Projecting to 3857 causes problems for leaflet; necessary for ggplot2?
-  # wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
-  wsf_tracker_new <- wsf_tracker
-  wsf_tracker_new <- 2016 + wsf_tracker_new/2
-  # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
-  # NAflag(wsf_tracker_new) <- NA
-  writeRaster(wsf_tracker_new, file.path(spatial_dir, "wsf-tracker-edit.tif"), overwrite = T)
-}
+# wsf_tracker <- fuzzy_read(spatial_dir, "wsf_tracker_utm.tif$")
+# if (inherits(wsf_tracker, "SpatRaster")) {
+#   # # Projecting to 3857 causes problems for leaflet; necessary for ggplot2?
+#   # wsf_tracker_new <- project(wsf_tracker, "epsg:3857")
+#   wsf_tracker_new <- wsf_tracker
+#   wsf_tracker_new <- 2016 + wsf_tracker_new/2
+#   # values(wsf_tracker_new)[values(wsf_tracker_new) == 0] <- NA
+#   # NAflag(wsf_tracker_new) <- NA
+#   writeRaster(wsf_tracker_new, file.path(spatial_dir, "wsf-tracker-edit.tif"), overwrite = T)
+# }
 
 burn <- fuzzy_read(spatial_dir, "lc_burn.tif$")
 if (inherits(burn, "SpatRaster")) {
@@ -184,10 +184,10 @@ adjust_deforstation_years <- function() {
 }
 adjust_deforstation_years()
 
-ndvi <- fuzzy_read(spatial_dir, "ndvi.seaso")
-if (inherits(ndvi, "SpatRaster")) {
-  writeRaster(filter(ndvi, NDVI >= .18), file.path(spatial_dir, "vegetation-edit.tif"), overwrite = T)
-  veg_binary <- mutate(ndvi, NDVI = NDVI >= .18) + 0
-  values(veg_binary)[values(veg_binary) == 0] <- NA
-  writeRaster(veg_binary, file.path(spatial_dir, "vegetation-binary-edit.tif"), overwrite = T)
-}
+# ndvi <- fuzzy_read(spatial_dir, "ndvi.seaso")
+# if (inherits(ndvi, "SpatRaster")) {
+#   writeRaster(filter(ndvi, NDVI >= .18), file.path(spatial_dir, "vegetation-edit.tif"), overwrite = T)
+#   veg_binary <- mutate(ndvi, NDVI = NDVI >= .18) + 0
+#   values(veg_binary)[values(veg_binary) == 0] <- NA
+#   writeRaster(veg_binary, file.path(spatial_dir, "vegetation-binary-edit.tif"), overwrite = T)
+# }

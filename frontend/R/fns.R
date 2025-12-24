@@ -1075,10 +1075,11 @@ density_rast <- \(points, n = 100, aoi = NULL) {
   rast(scales::rescale((density$z)), crs = crs, extent = density_extent)
 }
 
-tryCatch_named <- \(name, expr) {
+tryCatch_named <- \(name, expr, browse = F) {
   tryCatch(expr, error = \(e) {
     message(paste("Failure:", name))
     warning(glue("Error on {name}: {e}"))
+    if (browse) browser()
   })
 }
 
