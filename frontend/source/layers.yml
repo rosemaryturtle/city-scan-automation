@@ -37,9 +37,9 @@ rwi:
   fuzzy_string: rwi(?=.shp$|.gpkg$|$)
   data_variable: rwi
   title: 'Relative wealth'
-  subtitle: Average household wealth, relative to nation
+  subtitle: Average household wealth, in standard deviations from national mean
   palette: ['#009E7A', '#70C5AD', '#FFFFBA', '#FF9169', '#ED431B' ]
-  labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
+  # labels: ['Least wealthy', 'Less wealthy', 'Average wealth', 'More wealthy', 'Most wealthy']
   bins: 5
   group_id: Relative wealth index
   caption: 'Map data from Meta Data for Good (2021).'
@@ -88,7 +88,7 @@ ghs_builtup:
   # breaks: [1986, 1996, 2006, 2015] # Confusingly, if we are using discrete labels, need to remove minimum break
   labels: ['Before 1980', '1980-1995', '1995-2010', '2010-2025']
   palette: ['#FBF9CD', '#E3B854', '#BF4A3B', '#25110B']
-  group_id: Urban extent
+  group_id: Urban extent (GHSL)
   caption: 'Map data from GHSL (GHS-BUILT-S R2023A).'
 builtup_projected:
   fuzzy_string: built_2030-edit.tif$
@@ -99,6 +99,7 @@ builtup_projected:
   factor: TRUE
   palette: ['#75147C']
   caption: 'Map data from GHSL: GHS-BUILT-S R2023A).'
+  group_id: Urban extent (GHSL, projected)
 impervious:
   title: Impervious Surfaces
   min: 0
@@ -334,7 +335,7 @@ roads:
   palette: NULL
   stroke:
     title: Road network segment criticality
-    subtitle: 'Percentage of all hypothetical in-city trips using this road segment'
+    subtitle: Percentage of all hypothetical in-city trips using this road segment
     variable: edge_centrality
     palette: ['#C5D1E9', '#8696C8', '#516BAE', '#9C2F76', '#CE3737']
   weight: 
