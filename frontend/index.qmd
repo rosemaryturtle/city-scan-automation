@@ -6,7 +6,7 @@ editor: source
 execute:
   echo: false
   output: false
-  cache: true
+  cache: false
 engine: knitr
 ---
 
@@ -15,8 +15,22 @@ engine: knitr
 ```{r}
 #| include: false
 #| label: prerender
+source('R/setup.R')
+
+# Run clean-tabular.R if processed folder doesn't exist (needed for OJS plots)
+processed_dir <- file.path(output_dir, "tabular", "processed")
+if (!dir.exists(processed_dir) || length(list.files(processed_dir)) == 0) {
+  source('R/clean-tabular.R')
+}
+
 source('R/maps-web.R')
 cover_image <- fuzzy_read(file.path(output_dir, "maps"), "^aoi.png$", paste)
+```
+
+```{r}
+#| cache: false
+# Which layers do we have plots for? Tell Observable cells
+ojs_define(createdMaps = names(plots_html))
 ```
 
 ---
@@ -35,6 +49,69 @@ if (file.exists(city_text_file)) {
 }
 slide_texts <- unlist(slide_texts, recursive = F) %>%
   setNames(str_extract(names(.), "\\.(.*)$", group = T))
+```
+
+```{r}
+#| cache: false
+ojs_define(city = city)
+ojs_define(country = country)
+ojs_define(layerParams = layer_params)
+ojs_define(slide_texts = slide_texts)
+```
+
+```{ojs}
+//| label: ojs-plots-setup
+import { setD3, setWidth, setHeightRatio, setCity, setCountry, plot_pga, plot_pgp, plot_pas, plot_pas_pyramid, plot_age, plot_dependency, plot_rwi_area, plot_uba_area, plot_ubaa, plot_ubap, plot_lc, plot_uddm, plot_pv_area, plot_pv_alt, plot_pv_d, plot_pv, plot_aq, plot_summer_area, plot_ndvi_area, plot_fe, plot_fu, plot_pu, plot_cu, plot_comb, plot_e, plot_s, plot_ls_area, plot_l_area, plot_fwi, plot_fwi_d } from "./ojs/plots.js"
+// import { loadData } from "./ojs/dataloader.js" // Moved to bottom of doc -- I suppose all of this should be moved there too
+
+function renderDiv(text, divClass) {
+  if (!text) return "";
+  const textMarkdown = Array.isArray(text) ? md`${text.join('\n')}` : md`${text}`;
+  return html`<div class="${divClass}">${textMarkdown}</div>`;
+}
+
+function addSlideText(slide) {
+  return html`
+  ${renderDiv(slide.takeaways, "takeaways")}
+  ${renderDiv(slide.method, "method")}
+  ${renderDiv(slide.footnote, "footnote")}`
+}
+
+function fillSlide(layer, chart = null, extra_layers = [], title = null, slide_text = null, extra_html = null) {
+  if (!createdMaps.includes(layer)) return md``;
+  var mappingLayers = [...(extra_layers ?? []), layer]
+    .map(lay => layerParams[lay].group_id)
+    .filter(Boolean)
+    .join(";"); 
+  // To avoid rendering "null", "undefined", or "" in the document, return nothing explicitly:
+  // if (!createdMaps.includes(layer)) return;
+  if (!slide_text && layer) slide_text = slide_texts[layer];
+  if (!title) title = slide_text?.title;
+  if (!title && layer) title = layer;
+  return html`
+    <section class="level3" id="${layer}">
+      ${md`### ${title}`}
+      ${html`<div class="map-list" data-layers="${mappingLayers}"></div>`}
+      ${chart ?? ""}
+      ${addSlideText(slide_text)}
+      ${extra_html ?? ""}
+    </section>
+  `
+}
+
+textColumn = d3.select('.text-column').node();
+columnWidth = textColumn.getBoundingClientRect().width * .9;
+
+plotsReady = {
+  setD3(d3);
+  setWidth(typeof columnWidth !== 'undefined' ? columnWidth : width * 0.45);
+  setHeightRatio(0.9);
+  setCity(city);
+  setCountry(country);
+  return true;
+}
+
+d = plotsReady ? await loadData : null
 ```
 
 :::
@@ -75,13 +152,19 @@ City Scan
 `r month.name[lubridate::month(Sys.Date())]` `r lubridate::year(Sys.Date())`
 
 ::: donors
-![GFDRR](https://upload.wikimedia.org/wikipedia/commons/f/fe/GFDRR_Primary_Logo_BW-Shade-nobg.png)
+![GFDRR](source/donors/CRP_GFDRR_Logo.png)
 
-![World Bank](https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/The_World_Bank_logo.svg/624px-The_World_Bank_logo.svg.png)
+![World Bank](source/donors/WB%20Logo.png)
 
-![Austrian Federal Ministry of Finance](https://www.bmf.gv.at/dam/jcr:b259928e-ef89-43c8-9bf3-4d2dae928bcd/BMF_Logo_srgb_EN.png)
+![Austrian Federal Ministry of Finance](source/donors/Austria%20BMF%20Logo.png)
 
-![Swiss Confederation Federal Department of Economic Affairs State Secretariat for Economic Affairs SECO](https://biotrade-asia.com/wp-content/uploads/2022/05/Logo-Swiss.png)
+![Swiss Confederation Federal Department of Economic Affairs State Secretariat for Economic Affairs SECO](source/donors/SECO%20Logo.png)
+
+![Gates Foundation](source/donors/Gates%20Foundation%20Logo%20-%20Horizontal.png)
+
+![MAECI](source/donors/MAECI-logo-horizontal.png)
+
+![AICS](source/donors/AICS%20Logo.png)
 :::
 
 :::
@@ -127,233 +210,125 @@ print_slide_text(slide_texts$basic_city_info)
 
 ## Population and Demographic Trends
 
+```{ojs}
+//| output: true
+fillSlide("population", null, null, null, null,
+
+html`<section class="level4">
+    ${md`#### Population Growth`}
+    ${plot_pga(d.pg) ?? ""}
+    ${addSlideText(slide_texts.population_growth)}
+    </section>`
+)
+```
+
+
 ```{r}
 #| output: asis
-# For map layer to continue to show, all text column content must be in same cell
-fill_slide_content("population")
-plots_file <- fuzzy_read(charts_dir, "oxford-pop-growth.png", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "density-scatter", paste)
+plots_file <- fuzzy_read(charts_dir, "oxford-pop-density-scatter", paste)
 if (!is.na(plots_file)) {
   cat("#### Population Density\n") 
   cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$population_density_chart)
 }
+```
 
-plots_file <- fuzzy_read(charts_dir, "\\?\\?\\?", paste)
+```{r}
+#| output: true
+plots_file <- fuzzy_read(charts_dir, "oxford-age-structure-area", paste)
+# THIS STAYS GREYED OUT
 if (!is.na(plots_file)) {
   cat("#### Population Distribution by Age\n") 
   cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
   print_slide_text(slide_texts$population_density_chart)
 }
-
-plots_file <- fuzzy_read(charts_dir, "age-sex", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Distribution by Age & Sex\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_distribution_age_sex)
-}
 ```
 
-```{r}
-#| output: asis
-fill_slide_content("rwi")
+```{ojs}
+//| output: asis
+// html`<section class="level4">
+//     ${md`#### Population Distribution by Age & Sex`}
+//     ${plot_age(d.pas) ?? ""}
+//     ${plot_pas_pyramid(d.pas) ?? ""}
+//     ${addSlideText(slide_texts.population_distribution_age_sex)}
+//     </section>`
+
+// import {chart_rwi_area} 
+// with {columnWidth as plotWidth}
+// from "@carolinecullinan/nouakchott-scanned"
+
+// fillSlide("rwi", chart_rwi_area)
+fillSlide("rwi", plot_rwi_area(d.rwi_area))
 ```
 
 ## Economic Activity
 
-```{r}
-#| output: asis
-fill_slide_content("economic_activity")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("economic_change")
-plots_file <- fuzzy_read(charts_dir, "national-shares", paste)
-if (!is.na(plots_file)) {
-  cat("#### Cities’ Shares of National Population, Employment & GDP\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$national_shares)
-}
-plots_file <- fuzzy_read(charts_dir, "oxford-gdp_line", paste)
-if (!is.na(plots_file)) {
-  cat("#### GDP Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$gdp_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "oxford-emp_line", paste)
-if (!is.na(plots_file)) {
-  cat("#### Employment Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$employment_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "oxford-pop_line", paste)
-if (!is.na(plots_file)) {
-  cat("#### Population Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$population_growth_multicity)
-}
-plots_file <- fuzzy_read(charts_dir, "gdp-per-capita", paste)
-if (!is.na(plots_file)) {
-  cat("#### Per Capita GDP Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$gdp_per_capita_growth)
-}
-plots_file <- fuzzy_read(charts_dir, "employment-sectors", paste)
-if (!is.na(plots_file)) {
-  cat("#### Share of Employment by Sector\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$employment_share)
-}
-plots_file <- fuzzy_read(charts_dir, "gva-sectors", paste)
-if (!is.na(plots_file)) {
-  cat("#### Per Capita GDP Growth\n") 
-  cat(glue('<img style="max-width:95%" src="{plots_file}">\n\n\n'))
-  print_slide_text(slide_texts$gva_share)
-}
+```{ojs}
+//| output: true
+fillSlide("economic_activity")
+fillSlide("economic_change")
 ```
 
 ## Built Form
 
-```{r}
-#| output: asis
-fill_slide_content("wsf")
-```
+```{ojs}
+//| output: true
+fillSlide("wsf", [plot_uba_area(d.uba_area), plot_ubaa(d.uba)])
 
-```{r}
-#| output: asis
-fill_slide_content("wsf_tracker")
-```
+fillSlide("wsf_tracker")
 
-```{r}
-#| output: asis
-fill_slide_content("impervious")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("land_cover")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("school_zones", slide_text = slide_texts$school_proximity)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("health_zones", slide_text = slide_texts$health_proximity)
+fillSlide("land_cover", plot_lc(d.lc))
+fillSlide("school_zones", null, null, null, slide_texts.school_proximity)
+fillSlide("health_zones", null, null, null, slide_texts.health_proximity)
 ```
 
 ## Climate Conditions
 
-```{r}
-#| output: asis
-fill_slide_content("solar")
-```
+```{ojs}
+//| output: true
+// import {chart_pv_alt}
+// with {columnWidth as plotWidth}
+// from "@carolinecullinan/nouakchott-scanned"
 
-```{r}
-#| output: asis
-fill_slide_content("air_quality")
-```
+// fillSlide("solar", plot_pv_area(d.pv_area))
+fillSlide("solar", [plot_pv_alt(d.pv), plot_pv_area(d.pv_area)], null, null, null)
+// plot_pv_d(d.pv)
+// plot_pv(d.pv)
 
-```{r}
-#| output: asis
-fill_slide_content("summer_lst")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("vegetation")
-```
-
-```{r}
-#| output: asis
-# Something appears wrong here – forest and deforest are both showing for forest?
-fill_slide_content("forest", "deforest")
+fillSlide("air_quality", plot_aq(d.aq_area))
+fillSlide("summer_lst", plot_summer_area(d.summer_area))
+fillSlide("vegetation", plot_ndvi_area(d.ndvi_area))
+fillSlide("forest", null, ["deforest"])
 ```
 
 ## Risk Identification
 
-<!-- All the flooding -->
-```{r}
-#| output: asis
-fill_slide_content("fluvial", "infrastructure", slide_text = slide_texts$flooding_infrastructure_fluvial)
-```
+```{ojs}
+//| output: true
+html`<section class="level4 is-active">
+    ${md`#### Signficant Flood Events`}
+    ${plot_fe(d.fe) ?? ""}
+    ${addSlideText(slide_texts.flood_events)}
+    </section>`
 
-```{r}
-#| output: asis
-fill_slide_content("pluvial", "infrastructure", slide_text = slide_texts$flooding_infrastructure_pluvial)
-```
+fillSlide("fluvial", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_fluvial)
+fillSlide("pluvial", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_pluvial)
+fillSlide("coastal", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_coastal)
+fillSlide("combined_flooding", null, ["infrastructure"], null, slide_texts.flooding_infrastructure_combined)
 
-```{r}
-#| output: asis
-fill_slide_content("coastal", "infrastructure", slide_text = slide_texts$flooding_infrastructure_coastal)
-```
+fillSlide("fluvial", plot_fu(d.fu), ["wsf"], null, slide_texts.flooding_builtup_fluvial)
+fillSlide("pluvial", plot_pu(d.pu), ["wsf"], null, slide_texts.flooding_builtup_pluvial)
+fillSlide("coastal", plot_cu(d.cu), ["wsf"], null, slide_texts.flooding_builtup_coastal)
+fillSlide("combined_flooding", plot_comb(d.comb, d.pu, d.fu, d.cu), ["wsf"], null, slide_texts.flooding_builtup_combined)
 
-```{r}
-#| output: asis
-fill_slide_content("combined_flooding", "infrastructure", slide_text = slide_texts$flooding_infrastructure_combined)
-```
+fillSlide("fluvial", null, ["population"], null, slide_texts.flooding_population_fluvial)
+fillSlide("pluvial", null, ["population"], null, slide_texts.flooding_population_pluvial)
+fillSlide("coastal", null, ["population"], null, slide_texts.flooding_population_coastal)
+fillSlide("combined_flooding", null, ["population"], null, slide_texts.flooding_population_combined)
 
-```{r}
-#| output: asis
-fill_slide_content("fluvial", "wsf", slide_text = slide_texts$flooding_builtup_fluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("pluvial", "wsf", slide_text = slide_texts$flooding_builtup_pluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("coastal", "wsf", slide_text = slide_texts$flooding_builtup_coastal)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("combined_flooding", "wsf", slide_text = slide_texts$flooding_builtup_combined)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("fluvial", "population", slide_text = slide_texts$flooding_population_fluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("pluvial", "population", slide_text = slide_texts$flooding_population_pluvial)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("coastal", "population", slide_text = slide_texts$flooding_population_coastal)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("combined_flooding", "population", slide_text = slide_texts$flooding_population_combined)
-```
-
-```{r}
-#| output: asis
-fill_slide_content("elevation")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("slope")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("landslides")
+fillSlide("elevation", plot_e(d.e))
+fillSlide("slope", plot_s(d.s))
+fillSlide("landslides", plot_ls_area(d.ls_area))
 ```
 
 ```{r}
@@ -365,62 +340,27 @@ if (!is.na(plots_file)) {
 }
 ```
 
+<!-- html`<section class="level4">
+    ${md`#### Signficant Earthquake Events`}
+    ${chart_ee ?? ""}
+    ${addSlideText(slide_texts.earthquake_events)}
+    </section>` -->
+
 ```{r}
 #| output: asis
-fill_slide_content("liquefaction")
+# fill_slide_content("liquefaction")
 ```
 
-```{r}
-#| output: asis
-fill_slide_content("roads")
-```
+```{ojs}
+//| output: true
 
-```{r}
-#| output: asis
-fill_slide_content("burnable")
-```
+fillSlide("liquefaction", plot_l_area(d.l_area))
+fillSlide("roads")
+fillSlide("burnable", plot_fwi(d.fwi))
+// plot_fwi_d(d.fwi)
+fillSlide("moisture")
 
-```{r}
-#| output: asis
-fill_slide_content("moisture")
-```
-
-```{r}
-#| output: asis
-fill_slide_content("burnt_area")
-```
-
-## Local Institutions & Planning
-
-### Administrative Structure
-
-```{r}
-#| output: asis
-print_slide_text(slide_texts$administrative_structure)
-```
-
-### Availability Of Development Plans And Policies
-
-```{r}
-#| output: asis
-print_slide_text(slide_texts$document_availability)
-```
-
-### The State of Urban Infrastructure and Service Delivery
-
-```{r}
-#| output: asis
-print_slide_text(slide_texts$infrastructure_and_service_delivery)
-```
-
-
-## Key Considerations for Investment Planning & Prioritization
-
-### Concluding Questions
-
-```{r}
-#| output: asis
-print_md(slide_texts$concluding_questions)
+fillSlide("burnt_area")
 ```
 
 ## Local Institutions & Planning
@@ -490,3 +430,38 @@ The findings, interpretations, and conclusions expressed in this City Scan do no
 :::
 
 {{< include source/scrollytelling.qmd >}}
+
+```{ojs}
+//| output: false
+loadData = {
+  var [pg, pas, rwi_area, uba, uba_area, lc, pug, pv, pv_area,
+         aq_area, summer_area, ndvi_area, fu, pu, cu, comb,
+         e, s, ls_area, l_area, fwi] = await Promise.all([
+    FileAttachment("./02-process-output/tabular/processed/pg.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/pas.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/rwi_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/uba.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/uba_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/lc.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/pug.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/pv.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/pv_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/aq_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/summer_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/ndvi_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/fu.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/pu.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/cu.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/comb.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/e.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/s.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/ls_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/l_area.csv").csv({typed: true}),
+    FileAttachment("./02-process-output/tabular/processed/fwi.csv").csv({typed: true})
+  ]);
+
+  var fe = [{begin_year: 1995, begin_month: 9, DISPLACED: 95000, severity: "Large event", line1: "SEPTEMBER 1995", line2: "95,000 displaced", line3: ""}];
+
+  return {pg, pas, rwi_area, uba, uba_area, lc, pug, pv, pv_area, aq_area, summer_area, ndvi_area, fu, pu, cu, comb, e, s, ls_area, l_area, fwi, fe};
+}
+```

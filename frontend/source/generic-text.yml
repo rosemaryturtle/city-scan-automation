@@ -20,11 +20,11 @@ demographics:
       Reproductive age is defined as 15–49. Working age is defined as 15–64.
   population:
     title: Population Density
-    method: This map estimates population numbers per 10,000 m^2^ grid cell. It provides a more consistent representation of population distributions across different landscapes than administrative unit counts. Knowing where people are is critical for impact assessments and intervention plans, especially those focused on service delivery, food security, climate change, network systems and natural disasters.
+    method: This map estimates population numbers per 10,000 m<sup>2</sup> grid cell. It provides a more consistent representation of population distributions across different landscapes than administrative unit counts. Knowing where people are is critical for impact assessments and intervention plans, especially those focused on service delivery, food security, climate change, network systems and natural disasters.
     footnote: NULL
   rwi:
     title: Relative Wealth
-    method: This map shows micro-estimates of wealth and poverty relative to the whole country that cover the populated surface at a 2.4 km^2^ resolution. Many critical policy decisions, from strategic investments to the allocation of humanitarian aid, rely on data about the geographic distribution of wealth and poverty.
+    method: This map shows micro-estimates of wealth and poverty relative to the whole country that cover the populated surface at a 2.4 km<sup>2</sup> resolution. Many critical policy decisions, from strategic investments to the allocation of humanitarian aid, rely on data about the geographic distribution of wealth and poverty.
     footnote: Map data from Meta Data for Good.
 # SECTION 4
 economic_activity:
@@ -106,8 +106,8 @@ climate_conditions:
   air_quality:
     title: Air Quality
     method: |
-      The concentration of particulate matter (PM) is a key indicator of air quality since it is the most common air pollutant affecting short and long-term health. This map displays the average annual concentration (µg per m^3^) of ground-level fine particulate matter of 2.5 micrometers or smaller (PM2.5). 
-      PM2.5 particles are of greater concern than PM10 particles because their small size allows them to travel deeper into the cardiopulmonary system. According to the WHO and the United States EPA standards, PM2.5 concentrations should not exceed between 5 µg/m^3^ or 12 µg/m^3^, respectively. Higher concentrations of particulate matter may also reduce the availability of solar energy.
+      The concentration of particulate matter (PM) is a key indicator of air quality since it is the most common air pollutant affecting short and long-term health. This map displays the average annual concentration (µg per m<sup>3</sup>) of ground-level fine particulate matter of 2.5 micrometers or smaller (PM2.5). 
+      PM2.5 particles are of greater concern than PM10 particles because their small size allows them to travel deeper into the cardiopulmonary system. According to the WHO and the United States EPA standards, PM2.5 concentrations should not exceed between 5 µg/m<sup>3</sup> or 12 µg/m<sup>3</sup>, respectively. Higher concentrations of particulate matter may also reduce the availability of solar energy.
     footnote: |
       PM2.5 Grids are derived using annual data from 1998-2019 represent near-surface concentrations.
       Map data from Hammer, 2022, “Global Annual PM2.5 Grids”.

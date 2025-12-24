@@ -35,7 +35,8 @@ arry.forEach(element => element.click())
 
 function handleStepEnter(response) {
   // response = { element, direction, index }
-
+  
+  // When using js fillSlide, instead of QMD markdown headers, there is no element.id
   console.log("Enter triggered: " + response.element.id)
   // Set the entered section.level3 class to .is-active, turning text black
   response.element.classList.add("is-active");
@@ -107,7 +108,9 @@ function initLevel3() {
     .onStepExit(handleStepExit)
 }
 
-initLevel3();
+setTimeout(() => {
+  initLevel3();
+}, 500);
 ```
 
 
@@ -139,4 +142,13 @@ function initLevel2() {
 }
 
 initLevel2();
+
+// Reinitialize scrollama after browser resize. Otherwise, in-view
+// sections are dropped from data-scrollama-index
+window.addEventListener("resize", () => {
+  initLevel2()
+  setTimeout(() => {
+    initLevel3();
+  }, 500);
+});
 ```

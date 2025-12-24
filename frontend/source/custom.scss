@@ -40,7 +40,7 @@ $page-margin-right: 0.5in;
   @media screen {
     grid-column: screen-start / screen-end; // Maybe applies to print if I keep bootstrap style sheets
     display: grid; // Overridden by print
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     grid-template-rows: var(--topbar-height) calc(100vh - var(--topbar-height)) auto auto;
     min-height: 90vh;
     padding-bottom: 5vh;
@@ -219,7 +219,9 @@ $page-margin-right: 0.5in;
     }
 
     section.level3 {
-      @media screen { padding-bottom: 3rem; }
+      @media screen {
+        margin-bottom: 3rem;
+      } // Use margin instead of padding so that scrollama has a gap between steps
       @media print {
         height: 8.5in - $page-margin-top - $page-margin-top - 0.05in;
         max-height: .5in - $page-margin-top - $page-margin-top - 0.05in;
