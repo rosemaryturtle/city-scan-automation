@@ -345,6 +345,8 @@ def main():
             if menu['earthquake']:
                 import earthquake_event
                 earthquake_event.plot_earthquake_event(features, city_name_l, local_output_dir, cloud_bucket, output_dir, render_dir, font_dict)
+                import seismic
+                seismic.process_earthquake(aoi_file, city_name_l, output_dir)
         elif task_index == 20:
             if menu['flood_event']:
                 import flood_event
