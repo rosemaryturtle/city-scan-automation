@@ -31,6 +31,14 @@ export function setCountry(name) {
   globalCountry = name;
 }
 
+// Calculate x-axis title Y position based on label rotation and length
+function getXAxisTitleY(height, width, labels) {
+  const maxLen = Math.max(...labels.map(l => String(l).length));
+  // Offset ranges from 45 (short labels) to 30 (long labels)
+  // Stay well above caption area which starts at height-15
+  return height - Math.max(30, 45 - maxLen * 1.2);
+}
+
 // ------------------------------------------------------------
 // wrapText
 // ------------------------------------------------------------
@@ -260,14 +268,15 @@ function parseLAreaRange(bin) {
 function plot_pga(pg, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Population",
   xLabel = "Year",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -451,7 +460,7 @@ function plot_pga(pg, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -469,14 +478,15 @@ function plot_pga(pg, {
 function plot_pgp(pg, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Population Growth Percentage",
   xLabel = "Year",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -656,7 +666,7 @@ function plot_pgp(pg, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -674,25 +684,26 @@ function plot_pgp(pg, {
 function plot_pas(pas, {
     cityName = globalCity,
     width = plotWidth,
+    height = null,
     yLabel = "Percentage of Age Distribution",
     xLabel = "Age Bracket",
     color = "black"
   } = {}) {
-    
+
     // get year for title
     const year = d3.max(pas, d => d.yearName);
-    
+
     // define age bracket order
     const ageBrackets = [
-      "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", 
-      "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", 
+      "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34",
+      "35-39", "40-44", "45-49", "50-54", "55-59", "60-64",
       "65-69", "70-74", "75-79", "80+"
     ];
-    
+
     // set up dimensions with dynamic sizing
-    const height = width * heightRatio;
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(10, width * 0.01),
       bottom: Math.max(90, width * 0.05),
       left: Math.max(40, width * 0.04)
@@ -945,25 +956,26 @@ function plot_pas(pas, {
 function plot_pas_pyramid(pas, {
     cityName = globalCity,
     width = plotWidth,
+    height = null,
     yLabel = "Age Bracket",
     xLabel = "Percentage of Age Distribution",
     color = "black"
   } = {}) {
-    
+
     // get year for title
     const year = d3.max(pas, d => d.yearName);
-    
+
     // age bracket order (bottom (youngest) to top (oldest) for pyramid)
     const ageBrackets = [
-      "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", 
-      "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", 
+      "0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34",
+      "35-39", "40-44", "45-49", "50-54", "55-59", "60-64",
       "65-69", "70-74", "75-79", "80+"
     ].reverse(); // reverse for pyramid (oldest at top)
-    
+
     // set up dimensions
-    const height = width * 0.8; // taller for pyramid
+    height = height ?? (width * 0.8); // taller for pyramid
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(60, width * 0.06), // more space for percentage labels
       bottom: Math.max(90, width * 0.04),
       left: Math.max(60, width * 0.06)  // more space for percentage labels
@@ -1341,7 +1353,6 @@ function plot_age(pas, {
   const svg = d3.create("svg")
     .attr("class", "plot")
     .attr("width", "100%")
-    .attr("height", "auto")
     .attr("viewBox", `0 0 ${width} ${height + 60}`)
     .attr("preserveAspectRatio", "xMidYMid meet")
     .style("max-width", "100%");
@@ -1822,16 +1833,17 @@ function plot_dependency(pas, {
 // plot_rwi_area
 // ------------------------------------------------------------
 function plot_rwi_area(rwi_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     color = "black"
   } = {}) {
-    
-    const sortedData = rwi_area.slice().sort((a, b) => 
+
+    const sortedData = rwi_area.slice().sort((a, b) =>
       parseRwiCategory(a.bin) - parseRwiCategory(b.bin)
     );
-  
+
     // color mapping for rwi wealth categories
     const rwiColorMap = {
       "Least wealthy": "#44b59c",
@@ -1840,22 +1852,22 @@ function plot_rwi_area(rwi_area, {
       "More wealthy": "#faab90",
       "Most wealthy": "#eb765a"
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible rwi bins from data
     const allRwiBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allRwiBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(90, width * 0.09),
       left: Math.max(80, width * 0.08)
@@ -1988,7 +2000,7 @@ function plot_rwi_area(rwi_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none");
   
     // x-axis
@@ -2056,7 +2068,7 @@ function plot_rwi_area(rwi_area, {
     // x-axis label
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -2083,47 +2095,48 @@ function plot_rwi_area(rwi_area, {
 // plot_uba_area
 // ------------------------------------------------------------
 function plot_uba_area(uba_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     color = "black"
   } = {}) {
-    
-    const sortedData = uba_area.slice().sort((a, b) => 
+
+    const sortedData = uba_area.slice().sort((a, b) =>
       parseUbaAreaRange(a.bin) - parseUbaAreaRange(b.bin)
     );
-  
+
     // color mapping for years (same colors as City Scan, Built-Form, Urban Extent and Change, 1985-2015 map)
     const ubaAreaColorMap = {
-      "Before 1986": "#f6f5d6",
+      "Before 1985": "#f6f5d6",
       "1986-1995": "#e5c782",
       "1996-2005": "#cc7b6f",
       "2006-2015": "#62534e"
     };
-  
+
     // map from bin values to year names (similar to binToConditionMap in plot_uba_area)
     const binToYearMap = {
-      "Before 1986": "≤1985",
-      "1986-1995": "1986-1995", 
+      "Before 1985": "≤1985",
+      "1986-1995": "1986-1995",
       "1996-2005": "1996-2005",
       "2006-2015": "2006-2015"
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible uba bins
     const allUbaAreaBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allUbaAreaBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(90, width * 0.12), // increased for condition labels
       left: Math.max(80, width * 0.08)
@@ -2194,9 +2207,9 @@ function plot_uba_area(uba_area, {
       .attr("width", xScale.bandwidth())
       .attr("y", d => yScale(d.percentage))
       .attr("height", d => innerHeight - yScale(d.percentage))
-      .attr("fill", d => ubaAreaColorMap[d.bin] || color) // use d.year instead of d.bin // Reverted to d.bin because Before 1986 is a bin not a year; why did we do this in the first place?
+      .attr("fill", d => ubaAreaColorMap[d.bin] || color)
       .attr("fill-opacity", 1)
-      .attr("stroke", d => d3.color(ubaAreaColorMap[d.bin] || color).darker(0.3)) // use d.year instead of d.bin
+      .attr("stroke", d => d3.color(ubaAreaColorMap[d.bin] || color).darker(0.3))
       .attr("stroke-width", 1)
       .style("cursor", "default")
       .on("mouseover", function(event, d) {
@@ -2285,7 +2298,7 @@ function plot_uba_area(uba_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot default styling
@@ -2353,7 +2366,7 @@ function plot_uba_area(uba_area, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -2382,14 +2395,15 @@ function plot_uba_area(uba_area, {
 function plot_ubaa(uba, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Urban Built-up Area (sq km)",
   xLabel = "Year",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -2573,7 +2587,7 @@ function plot_ubaa(uba, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -2591,14 +2605,15 @@ function plot_ubaa(uba, {
 function plot_ubap(uba, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Urban Built-up area Growth Percentage",
   xLabel = "Year",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -2777,7 +2792,7 @@ function plot_ubap(uba, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -2815,7 +2830,7 @@ function plot_lc(lc, {
   //color scale - dynamic mapping based on actual data
   const landCoverColors = {
     "Cropland": "#eaa86f",
-    "Built up": "#d3605f", 
+    "Built-up": "#d3605f", 
     "Grassland": "#9bbb7f",
     "Tree cover": "#629777",
     "Permanent water bodies": "#61acdc",
@@ -2847,7 +2862,6 @@ function plot_lc(lc, {
     const svg = d3.create("svg")
       .attr("class", "plot")
       .attr("width", "100%") // "100%" instead of fixed, width
-      .attr("height", "auto") //  "auto" instead of fixed, height + 40
       .attr("viewBox", `0 0 ${width} ${height + 60}`)
       .attr("preserveAspectRatio", "xMidYMid meet") 
       .style("max-width", "100%")  // prevent overflow
@@ -3934,45 +3948,46 @@ function plot_uddm(pg, uba, pug, {
 // plot_pv_area
 // ------------------------------------------------------------
 function plot_pv_area(pv_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     color = "black"
   } = {}) {
-    
-    const sortedData = pv_area.slice().sort((a, b) => 
+
+    const sortedData = pv_area.slice().sort((a, b) =>
       parsePvAreaRange(a.bin) - parsePvAreaRange(b.bin)
     );
-  
+
     // color mapping for condition levels (same colors as plot_pv_alt)
     const pvAreaColorMap = {
       "Less than Favorable": "#FF9800",
       "Favorable": "#FFC107",
       "Excellent": "#4CAF50"
     };
-  
+
     // map from bin values to condition names (similar to dangerMapping in plot_fwi_d)
     const binToConditionMap = {
       "<3.5": "Less than Favorable",
-      "3.5-4.5": "Favorable", 
+      "3.5-4.5": "Favorable",
       ">4.5": "Excellent"
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible pv bins
     const allPvAreaBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allPvAreaBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(110, width * 0.12), // increased for condition labels
       left: Math.max(80, width * 0.08)
@@ -4134,7 +4149,7 @@ function plot_pv_area(pv_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot default styling
@@ -4203,7 +4218,7 @@ function plot_pv_area(pv_area, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -4248,14 +4263,15 @@ function plot_pv_area(pv_area, {
 function plot_pv_alt(pv, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   xLabel = "Month",
   yLabel = "Daily PV Energy Yield (kWh/kWp)",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(80, width * 0.1),
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -4495,19 +4511,20 @@ function plot_pv_alt(pv, {
 function plot_pv_d(pv, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Condition",
   xLabel = "Month",
   showPercentages = true
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const scaleFactor = width / 800;
   const minScale = 0.6;
   const maxScale = 1.5;
   const dynamicScale = Math.max(minScale, Math.min(maxScale, scaleFactor));
   
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(180, width * 0.25, 180 * dynamicScale), // increased right margin for labels
     bottom: Math.max(90, width * 0.1, 50 * dynamicScale),
     left: Math.max(150, width * 0.15, 120 * dynamicScale) // increased left margin for wrapped text
@@ -4735,15 +4752,16 @@ function plot_pv_d(pv, {
 // plot_pv
 // ------------------------------------------------------------
 function plot_pv(pv, {
-  cityName = globalCity, 
+  cityName = globalCity,
   countryName = globalCountry,
   width = plotWidth,
+  height = null,
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -4955,7 +4973,7 @@ function plot_pv(pv, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -4971,16 +4989,17 @@ function plot_pv(pv, {
 // plot_aq
 // ------------------------------------------------------------
 function plot_aq(aq_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     color = "black"
   } = {}) {
-    
-    const sortedData = aq_area.slice().sort((a, b) => 
+
+    const sortedData = aq_area.slice().sort((a, b) =>
       parseAirQualityRange(a.bin) - parseAirQualityRange(b.bin)
     );
-  
+
     // air quality colors given current mapped colors
     const airQualityColorMap = {
       "0-5": "#fff7de",           // [0-5)
@@ -4990,25 +5009,26 @@ function plot_aq(aq_area, {
       "20-30": "#d5949f",         // [20-30)
       "30-40": "#cf94aa" ,        // [30-40)
       "40-50": "#c394b5",         // [40-50)
-      "50-100": "#c394b5" ,       // [50-100)
-      "100+": "#a07ca0" ,         // [100+)
+      "50-100": "#a07ca0" ,       // [50-100)
+      "100+": "#9467ab" ,         // [100+)
+
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible air quality concentrations of PM2.5 µg/mˆ3 bins
     const allAirQualityBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allAirQualityBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(90, width * 0.1),
       left: Math.max(80, width * 0.08)
@@ -5169,7 +5189,7 @@ function plot_aq(aq_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot default styling
@@ -5238,7 +5258,7 @@ function plot_aq(aq_area, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -5265,35 +5285,36 @@ function plot_aq(aq_area, {
 // plot_summer_area
 // ------------------------------------------------------------
 function plot_summer_area(summer_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     color = "#ff6b35"
   } = {}) {
-    
+
     const sortedData = summer_area.slice().sort((a, b) => {
       const aTemp = parseInt(a.bin.split('-')[0]);
       const bTemp = parseInt(b.bin.split('-')[0]);
       return aTemp - bTemp;
     });
-  
+
     // get temperature range from data
     const minTemp = parseInt(sortedData[0].bin.split('-')[0]);
     const maxTemp = parseInt(sortedData[sortedData.length - 1].bin.split('-')[1]);
-    
+
     // color scale (for visual cohesion with summer surface temperature map), where: blue, cool (cooler temperatures) to red, hot (hotter temperatures) gradient
     const colorScale = d3.scaleLinear()
       .domain([
-        minTemp, 
+        minTemp,
         minTemp + (maxTemp - minTemp) * 0.33,
         minTemp + (maxTemp - minTemp) * 0.67,
         maxTemp
       ])
       .range(["#8db4d4", "#d3daba", "#f2cb94", "#e37b74"])
       .interpolate(d3.interpolateRgb);
-  
-    // alternative hexcodes - cold to hot gradient that is technically not visually cohesive with the summer surface temperature map (i.e, did not select via hexcode finder), however they "look" more cohesive - 
-  
+
+    // alternative hexcodes - cold to hot gradient that is technically not visually cohesive with the summer surface temperature map (i.e, did not select via hexcode finder), however they "look" more cohesive -
+
       // "20-25": "#d4e8f7", (blue)
       // "25-30": "#a8d5ed",
       // "30-35": "#7ec3e3",
@@ -5301,7 +5322,7 @@ function plot_summer_area(summer_area, {
       // "40-45": "#f8961e",
       // "45-50": "#f3722c",
       // "50-55": "#f94144" (red)
-    
+
     // create color map for all temperature bins in data
     const tempColorMap = {};
     sortedData.forEach(d => {
@@ -5311,22 +5332,22 @@ function plot_summer_area(summer_area, {
       const binMidpoint = (binStart + binEnd) / 2;
       tempColorMap[d.bin] = colorScale(binMidpoint);
     });
-      
+
     // calculate total to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible temperature bins from data
     const allTempBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allTempBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(90, width * 0.09), // reduced -  since no type labels
       left: Math.max(80, width * 0.08)
@@ -5481,7 +5502,7 @@ function plot_summer_area(summer_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none");
   
     // x axis
@@ -5550,7 +5571,7 @@ function plot_summer_area(summer_area, {
     // x-axis label
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -5577,16 +5598,28 @@ function plot_summer_area(summer_area, {
 // plot_ndvi_area
 // ------------------------------------------------------------
 function plot_ndvi_area(ndvi_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     color = "black"
   } = {}) {
-    
-    const sortedData = ndvi_area.slice().sort((a, b) => 
-      parseNdviRange(a.bin) - parseNdviRange(b.bin)
-    );
-  
+
+    // map from bin values to "type" (similar to binToConditionMap in plot_pv_alt)
+    const binToTypeMap = {
+      "-1-0.015": "Water",
+      "0.015-0.14": "Built-up",
+      "0.14-0.18": "Barren",
+      "0.18-0.27": "Shrub and Grassland",
+      "0.27-0.36": "Sparse",
+      "0.36-1": "Dense"
+    };
+
+    // Filter out Water and Built-up, keep only vegetation categories (keep original percentages)
+    const sortedData = ndvi_area.slice()
+      .filter(d => !["Water", "Built-up"].includes(binToTypeMap[d.bin]))
+      .sort((a, b) => parseNdviRange(a.bin) - parseNdviRange(b.bin));
+
     // color mapping for coverage "type" (same colors as mapped)
     const ndviColorMap = {
       "Water": "#b2b2d5",
@@ -5594,60 +5627,57 @@ function plot_ndvi_area(ndvi_area, {
       "Barren": "#cfe4c7",
       "Shrub and Grassland": "#a5cd9f",
       "Sparse": "#82b685",
-      "Dense": "#82b685"
+      "Dense": "#2e6a34"
     };
-  
-    // map from bin values to "type" (similar to binToConditionMap in plot_pv_alt)
-    const binToTypeMap = {
-      "-1-0.015": "Water",
-      "0.015-0.14": "Built-up", 
-      "0.14-0.18": "Barren", 
-      "0.18-0.27": "Shrub and Grassland",
-      "0.27-0.36": "Sparse",
-      "0.36-1": "Dense"
-    };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible ndvi bins
     const allNdviBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allNdviBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
-      right: Math.max(20, width * 0.02), 
+      top: 90,
+      right: Math.max(20, width * 0.02),
       bottom: Math.max(90, width * 0.12), // increased for type labels
       left: Math.max(80, width * 0.08)
     };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
-    
+
     const xScale = d3.scaleBand()
       .domain(completeData.map(d => d.bin))
       .range([0, innerWidth])
       .padding(0.1);
-      
+
+    // Dynamic y-axis max based on data (with 10% offset)
+    const maxPercentage = Math.max(...completeData.map(d => d.percentage));
+    // For small percentages (<5), round to nearest 0.5; otherwise round to nearest 5
+    const yMax = maxPercentage < 5
+      ? Math.ceil(maxPercentage * 1.1 * 2) / 2  // round to nearest 0.5
+      : Math.ceil(maxPercentage * 1.1 / 5) * 5 || 100;
+
     const yScale = d3.scaleLinear()
-      .domain([0, 100])
+      .domain([0, yMax])
       .range([innerHeight, 0]);
-  
+
     // svg
     const svg = d3.create("svg")
       .attr("width", width)
       .attr("height", height)
       .style("background", "white")
       .style("font", "10 px system-ui"); // Observable Plot default styling to match other plots
-  
+
     const g = svg.append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
-    
+
     // y-axis with grid lines (behind bars)
     const yTicks = Math.max(4, Math.min(10, Math.floor(width * 0.6) / 60));
     const yAxisGroup = g.append("g").attr("class", "y-axis");
@@ -5655,8 +5685,8 @@ function plot_ndvi_area(ndvi_area, {
       .ticks(yTicks)
       .tickSizeOuter(0)
       .tickSizeInner(-innerWidth)
-      .tickFormat(d3.format("~s"));
-  
+      .tickFormat(d => d < 1 ? d.toFixed(1) : d); // Show decimals for small values
+
     // y-axis to match Observable Plot default styling
     yAxisGroup.call(yAxisCall);
     yAxisGroup.select(".domain").remove();
@@ -5781,16 +5811,13 @@ function plot_ndvi_area(ndvi_area, {
       .attr("font-family", "system-ui")
       .attr("font-weight", "normal")
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
-      .text(d => d.percentage > 0 ? 
-        `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
-      .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
-  
+      .text(d => d.percentage > 0 ? `${d.percentage.toFixed(2)}%` : ""); // hide 0% labels
+
     // x-axis - to match Observable Plot default styling
     const xAxisGroup = g.append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${innerHeight})`);
-      
+
     xAxisGroup.call(d3.axisBottom(xScale)
       .tickSizeOuter(0)
       .tickSizeInner(0));
@@ -5804,7 +5831,7 @@ function plot_ndvi_area(ndvi_area, {
       .attr("font-family", "system-ui")
       .attr("font-weight", "normal")
       .attr("dy", "1.5em");
-      
+
     if (width < 500) {
       xAxisGroup.selectAll("text")
         .style("text-anchor", "end")
@@ -5812,7 +5839,7 @@ function plot_ndvi_area(ndvi_area, {
         .attr("dy", ".15em")
         .attr("transform", "rotate(-45)");
     }
-      
+
     // title
     svg.append("text")
       .attr("x", 20)
@@ -5849,24 +5876,14 @@ function plot_ndvi_area(ndvi_area, {
       .attr("font-weight", "normal")
       .text("Percentage of Area (%)");
       
-    // x-axis label - to match Observable Plot defaulty styling
-    svg.append("text")
-      .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 35)
-      .attr("text-anchor", "middle")
-      .attr("fill", "currentColor")
-      .attr("font-size", "11px")
-      .attr("font-family", "system-ui")
-      .attr("font-weight", "normal")
-      .text("Normalized Difference Vegetation Index (NDVI)");
-  
-    // condition labels above x-axis bins
+    // condition labels below x-axis tick labels (position depends on rotation)
+    const typeLabelY = width < 500 ? 55 : 30; // more space when labels are rotated
     completeData.forEach(d => {
       const typeName = binToTypeMap[d.bin];
       if (typeName) {
         svg.append("text")
           .attr("x", margin.left + xScale(d.bin) + xScale.bandwidth()/2)
-          .attr("y", margin.top + innerHeight + 35) // position above x-axis labels
+          .attr("y", margin.top + innerHeight + typeLabelY)
           .attr("text-anchor", "middle")
           .attr("fill", "currentColor")
           .attr("font-size", Math.max(9, Math.min(11, width / 80)) + "px")
@@ -5875,11 +5892,23 @@ function plot_ndvi_area(ndvi_area, {
           .text(typeName);
       }
     });
-      
+
+    // x-axis label - to match Observable Plot default styling
+    const xAxisLabelY = width < 500 ? height - 20 : height - 40;
+    svg.append("text")
+      .attr("x", margin.left + innerWidth/2)
+      .attr("y", xAxisLabelY)
+      .attr("text-anchor", "middle")
+      .attr("fill", "currentColor")
+      .attr("font-size", "11px")
+      .attr("font-family", "system-ui")
+      .attr("font-weight", "normal")
+      .text("Normalized Difference Vegetation Index (NDVI)");
+
     // caption (add in text later if necessary)
     svg.append("text")
       .attr("x", 20)
-      .attr("y", height - 15)
+      .attr("y", height - 5)
       .attr("text-anchor", "start")
       .attr("fill", "#6c757d")
       .attr("font-size", "9px")
@@ -5897,14 +5926,15 @@ function plot_ndvi_area(ndvi_area, {
 function plot_fe(fe, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Year",
   xLabel = "Month",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -6119,7 +6149,7 @@ function plot_fe(fe, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -6132,19 +6162,230 @@ function plot_fe(fe, {
 
 
 // ------------------------------------------------------------
+// plot_flood_prob - Multi-line flood charts by probability (matching plot_pu style)
+// ------------------------------------------------------------
+function plot_flood_prob(data, {
+  cityName = globalCity,
+  width = plotWidth,
+  height = null,
+  floodType = "Flooding",  // "Pluvial Flooding", "Fluvial Flooding", etc.
+  xLabel = "Year",
+  yLabel = "Exposed Urban Built-up Area (sq km)"
+} = {}) {
+
+  height = height ?? (width * heightRatio);
+  const margin = {
+    top: 90,
+    right: Math.max(80, width * 0.12),  // space for legend
+    bottom: Math.max(90, width * 0.1),
+    left: Math.max(80, width * 0.08)
+  };
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  // Probability bin columns and colors (matching layers.yml)
+  const bins = [
+    { key: "0.1-1%", label: "0.1–1%", color: "#A7BCEE", dash: null },
+    { key: "1-10%", label: "1–10%", color: "#6478D9", dash: "4,3" },
+    { key: ">10%", label: ">10%", color: "#1B35C4", dash: "2,2" }
+  ];
+
+  // Get year range
+  const minYear = d3.min(data, d => d.yearName);
+  const maxYear = d3.max(data, d => d.yearName);
+
+  // Find max value across all bins for y-scale
+  const maxVal = d3.max(data, d => Math.max(d["0.1-1%"] || 0, d["1-10%"] || 0, d[">10%"] || 0));
+
+  // Scales
+  const xScale = d3.scaleLinear()
+    .domain([1, data.length])
+    .range([0, innerWidth]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0, maxVal * 1.2])
+    .range([innerHeight, 0]);
+
+  // SVG
+  const svg = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .style("background", "white")
+    .style("font", "10px system-ui");
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // y-axis with grid lines (matching plot_pu style)
+  const yTicks = Math.max(4, Math.min(10, Math.floor(width * 0.6) / 60));
+  const yAxisGroup = g.append("g").attr("class", "y-axis");
+  // Use decimal format for small values, SI notation for large
+  const yFormat = maxVal < 1 ? d3.format(".2f") : d3.format("~s");
+  const yAxisCall = d3.axisLeft(yScale)
+    .ticks(yTicks)
+    .tickSizeOuter(0)
+    .tickSizeInner(-innerWidth)
+    .tickFormat(yFormat);
+
+  yAxisGroup.call(yAxisCall);
+  yAxisGroup.select(".domain").remove();
+  yAxisGroup.selectAll(".tick line")
+    .attr("stroke", "#f0f0f0")
+    .attr("stroke-width", 1);
+  yAxisGroup.selectAll(".tick text")
+    .attr("fill", "currentColor")
+    .attr("font-size", "10px")
+    .attr("font-family", "system-ui")
+    .attr("font-weight", "normal")
+    .attr("dx", "-0.3em");
+
+  // x-axis with grid lines (matching plot_pu style)
+  const xAxisGroup = g.append("g")
+    .attr("class", "x-axis")
+    .attr("transform", `translate(0,${innerHeight})`);
+
+  xAxisGroup.call(d3.axisBottom(xScale)
+    .ticks(Math.max(3, Math.min(6, Math.floor(width / 120))))
+    .tickFormat(d => {
+      const index = Math.round(d) - 1;
+      return index >= 0 && index < data.length ? d3.format("d")(data[index].yearName) : "";
+    })
+    .tickSizeOuter(0)
+    .tickSizeInner(-innerHeight));
+  xAxisGroup.select(".domain")
+    .attr("stroke", "currentColor")
+    .attr("stroke-width", 1);
+
+  xAxisGroup.selectAll(".tick line")
+    .attr("stroke", "#f0f0f0")
+    .attr("stroke-width", 1);
+
+  xAxisGroup.selectAll(".tick text")
+    .attr("fill", "currentColor")
+    .attr("font-size", "10px")
+    .attr("font-family", "system-ui")
+    .attr("font-weight", "normal")
+    .attr("dy", "1.5em");
+
+  // Line generator
+  const line = d3.line()
+    .defined(d => d.value != null && !isNaN(d.value))
+    .x(d => xScale(d.year))
+    .y(d => yScale(d.value));
+
+  // Draw lines for each probability bin
+  bins.forEach(bin => {
+    const lineData = data.map(d => ({
+      year: d.year,
+      value: d[bin.key] || 0
+    }));
+
+    const path = g.append("path")
+      .datum(lineData)
+      .attr("fill", "none")
+      .attr("stroke", bin.color)
+      .attr("stroke-width", Math.max(1.5, Math.min(3, width / 400)))
+      .attr("d", line);
+
+    if (bin.dash) path.attr("stroke-dasharray", bin.dash);
+  });
+
+  // Legend (on SVG, right side below subtitle - like plot_comb)
+  const legendX = width - 100;
+  const legendY = 60;
+  const legendSpacing = 18;
+
+  const legendGroup = svg.append("g")
+    .attr("class", "legend");
+
+  bins.forEach((bin, i) => {
+    const legendItem = legendGroup.append("g")
+      .attr("transform", `translate(${legendX}, ${legendY + i * legendSpacing})`);
+
+    const legendLine = legendItem.append("line")
+      .attr("x1", 0)
+      .attr("x2", 20)
+      .attr("y1", 0)
+      .attr("y2", 0)
+      .attr("stroke", bin.color)
+      .attr("stroke-width", 2.5);
+
+    if (bin.dash) legendLine.attr("stroke-dasharray", bin.dash);
+
+    legendItem.append("text")
+      .attr("x", 25)
+      .attr("y", 0)
+      .attr("dy", "0.32em")
+      .attr("font-size", "12px")
+      .attr("font-family", "system-ui")
+      .text(bin.label);
+  });
+
+  // title (matching plot_pu style: 18px, normal weight, includes year range)
+  svg.append("text")
+    .attr("x", 20)
+    .attr("y", 25)
+    .attr("text-anchor", "start")
+    .attr("fill", "currentColor")
+    .attr("font-size", "18px")
+    .attr("font-family", "system-ui")
+    .attr("font-weight", "normal")
+    .text(`Built-up Area Exposed to ${floodType}, ${minYear}-${maxYear}`);
+
+  // subtitle (matching plot_pu style: 16px, italic, just cityName)
+  svg.append("text")
+    .attr("x", 20)
+    .attr("y", 45)
+    .attr("text-anchor", "start")
+    .attr("fill", "currentColor")
+    .attr("font-size", "16px")
+    .attr("font-family", "system-ui")
+    .attr("font-style", "italic")
+    .attr("font-weight", "normal")
+    .text(cityName);
+
+  // y-axis label
+  svg.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 20)
+    .attr("x", -(margin.top + innerHeight/2))
+    .attr("text-anchor", "middle")
+    .attr("fill", "currentColor")
+    .attr("font-size", "11px")
+    .attr("font-family", "system-ui")
+    .attr("font-weight", "normal")
+    .text(yLabel);
+
+  // x-axis label
+  svg.append("text")
+    .attr("x", margin.left + innerWidth/2)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
+    .attr("text-anchor", "middle")
+    .attr("fill", "currentColor")
+    .attr("font-size", "11px")
+    .attr("font-family", "system-ui")
+    .attr("font-weight", "normal")
+    .text(xLabel);
+
+  return svg.node();
+}
+
+
+// ------------------------------------------------------------
 // plot_fu
 // ------------------------------------------------------------
 function plot_fu(fu, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   xLabel = "Year",
   yLabel = "Exposed Urban Built-up Area (sq km)",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -6182,7 +6423,7 @@ function plot_fu(fu, {
     .ticks(yTicks)
     .tickSizeOuter(0)
     .tickSizeInner(-innerWidth)
-    .tickFormat(d3.format("~s"));
+    .tickFormat(d => d < 1 ? d.toFixed(2) : d);  // Handle small decimals properly
 
   yAxisGroup.call(yAxisCall);
   yAxisGroup.select(".domain").remove();
@@ -6195,12 +6436,12 @@ function plot_fu(fu, {
     .attr("font-family", "system-ui")
     .attr("font-weight", "normal")
     .attr("dx", "-0.3em");
-  
+
   // x-axis with grid lines
   const xAxisGroup = g.append("g")
     .attr("class", "x-axis")
     .attr("transform", `translate(0,${innerHeight})`);
-    
+
   xAxisGroup.call(d3.axisBottom(xScale)
     .ticks(Math.max(5, Math.min(15, Math.floor(width / 80))))
     .tickFormat(d => {
@@ -6327,7 +6568,7 @@ function plot_fu(fu, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -6345,14 +6586,15 @@ function plot_fu(fu, {
 function plot_pu(pu, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   xLabel = "Year",
   yLabel = "Exposed Urban Built-up Area (sq km)",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -6535,7 +6777,7 @@ function plot_pu(pu, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -6553,14 +6795,15 @@ function plot_pu(pu, {
 function plot_cu(cu, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   xLabel = "Year",
   yLabel = "Exposed Urban Built-up Area (sq km)",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -6598,7 +6841,7 @@ function plot_cu(cu, {
     .ticks(yTicks)
     .tickSizeOuter(0)
     .tickSizeInner(-innerWidth)
-    .tickFormat(d3.format("~s"));
+    .tickFormat(d => d < 1 ? d.toFixed(2) : d);  // Handle small decimals properly
 
   yAxisGroup.call(yAxisCall);
   yAxisGroup.select(".domain").remove();
@@ -6611,12 +6854,12 @@ function plot_cu(cu, {
     .attr("font-family", "system-ui")
     .attr("font-weight", "normal")
     .attr("dx", "-0.3em");
-  
+
   // x-axis with grid lines
   const xAxisGroup = g.append("g")
     .attr("class", "x-axis")
     .attr("transform", `translate(0,${innerHeight})`);
-    
+
   xAxisGroup.call(d3.axisBottom(xScale)
     .ticks(Math.max(5, Math.min(15, Math.floor(width / 80))))
     .tickFormat(d => {
@@ -6743,7 +6986,7 @@ function plot_cu(cu, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -6760,14 +7003,15 @@ function plot_cu(cu, {
 function plot_comb(comb, pu, fu, cu, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   xLabel = "Year",
   yLabel = "Exposed Urban Built-up Area (sq km)",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.02), 
     bottom: Math.max(90, width * 0.1),
     left: Math.max(80, width * 0.08)
@@ -6805,7 +7049,7 @@ function plot_comb(comb, pu, fu, cu, {
     .ticks(yTicks)
     .tickSizeOuter(0)
     .tickSizeInner(-innerWidth)
-    .tickFormat(d3.format("~s"));
+    .tickFormat(d => d < 1 ? d.toFixed(2) : d);  // Handle small decimals properly
 
   yAxisGroup.call(yAxisCall);
   yAxisGroup.select(".domain").remove();
@@ -6818,12 +7062,12 @@ function plot_comb(comb, pu, fu, cu, {
     .attr("font-family", "system-ui")
     .attr("font-weight", "normal")
     .attr("dx", "-0.3em");
-  
+
   // x-axis with grid lines
   const xAxisGroup = g.append("g")
     .attr("class", "x-axis")
     .attr("transform", `translate(0,${innerHeight})`);
-    
+
   xAxisGroup.call(d3.axisBottom(xScale)
     .ticks(Math.max(5, Math.min(15, Math.floor(width / 80))))
     .tickFormat(d => {
@@ -6860,6 +7104,17 @@ function plot_comb(comb, pu, fu, cu, {
   const dashArray = `${Math.max(2, Math.min(6, width / 200))},${Math.max(2, Math.min(6, width / 200))}`;
   const strokeWidth = Math.max(1.5, Math.min(3, width / 400));
   
+  // combined line (comb) - black solid (draw first so dashed lines appear on top)
+  g.append("path")
+    .datum(comb)
+    .attr("fill", "none")
+    .attr("stroke", "black")
+    .attr("stroke-width", strokeWidth)
+    .attr("d", d3.line()
+      .defined(d => d.comb !== null)
+      .x(d => xScale(d.year))
+      .y(d => yScale(d.comb)));
+
   // coastal line (cu) - green dashed
   g.append("path")
     .datum(cu)
@@ -6871,7 +7126,7 @@ function plot_comb(comb, pu, fu, cu, {
       .defined(d => d.cu !== null)
       .x(d => xScale(d.year))
       .y(d => yScale(d.cu)));
-  
+
   // fluvial line (fu) - red dashed
   g.append("path")
     .datum(fu)
@@ -6883,8 +7138,8 @@ function plot_comb(comb, pu, fu, cu, {
       .defined(d => d.fu !== null)
       .x(d => xScale(d.year))
       .y(d => yScale(d.fu)));
-  
-  // pluvial line (pu) - blue dashed
+
+  // pluvial line (pu) - blue dashed (drawn last to appear on top)
   g.append("path")
     .datum(pu)
     .attr("fill", "none")
@@ -6895,17 +7150,6 @@ function plot_comb(comb, pu, fu, cu, {
       .defined(d => d.pu !== null)
       .x(d => xScale(d.year))
       .y(d => yScale(d.pu)));
-  
-  // combined line (comb) - black solid
-  g.append("path")
-    .datum(comb)
-    .attr("fill", "none")
-    .attr("stroke", "black")
-    .attr("stroke-width", strokeWidth)
-    .attr("d", d3.line()
-      .defined(d => d.comb !== null)
-      .x(d => xScale(d.year))
-      .y(d => yScale(d.comb)));
   
   // invisible interaction area for tooltips
   g.selectAll(".interaction-area")
@@ -6990,15 +7234,15 @@ function plot_comb(comb, pu, fu, cu, {
   
   // legend
   const legendData = [
-    { label: "Combined", color: "black", dashed: false },
     { label: "River", color: "#f8766d", dashed: true },
     { label: "Rainwater", color: "#619cfe", dashed: true },
-    { label: "Coastal", color: "#02b939", dashed: true }
+    { label: "Coastal", color: "#02b939", dashed: true },
+    { label: "Combined", color: "black", dashed: false }
   ];
   
   const legendX = width - 160;
-  const legendY = 25;
-  const legendSpacing = 22;
+  const legendY = 60;
+  const legendSpacing = 18;
   
   const legendGroup = svg.append("g")
     .attr("class", "legend");
@@ -7040,7 +7284,7 @@ function plot_comb(comb, pu, fu, cu, {
   // x-axis label
   svg.append("text")
     .attr("x", margin.left + innerWidth/2)
-    .attr("y", height - 45)
+    .attr("y", getXAxisTitleY(height, width, xScale.domain()))
     .attr("text-anchor", "middle")
     .attr("fill", "currentColor")
     .attr("font-size", "11px")
@@ -7055,18 +7299,19 @@ function plot_comb(comb, pu, fu, cu, {
 // plot_e
 // ------------------------------------------------------------
 function plot_e(e, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     xLabel = "Elevation (MASL)",
     yLabel = "Percentage of Area (%)",
     color = "black"
   } = {}) {
-    
-    const sortedData = e.slice().sort((a, b) => 
+
+    const sortedData = e.slice().sort((a, b) =>
       parseElevationRange(a.bin) - parseElevationRange(b.bin)
     );
-  
+
     // elevation colors given current mapped colors where 0 = lowest MASL bin and 4 = highest MASL bin
     const elevationColors = {
       0: "#f9d7d4",  // elevation_0 (lowest)
@@ -7075,28 +7320,28 @@ function plot_e(e, {
       3: "#b682ac",  // elevation_3
       4: "#9f65a0"   // elevation_4 (highest)
     };
-  
+
     // color mapping based on elevation order
     const elevationColorMap = {};
     sortedData.forEach((d, index) => {
       elevationColorMap[d.bin] = elevationColors[index];
     });
-    
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible elevation bins
     const allElevationBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allElevationBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(90, width * 0.1),
       left: Math.max(80, width * 0.08)
@@ -7256,7 +7501,7 @@ function plot_e(e, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot defaulty styling
@@ -7325,7 +7570,7 @@ function plot_e(e, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -7352,18 +7597,19 @@ function plot_e(e, {
 // plot_s
 // ------------------------------------------------------------
 function plot_s(s, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     xLabel = "Slope (°)",
     yLabel = "Percentage of Area (%)",
     color = "black"
   } = {}) {
-    
-    const sortedData = s.slice().sort((a, b) => 
+
+    const sortedData = s.slice().sort((a, b) =>
       parseSlopeRange(a.bin) - parseSlopeRange(b.bin)
     );
-  
+
     // slope colors given current mapped colors
     const slopeColorMap = {
       "0-2": "#f9f9db",           // slope_lessthan2degrees
@@ -7372,22 +7618,22 @@ function plot_s(s, {
       "10-20": "#c88f6e",         // slope_10to20degrees
       "20-90": "#b26b4a"          // slope_greaterthan20degrees
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible slope bins
     const allSlopeBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allSlopeBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(90, width * 0.1),
       left: Math.max(80, width * 0.08)
@@ -7548,7 +7794,7 @@ function plot_s(s, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot default styling
@@ -7616,7 +7862,7 @@ function plot_s(s, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -7643,18 +7889,19 @@ function plot_s(s, {
 // plot_ls_area
 // ------------------------------------------------------------
 function plot_ls_area(ls_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     xLabel = "Landslide Susceptibility",
     yLabel = "Percentage of Area (%)",
     color = "black"
   } = {}) {
-    
-    const sortedData = ls_area.slice().sort((a, b) => 
+
+    const sortedData = ls_area.slice().sort((a, b) =>
       parseLsAreaRange(a.bin) - parseLsAreaRange(b.bin)
     );
-  
+
     // color mapping for landslide susceptibility (same colors as landslide map)
     const lsAreaColorMap = {
       "1": "#f6efe5",
@@ -7663,31 +7910,31 @@ function plot_ls_area(ls_area, {
       "4": "#dc8b6d",
       "5": "#b27365",
     };
-  
+
     // map from bins to susceptbility values (similar to binToCondition in plot_pv_area)
     const binToSusceptibilityMap = {
       "Very low": "1",
-      "Low": "2", 
-      "Medium": "3", 
-      "High": "4", 
+      "Low": "2",
+      "Medium": "3",
+      "High": "4",
       "Very high": "5"
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible bins
     const allLsAreaBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allLsAreaBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(110, width * 0.12), // increased for bin labels
       left: Math.max(80, width * 0.08)
@@ -7849,7 +8096,7 @@ function plot_ls_area(ls_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot default styling
@@ -7917,7 +8164,7 @@ function plot_ls_area(ls_area, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -7944,18 +8191,19 @@ function plot_ls_area(ls_area, {
 // plot_l_area
 // ------------------------------------------------------------
 function plot_l_area(l_area, {
-    cityName = globalCity, 
+    cityName = globalCity,
     countryName = globalCountry,
     width = plotWidth,
+    height = null,
     xLabel = "Liquefaction Susceptibility",
     yLabel = "Percentage of Area (%)",
     color = "black"
   } = {}) {
-    
-    const sortedData = l_area.slice().sort((a, b) => 
+
+    const sortedData = l_area.slice().sort((a, b) =>
       parseLAreaRange(a.bin) - parseLAreaRange(b.bin)
     );
-  
+
     // color mapping for liquefaction susceptibility (same colors as liquefaction map)
     const lAreaColorMap = {
       "1": "#f6efe5",
@@ -7964,31 +8212,31 @@ function plot_l_area(l_area, {
       "4": "#dc8b6d",
       "5": "#b27365",
     };
-  
+
     // map from bins to susceptbility values (similar to binToSusceptibilityMap in plot_ls_area)
     const binToSusceptibilityMap = {
       "Very low": "1",
-      "Low": "2", 
-      "Medium": "3", 
-      "High": "4", 
+      "Low": "2",
+      "Medium": "3",
+      "High": "4",
       "Very high": "5"
     };
-      
+
     // calculate total area to show complete distribution
     const totalCount = sortedData.reduce((sum, d) => sum + d.count, 0);
-    
+
     // define all possible bins
     const allLAreaBins = sortedData.map(d => d.bin);
-    
+
     // complete data with gray bars for visual completeness
     const completeData = allLAreaBins.map(bin => {
       const existing = sortedData.find(d => d.bin === bin);
       return existing || { bin, count: 0, percentage: 0 };
     });
-    
-    const height = width * heightRatio;
+
+    height = height ?? (width * heightRatio);
     const margin = {
-      top: 70,
+      top: 90,
       right: Math.max(20, width * 0.02), 
       bottom: Math.max(110, width * 0.12), // increased for bin labels
       left: Math.max(80, width * 0.08)
@@ -8150,7 +8398,7 @@ function plot_l_area(l_area, {
       .attr("font-style", d => d.percentage > 0 ? "normal" : "italic")
       .text(d => d.percentage > 0 ? 
         `${d.percentage.toFixed(1)}%` : 
-        "0.0%")
+        "")
       .style("display", d => d.percentage > 2 || d.percentage === 0 ? "block" : "none"); // show labels for significant values or zeros
   
     // x-axis - to match Observable Plot default styling
@@ -8218,7 +8466,7 @@ function plot_l_area(l_area, {
     // x-axis label - to match Observable Plot defaulty styling
     svg.append("text")
       .attr("x", margin.left + innerWidth/2)
-      .attr("y", height - 45)
+      .attr("y", getXAxisTitleY(height, width, xScale.domain()))
       .attr("text-anchor", "middle")
       .attr("fill", "currentColor")
       .attr("font-size", "11px")
@@ -8247,14 +8495,15 @@ function plot_l_area(l_area, {
 function plot_fwi(fwi, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   xLabel = "Month",
   yLabel = "95th Percentile FWI",
   color = "black"
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const margin = {
-    top: 70,
+    top: 90,
     right: Math.max(20, width * 0.05),
     bottom: Math.max(90, width * 0.12),
     left: Math.max(80, width * 0.08)
@@ -8514,12 +8763,13 @@ function plot_fwi(fwi, {
 function plot_fwi_d(fwi, {
   cityName = globalCity,
   width = plotWidth,
+  height = null,
   yLabel = "Danger Level",
   xLabel = "Weeks",
   showPercentages = true
 } = {}) {
-  
-  const height = width * heightRatio;
+
+  height = height ?? (width * heightRatio);
   const scaleFactor = width / 800;
   const minScale = 0.6;
   const maxScale = 1.5;
@@ -8761,6 +9011,105 @@ function plot_fwi_d(fwi, {
 }
 
 
+// ------------------------------------------------------------
+// plot_uba_tracker - WSF Evolution Time Series
+// ------------------------------------------------------------
+function plot_uba_tracker(uba_tracker, {
+    cityName = globalCity,
+    width = plotWidth,
+    height = null,
+    yLabel = "Urban Built-up Area (sq km)",
+    xLabel = "Year",
+    color = "black"
+  } = {}) {
+
+  height = height ?? (width * heightRatio);
+  const margin = {
+    top: 90,
+    right: Math.max(20, width * 0.02),
+    bottom: Math.max(90, width * 0.1),
+    left: Math.max(80, width * 0.08)
+  };
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+
+  const minYear = d3.min(uba_tracker, d => d.year);
+  const maxYear = d3.max(uba_tracker, d => d.year);
+
+  const xScale = d3.scaleLinear()
+    .domain([1, uba_tracker.length])
+    .range([0, innerWidth]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0, Math.max(...uba_tracker.map(d => d.uba)) * 1.1])
+    .range([innerHeight, 0]);
+
+  const svg = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .style("background", "white")
+    .style("font", "10px system-ui");
+
+  const g = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Y-axis with grid lines
+  const yTicks = Math.max(4, Math.min(10, Math.floor(width * 0.6) / 60));
+  const yAxisGroup = g.append("g").attr("class", "y-axis");
+  yAxisGroup.call(d3.axisLeft(yScale)
+    .ticks(yTicks).tickSizeOuter(0).tickSizeInner(-innerWidth).tickFormat(d3.format("~s")));
+  yAxisGroup.select(".domain").remove();
+  yAxisGroup.selectAll(".tick line").attr("stroke", "#f0f0f0");
+  yAxisGroup.selectAll(".tick text").attr("fill", "currentColor").attr("font-size", "10px");
+
+  // X-axis (July entries only)
+  const xAxisGroup = g.append("g").attr("class", "x-axis")
+    .attr("transform", `translate(0,${innerHeight})`);
+  const tickIndices = uba_tracker.map((d, i) => d.month === 7 ? i : null).filter(i => i !== null);
+  xAxisGroup.call(d3.axisBottom(xScale)
+    .tickValues(tickIndices.map(i => i + 1))
+    .tickFormat(d => uba_tracker[Math.round(d) - 1]?.monthYearName || "")
+    .tickSizeOuter(0).tickSizeInner(-innerHeight));
+  xAxisGroup.selectAll(".tick line").attr("stroke", "#f0f0f0");
+  xAxisGroup.selectAll(".tick text").attr("dy", "1.5em");
+
+  // Line
+  const line = d3.line().defined(d => d.uba !== null)
+    .x(d => xScale(d.yearMonth)).y(d => yScale(d.uba));
+  g.append("path").datum(uba_tracker)
+    .attr("fill", "none").attr("stroke", "black")
+    .attr("stroke-width", Math.max(1.5, Math.min(3, width / 400))).attr("d", line);
+
+  // Dots with tooltips
+  g.selectAll(".dot").data(uba_tracker.filter(d => d.uba !== null))
+    .enter().append("circle").attr("class", "dot")
+    .attr("cx", d => xScale(d.yearMonth)).attr("cy", d => yScale(d.uba))
+    .attr("r", Math.max(2, Math.min(3, width / 200))).attr("fill", "black")
+    .style("cursor", "pointer")
+    .on("mouseover", function(event, d) {
+      d3.selectAll(".d3-tooltip").remove();
+      d3.select("body").append("div").attr("class", "d3-tooltip")
+        .style("position", "absolute").style("background", "white").style("padding", "8px 12px")
+        .style("border", "1.8px solid #000").style("font-size", "12px").style("z-index", "1000")
+        .html(`<strong>${d.monthYearName}</strong><br>${yLabel}: ${d.uba.toFixed(2)} sq km`)
+        .style("left", (event.pageX - 60) + "px").style("top", (event.pageY - 60) + "px");
+    })
+    .on("mouseout", () => d3.selectAll(".d3-tooltip").remove());
+
+  // Title & labels
+  svg.append("text").attr("x", 20).attr("y", 25).attr("font-size", "18px")
+    .text(`Urban Built-up Area, ${minYear}-${maxYear}`);
+  svg.append("text").attr("x", 20).attr("y", 45).attr("font-size", "16px")
+    .attr("font-style", "italic").text(cityName);
+  svg.append("text").attr("transform", "rotate(-90)").attr("y", 20)
+    .attr("x", -(margin.top + innerHeight/2)).attr("text-anchor", "middle")
+    .attr("font-size", "11px").text(yLabel);
+  svg.append("text").attr("x", margin.left + innerWidth/2).attr("y", getXAxisTitleY(height, width, xScale.domain()))
+    .attr("text-anchor", "middle").attr("font-size", "11px").text(xLabel);
+
+  return svg.node();
+}
+
 
 // ------------------------------------------------------------
 // Exports
@@ -8790,6 +9139,7 @@ export {
   plot_uba_area,
   plot_ubaa,
   plot_ubap,
+  plot_uba_tracker,
   plot_lc,
   plot_uddm,
   plot_pv_area,
@@ -8810,6 +9160,7 @@ export {
   plot_l_area,
   plot_fwi,
   plot_fwi_d,
+  plot_flood_prob,
   // Variables
   plotWidth
 };
@@ -8821,6 +9172,7 @@ export default function() {
     plot_rwi_area, plot_uba_area, plot_ubaa, plot_ubap, plot_lc, plot_uddm,
     plot_pv_area, plot_pv_alt, plot_pv_d, plot_pv, plot_aq, plot_summer_area,
     plot_ndvi_area, plot_fe, plot_fu, plot_pu, plot_cu, plot_comb,
-    plot_e, plot_s, plot_ls_area, plot_l_area, plot_fwi, plot_fwi_d
+    plot_e, plot_s, plot_ls_area, plot_l_area, plot_fwi, plot_fwi_d, 
+    plot_flood_prob
   };
 }

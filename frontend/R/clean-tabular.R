@@ -1,9 +1,4 @@
-# Clean data for OJS visualization
-# R port of frontend/Py/clean.py
-# Converts tabular/spatial output to chart-ready CSV format
-# Dependencies: dplyr, readr, tidyr, stringr, terra, lubridate (loaded via setup.R)
-
-# Output directory - uses setup.R's tabular_dir
+source("R/setup.R")
 processed_dir <- file.path(tabular_dir, "processed")
 if (!dir.exists(processed_dir)) dir.create(processed_dir, recursive = TRUE)
 
@@ -39,37 +34,32 @@ clean_pg <- function(input_file, output_file = NULL) {
 # Population Age Sex (pas.csv)
 # =============================================================================
 clean_pas <- function(input_file, output_file = NULL) {
-  df <- read_csv(input_file, show_col_types = FALSE)
+  df <- read.csv(input_file, stringsAsFactors = FALSE)
 
-  # Combine 0-1 and 1-4 into 0-4
-  df <- df %>%
-    mutate(age_group = case_when(
-      age_group %in% c("0-1", "1-4") ~ "0-4",
-      TRUE ~ age_group
-    ))
+  # Combine 0-1 and 1-4 into 0-4 (matching Caroline's replace approach)
+  df$age_group[df$age_group %in% c("0-1", "1-4")] <- "0-4"
 
   # Group and calculate percentages
-  result_df <- df %>%
-    group_by(age_group, sex) %>%
-    summarize(population = sum(population), .groups = "drop") %>%
-    mutate(
-      ageBracket = age_group,
-      sex = case_when(sex == "f" ~ "female", sex == "m" ~ "male", TRUE ~ sex),
-      count = round(population, 2),
-      percentage = round(population / sum(population) * 100, 7),
-      yearName = 2021
-    ) %>%
-    select(ageBracket, sex, count, percentage, yearName)
+  df_grouped <- aggregate(population ~ age_group + sex, data = df, FUN = sum)
 
-  # Sort by age bracket
-  age_order <- c("0-4", "5-9", "10-14", "15-19", "20-24", "25-29",
-                 "30-34", "35-39", "40-44", "45-49", "50-54", "55-59",
-                 "60-64", "65-69", "70-74", "75-79", "80+", "80")
+  total_pop <- sum(df_grouped$population)
 
-  result_df <- result_df %>%
-    mutate(age_sort = match(ageBracket, age_order)) %>%
-    arrange(age_sort, sex) %>%
-    select(-age_sort)
+  # Map sex codes
+  df_grouped$sex <- ifelse(df_grouped$sex == "f", "female",
+                           ifelse(df_grouped$sex == "m", "male", df_grouped$sex))
+
+  result_df <- data.frame(
+    ageBracket = df_grouped$age_group,
+    sex = df_grouped$sex,
+    count = round(df_grouped$population, 2),
+    percentage = round(df_grouped$population / total_pop * 100, 7),
+    yearName = 2021,
+    stringsAsFactors = FALSE
+  )
+
+  # Sort alphabetically by age bracket then sex (matching Caroline's Python output)
+  result_df <- result_df[order(result_df$ageBracket, result_df$sex), ]
+  rownames(result_df) <- NULL
 
   if (is.null(output_file)) {
     output_file <- file.path(processed_dir, "pas.csv")
@@ -79,7 +69,7 @@ clean_pas <- function(input_file, output_file = NULL) {
 
   message("Cleaned data saved to: ", output_file)
   message("Total population: ", scales::comma(sum(result_df$count)))
-  message("Age brackets: ", n_distinct(result_df$ageBracket))
+  message("Age brackets: ", length(unique(result_df$ageBracket)))
   message("Total records: ", nrow(result_df))
 
   return(result_df)
@@ -143,47 +133,118 @@ clean_adr <- function(input_file = NULL, output_file = NULL) {
 
 # =============================================================================
 # Relative Wealth Index Area from GeoPackage (rwi_area.csv)
+# Uses Standard Deviation-based binning (matching Caroline's notebook)
+# Uses actual geographic area for percentage calculation
 # =============================================================================
-clean_rwi_area <- function(input_file, output_file = NULL) {
+clean_rwi_area <- function(input_file, output_file = NULL, rwi_column = "rwi") {
   # Read GeoPackage
   gdf <- sf::st_read(input_file, quiet = TRUE)
 
-  # Extract RWI values
-  rwi_vals <- gdf$rwi[!is.na(gdf$rwi)]
+  # Check column exists
+  if (!rwi_column %in% names(gdf)) {
+    stop("Column '", rwi_column, "' not found")
+  }
 
-  # Define bins (5 wealth categories)
-  bins <- list(
-    list(range = "Least wealthy", min_val = -Inf, max_val = -0.5),
-    list(range = "Less wealthy", min_val = -0.5, max_val = -0.1),
-    list(range = "Average wealth", min_val = -0.1, max_val = 0.1),
-    list(range = "More wealthy", min_val = 0.1, max_val = 0.5),
-    list(range = "Most wealthy", min_val = 0.5, max_val = Inf)
+  # Filter valid data
+  gdf_valid <- gdf[!is.na(gdf[[rwi_column]]), ]
+  if (nrow(gdf_valid) == 0) {
+    stop("No valid data found in '", rwi_column, "' column")
+  }
+
+  message("Original CRS: ", sf::st_crs(gdf_valid)$input)
+
+  # Reproject to UTM if geographic (matching Caroline's approach)
+  if (sf::st_is_longlat(gdf_valid)) {
+    # Estimate UTM zone from centroid
+    centroid <- sf::st_coordinates(sf::st_centroid(sf::st_union(gdf_valid)))
+    utm_zone <- floor((centroid[1] + 180) / 6) + 1
+    hemisphere <- if (centroid[2] >= 0) "north" else "south"
+    utm_crs <- paste0("+proj=utm +zone=", utm_zone, " +", hemisphere, " +datum=WGS84")
+    gdf_valid <- sf::st_transform(gdf_valid, utm_crs)
+    message("Reprojected to UTM zone ", utm_zone)
+  }
+
+  # Calculate area for each cell
+  gdf_valid$area <- as.numeric(sf::st_area(gdf_valid))
+
+  rwi_vals <- gdf_valid[[rwi_column]]
+  message("RWI data range: ", round(min(rwi_vals), 3), " to ", round(max(rwi_vals), 3))
+  message("Total grid cells: ", nrow(gdf_valid))
+  message("Total area: ", format(sum(gdf_valid$area), big.mark = ","), " square meters")
+
+  # Calculate mean and standard deviation for SD-based binning
+  mean_rwi <- mean(rwi_vals)
+  sd_rwi <- sd(rwi_vals)
+
+  message("\n", paste(rep("=", 60), collapse = ""))
+  message("CITY STATISTICS (for Standard Deviation binning)")
+  message(paste(rep("=", 60), collapse = ""))
+  message("Mean RWI:             ", round(mean_rwi, 3))
+  message("Standard Deviation:   ", round(sd_rwi, 3))
+
+  # Define bin breakpoints
+  break_least_less <- mean_rwi - 1.0 * sd_rwi
+  break_less_avg <- mean_rwi - 0.5 * sd_rwi
+  break_avg_more <- mean_rwi + 0.5 * sd_rwi
+  break_more_most <- mean_rwi + 1.0 * sd_rwi
+
+  message("\nSTANDARD DEVIATION BREAK POINTS:")
+  message("  Least wealthy boundary:   RWI < ", round(break_least_less, 3), "  (mean - 1.0 SD)")
+  message("  Less wealthy boundary:    ", round(break_least_less, 3), " <= RWI < ", round(break_less_avg, 3))
+  message("  Average wealth boundary:  ", round(break_less_avg, 3), " <= RWI < ", round(break_avg_more, 3))
+  message("  More wealthy boundary:    ", round(break_avg_more, 3), " <= RWI < ", round(break_more_most, 3))
+  message("  Most wealthy boundary:    RWI >= ", round(break_more_most, 3), "  (mean + 1.0 SD)")
+
+  # Categorize each cell
+  gdf_valid$rwi_category <- cut(
+    rwi_vals,
+    breaks = c(-Inf, break_least_less, break_less_avg, break_avg_more, break_more_most, Inf),
+    labels = c("Least wealthy", "Less wealthy", "Average wealth", "More wealthy", "Most wealthy"),
+    include.lowest = TRUE
   )
 
-  total_count <- length(rwi_vals)
+  # Calculate area-based percentages (matching Caroline's approach)
+  total_area <- sum(gdf_valid$area)
+  labels <- c("Least wealthy", "Less wealthy", "Average wealth", "More wealthy", "Most wealthy")
 
-  bin_data <- lapply(bins, function(bin) {
-    if (is.infinite(bin$min_val)) {
-      count <- sum(rwi_vals < bin$max_val)
-    } else if (is.infinite(bin$max_val)) {
-      count <- sum(rwi_vals >= bin$min_val)
+  bin_data <- lapply(labels, function(category) {
+    category_data <- gdf_valid[gdf_valid$rwi_category == category, ]
+    if (nrow(category_data) > 0) {
+      count <- nrow(category_data)
+      area <- sum(category_data$area)
+      percentage <- (area / total_area) * 100
     } else {
-      count <- sum(rwi_vals >= bin$min_val & rwi_vals < bin$max_val)
+      count <- 0
+      percentage <- 0.0
     }
-
     tibble(
-      bin = bin$range,
+      bin = category,
       count = as.integer(count),
-      percentage = round(count / total_count * 100, 2)
+      percentage = round(percentage, 2)
     )
   }) %>% bind_rows()
+
+  # Remove zero-count bins
+  bin_data <- bin_data[bin_data$count > 0, ]
+
+  if (nrow(bin_data) < 5) {
+    message("\nNote: Only ", nrow(bin_data), " wealth categories created (expected 5)")
+  }
 
   if (is.null(output_file)) {
     output_file <- file.path(processed_dir, "rwi_area.csv")
   }
 
   write_csv(bin_data, output_file)
-  message("Cleaned RWI data saved to: ", output_file)
+
+  message("\nCleaned RWI data saved to: ", output_file)
+  message("Wealth categories: ", nrow(bin_data))
+  message("Total grid cells analyzed: ", sum(bin_data$count))
+  message("Percentage coverage verification: ", round(sum(bin_data$percentage), 1), "% (should be ~100%)")
+  message("\nWealth Distribution:")
+  for (i in seq_len(nrow(bin_data))) {
+    message("- ", bin_data$bin[i], ": ", bin_data$count[i], " cells (", bin_data$percentage[i], "%)")
+  }
 
   return(bin_data)
 }
@@ -231,7 +292,7 @@ clean_uba_area <- function(input_tif_file, output_file = NULL) {
 
   # Define bins
   bins <- list(
-    list(range = "Before 1986", min_year = 0, max_year = 1985),
+    list(range = "Before 1985", min_year = 0, max_year = 1985),
     list(range = "1986-1995", min_year = 1986, max_year = 1995),
     list(range = "1996-2005", min_year = 1996, max_year = 2005),
     list(range = "2006-2015", min_year = 2006, max_year = 2015)
@@ -240,7 +301,7 @@ clean_uba_area <- function(input_tif_file, output_file = NULL) {
   total_pixels <- length(valid_vals)
 
   bin_data <- lapply(bins, function(bin) {
-    if (bin$range == "Before 1986") {
+    if (bin$range == "Before 1985") {
       count <- sum(valid_vals <= bin$max_year)
       year_label <- "≤1985"
     } else {
@@ -379,38 +440,59 @@ clean_pv <- function(input_file, output_file = NULL) {
 # =============================================================================
 clean_pv_area <- function(input_tif_file, output_file = NULL) {
   r <- rast(input_tif_file)
-  vals <- values(r)[, 1]
-  valid_vals <- vals[!is.na(vals) & is.finite(vals)]
+  pv_data <- values(r)
 
-  bins <- list(
-    list(range = "<3.5", condition = "Less than Favorable", min_val = 0, max_val = 3.5),
-    list(range = "3.5-4.5", condition = "Favorable", min_val = 3.5, max_val = 4.5),
-    list(range = ">4.5", condition = "Excellent", min_val = 4.5, max_val = Inf)
-  )
+  # Handle both matrix and vector returns from terra
+  if (is.matrix(pv_data)) {
+    vals <- pv_data[, 1]
+  } else {
+    vals <- as.numeric(pv_data)
+  }
+
+  # Get nodata value if available
+  nodata_val <- NULL
+  tryCatch({
+    nodata_val <- sources(r)$source[[1]]$nodata
+  }, error = function(e) {})
+
+  # Filter valid data
+  if (!is.null(nodata_val)) {
+    valid_vals <- vals[vals != nodata_val]
+  } else {
+    valid_vals <- vals[!is.na(vals)]
+  }
+  valid_vals <- valid_vals[is.finite(valid_vals)]
 
   total_pixels <- length(valid_vals)
 
-  bin_data <- lapply(bins, function(bin) {
-    if (is.infinite(bin$max_val)) {
-      count <- sum(valid_vals >= bin$min_val)
-    } else {
-      count <- sum(valid_vals >= bin$min_val & valid_vals < bin$max_val)
-    }
+  # Count pixels in each bin
+  count_less <- sum(valid_vals >= 0 & valid_vals < 3.5)
+  count_favorable <- sum(valid_vals >= 3.5 & valid_vals < 4.5)
+  count_excellent <- sum(valid_vals >= 4.5)
 
-    tibble(
-      bin = bin$range,
-      condition = bin$condition,
-      count = as.integer(count),
-      percentage = round(count / total_pixels * 100, 2)
-    )
-  }) %>% bind_rows()
+  bin_data <- data.frame(
+    bin = c("<3.5", "3.5-4.5", ">4.5"),
+    condition = c("Less than Favorable", "Favorable", "Excellent"),
+    count = c(as.integer(count_less), as.integer(count_favorable), as.integer(count_excellent)),
+    percentage = round(c(count_less, count_favorable, count_excellent) / total_pixels * 100, 2)
+  )
 
   if (is.null(output_file)) {
     output_file <- file.path(processed_dir, "pv_area.csv")
   }
 
   write_csv(bin_data, output_file)
+
   message("Cleaned PV data saved to: ", output_file)
+  message("PV potential bins: ", nrow(bin_data))
+  message("Total pixels analyzed: ", format(total_pixels, big.mark = ","))
+  message("Percentage coverage verification: ", round(sum(bin_data$percentage), 1), "%")
+
+  if (nrow(bin_data) > 0) {
+    dominant_bin <- bin_data[which.max(bin_data$percentage), ]
+    message("Dominant PV condition: ", dominant_bin$condition, " - ", dominant_bin$bin,
+            " (", dominant_bin$percentage, "%)")
+  }
 
   return(bin_data)
 }
@@ -419,8 +501,8 @@ clean_pv_area <- function(input_tif_file, output_file = NULL) {
 # Air Quality Area from TIF (aq_area.csv)
 # =============================================================================
 clean_aq_area <- function(input_tif_file, output_file = NULL) {
-  r <- rast(input_tif_file)
-  vals <- values(r)[, 1]
+  r <- rast(input_tif_file)[["mean_2013_2022"]]
+  vals <- values(r)
   valid_vals <- vals[!is.na(vals) & is.finite(vals) & vals >= 0]
 
   bins <- list(
@@ -510,41 +592,61 @@ clean_summer_area <- function(input_tif_file, output_file = NULL) {
 # =============================================================================
 clean_ndvi_area <- function(input_tif_file, output_file = NULL) {
   r <- rast(input_tif_file)
-  vals <- values(r)[, 1]
-  valid_vals <- vals[!is.na(vals) & is.finite(vals)]
+  ndvi_data <- values(r)
 
-  bins <- list(
-    list(range = "-1-0.015", type = "Water", min_val = -1.0, max_val = 0.015),
-    list(range = "0.015-0.14", type = "Built-up", min_val = 0.015, max_val = 0.14),
-    list(range = "0.14-0.18", type = "Barren", min_val = 0.14, max_val = 0.18),
-    list(range = "0.18-0.27", type = "Shrub and Grassland", min_val = 0.18, max_val = 0.27),
-    list(range = "0.27-0.36", type = "Sparse", min_val = 0.27, max_val = 0.36),
-    list(range = "0.36-1", type = "Dense", min_val = 0.36, max_val = 1.0)
-  )
+  # Handle both matrix and vector returns from terra
+  if (is.matrix(ndvi_data)) {
+    vals <- ndvi_data[, 1]
+  } else {
+    vals <- as.numeric(ndvi_data)
+  }
+
+  # Get nodata value if available
+  nodata_val <- NULL
+  tryCatch({
+    nodata_val <- sources(r)$source[[1]]$nodata
+  }, error = function(e) {})
+
+  # Filter valid data
+  if (!is.null(nodata_val)) {
+    valid_vals <- vals[vals != nodata_val]
+  } else {
+    valid_vals <- vals[!is.na(vals)]
+  }
+  valid_vals <- valid_vals[is.finite(valid_vals)]
 
   total_pixels <- length(valid_vals)
 
-  bin_data <- lapply(bins, function(bin) {
-    if (bin$range == "0.36-1") {
-      count <- sum(valid_vals >= bin$min_val & valid_vals <= bin$max_val)
-    } else {
-      count <- sum(valid_vals >= bin$min_val & valid_vals < bin$max_val)
-    }
+  message("NDVI data range: ", round(min(valid_vals), 3), " - ", round(max(valid_vals), 3))
+  message("Unique values in data: ", length(unique(valid_vals)))
 
-    tibble(
-      bin = bin$range,
-      type = bin$type,
-      count = as.integer(count),
-      percentage = round(count / total_pixels * 100, 2)
-    )
-  }) %>% bind_rows()
+  # Count pixels in each bin (matching Caroline's thresholds exactly)
+  count_water <- sum(valid_vals >= -1.0 & valid_vals < 0.015)
+  count_built <- sum(valid_vals >= 0.015 & valid_vals < 0.14)
+  count_barren <- sum(valid_vals >= 0.14 & valid_vals < 0.18)
+  count_shrub <- sum(valid_vals >= 0.18 & valid_vals < 0.27)
+  count_sparse <- sum(valid_vals >= 0.27 & valid_vals < 0.36)
+  count_dense <- sum(valid_vals >= 0.36 & valid_vals <= 1.0)
+
+  bin_data <- data.frame(
+    bin = c("-1-0.015", "0.015-0.14", "0.14-0.18", "0.18-0.27", "0.27-0.36", "0.36-1"),
+    type = c("Water", "Built-up", "Barren", "Shrub and Grassland", "Sparse", "Dense"),
+    count = c(as.integer(count_water), as.integer(count_built), as.integer(count_barren),
+              as.integer(count_shrub), as.integer(count_sparse), as.integer(count_dense)),
+    percentage = round(c(count_water, count_built, count_barren, count_shrub, count_sparse, count_dense) /
+                       total_pixels * 100, 2)
+  )
 
   if (is.null(output_file)) {
     output_file <- file.path(processed_dir, "ndvi_area.csv")
   }
 
   write_csv(bin_data, output_file)
+
   message("Cleaned NDVI data saved to: ", output_file)
+  message("NDVI vegetation categories: ", nrow(bin_data))
+  message("Total pixels analyzed: ", format(total_pixels, big.mark = ","))
+  message("Percentage coverage verification: ", round(sum(bin_data$percentage), 1), "%")
 
   return(bin_data)
 }
@@ -642,13 +744,13 @@ clean_flood <- function(input_file, output_dir = NULL) {
     mapping <- flood_mappings[[flood_type]]
 
     if (mapping$col %in% names(df)) {
-      result_df <- df %>%
-        arrange(year) %>%
-        transmute(
-          year = row_number(),
-          yearName = year,
-          !!mapping$short := round(.data[[mapping$col]], 2)
-        )
+      df_sorted <- df %>% arrange(year)
+      result_df <- data.frame(
+        year = seq_len(nrow(df_sorted)),
+        yearName = df_sorted$year,
+        stringsAsFactors = FALSE
+      )
+      result_df[[mapping$short]] <- round(df_sorted[[mapping$col]], 2)
 
       output_path <- file.path(output_dir, mapping$file)
       write_csv(result_df, output_path)
@@ -952,6 +1054,71 @@ clean_fwi <- function(input_file, output_file = NULL) {
 }
 
 # =============================================================================
+# Flood Events from Dartmouth Flood Observatory (fe.csv)
+# =============================================================================
+clean_flood_events <- function(output_file = NULL) {
+  source("R/global-data-paths.R")
+
+  if (!file.exists(flood_archive_file)) {
+    message("Flood archive file not found: ", flood_archive_file)
+    return(NULL)
+  }
+
+  # Disable s2 for this operation to avoid geometry processing issues
+  old_s2 <- sf_use_s2()
+  sf_use_s2(FALSE)
+  on.exit(sf_use_s2(old_s2))
+
+  flood_archive <- read_sf(flood_archive_file) %>%
+    st_transform("EPSG:4326")
+
+  # Convert aoi from SpatVector to sf if needed
+  aoi_sf <- if (inherits(aoi, "SpatVector")) st_as_sf(aoi) else aoi
+  aoi_sf <- st_transform(aoi_sf, "EPSG:4326")
+
+  if (nrow(flood_archive) > 0) {
+    flood_archive <- st_make_valid(flood_archive)
+    flood_archive <- flood_archive[st_is_valid(flood_archive),]
+
+    intersections <- which(apply(st_intersects(flood_archive, aoi_sf, sparse = FALSE), 1, any))
+    flood_archive <- flood_archive[intersections,]
+
+    if (nrow(flood_archive) == 0) {
+      message("No flood events found intersecting AOI")
+      return(NULL)
+    }
+
+    floods <- st_drop_geometry(flood_archive) %>%
+      select(BEGAN, ENDED, DEAD, DISPLACED, MAINCAUSE, SEVERITY)
+
+    # Match hardcoded format: begin_year, begin_month, DISPLACED, severity, line1, line2, line3
+    result_df <- floods %>% mutate(
+      begin_year = lubridate::year(BEGAN),
+      begin_month = lubridate::month(BEGAN),
+      DISPLACED = as.numeric(DISPLACED),
+      severity = ordered(SEVERITY, levels = c(1, 1.5, 2), labels = c("Large event", "Very large event", "Extreme event")),
+      line1 = toupper(paste(lubridate::month(BEGAN, label = TRUE, abbr = FALSE), begin_year)),
+      line2 = paste0(scales::label_comma()(DISPLACED), " displaced"),
+      line3 = ""
+    ) %>%
+      select(begin_year, begin_month, DISPLACED, severity, line1, line2, line3)
+
+    if (is.null(output_file)) {
+      output_file <- file.path(processed_dir, "fe.csv")
+    }
+
+    write_csv(result_df, output_file)
+    message("Cleaned flood events data saved to: ", output_file)
+    message("Flood events found: ", nrow(result_df))
+
+    return(result_df)
+  } else {
+    message("Flood archive empty")
+    return(NULL)
+  }
+}
+
+# =============================================================================
 # Main function to clean all data
 # =============================================================================
 clean_all <- function() {
@@ -983,7 +1150,7 @@ clean_all <- function() {
   }, error = function(e) message("Skipping pg: ", e$message))
 
   tryCatch({
-    f <- find_file("demographics")
+    f <- find_file("demographics\\.csv$")
     if (!is.null(f)) { message("Processing demographics..."); clean_pas(f) }
   }, error = function(e) message("Skipping pas: ", e$message))
 
@@ -1046,7 +1213,7 @@ clean_all <- function() {
   }, error = function(e) message("Skipping pv_area: ", e$message))
 
   tryCatch({
-    f <- find_tif("air\\.tif")
+    f <- find_tif("air_quality.*pm2_5\\.tif")
     if (!is.null(f)) { message("Processing air quality TIF..."); clean_aq_area(f) }
   }, error = function(e) message("Skipping aq_area: ", e$message))
 
@@ -1094,7 +1261,14 @@ clean_all <- function() {
     clean_pug()
   }, error = function(e) message("Skipping pug: ", e$message))
 
+  # Flood events from Dartmouth Flood Observatory
+  tryCatch({
+    message("Processing flood events...")
+    clean_flood_events()
+  }, error = function(e) message("Skipping flood_events: ", e$message))
+
   message("\n=== OJS data cleaning complete ===\n")
 }
 
 clean_all()
+source("R/flood-wsf-probability.R")

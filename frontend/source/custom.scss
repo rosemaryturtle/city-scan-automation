@@ -34,15 +34,26 @@ $page-margin-right: 0.5in;
 
 /*-- scss:rules --*/
 
-// SCROLLYTELLING LAYOUT
+// Make leaflet legend items circular for point layers
+.legend-circle i {
+  border-radius: 50% !important;
+  width: 8px !important;
+  height: 8px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin-right: 5px !important;
+}
+
+// SCROLLYTELLING LAYOUTz
 // Sets the page to full screen
-.page-columns main.content {
+.page-columns#quarto-content main.content {
   @media screen {
     grid-column: screen-start / screen-end; // Maybe applies to print if I keep bootstrap style sheets
     display: grid; // Overridden by print
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     grid-template-rows: var(--topbar-height) calc(100vh - var(--topbar-height)) auto auto;
     min-height: 90vh;
+    padding-top: 0;
     padding-bottom: 5vh;
     border-bottom: 2px;
     margin-top: 0;
@@ -64,20 +75,17 @@ $page-margin-right: 0.5in;
     section.level1 {
         width: 95%;
       }
-  
+
     .donors {
-      height: 65vh; // This needs to be dynamic somehow
-      // padding: $side-padding;
-      // display: flex;
-      // flex-direction: column;
-      // justify-content: end;
+      height: 65vh;
+      padding-bottom: 2rem;
       display: grid;
       grid-template: auto auto / 1fr 1fr;
       column-gap: 2ch;
       align-content: end;
       align-items: center;
       justify-items: center;
-  
+
       figure p {
         // text-align: left; // For if using flex instead of grid
         width: 12vw;
@@ -303,7 +311,7 @@ $page-margin-right: 0.5in;
       margin-top: 0;
     }  
 
-    p:has(+ .pseudo-h4), p:last-child {display: none}  // Don't show Go to sections
+    // p:has(+ .pseudo-h4), p:last-child {display: none}  // Show Go to sections
 
   }
 
@@ -379,6 +387,7 @@ $page-margin-right: 0.5in;
     margin: 1.5rem 0 0.5rem 0;
     line-height: 1.2;
     color: var(--bs-heading-color);
+    text-transform: uppercase;
   }
   p { font-size: 1rem; }
   .takeaways { 

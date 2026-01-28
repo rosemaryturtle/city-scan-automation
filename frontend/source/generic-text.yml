@@ -59,12 +59,14 @@ economic_activity:
 built_form:
   wsf:
     title: Urban Extent and Change
-    method: NULL
+    method: |
+      This map shows the expansion of human settlement from 1985 to 2015, based on random forest classification of spectral indices such as normalized vegetation index (NDVI), normalized built-up index (NDBI) and modified normalized difference water index (MNDWI) from Landsat-5/7. The expansion of urban area is very relevant to development as urban expansion can increase a cities exposure to natural hazards, require the extension of services and infrastructure, as well as jurisdiction, and disrupt existing non-urban land uses. In addition, many characteristics may differ by era of development, such as building morpholoy, road network form, and household wealth.
     footnote: Map data from DLR, 2015, "World Settlement Footprint Evolution - Landsat 5/7 - Global".
     plot: urban_built_up_area.html|wsf-uba-plot.png
   wsf_tracker:
     title: Urban Extent and Change, 2016–2025
-    method: NULL
+    method: |
+      This map shows the expansion of human settlement from July 2016 to July 2025. It uses a newer, higher resolution methodology than WSF Evolution (1985–2015); because of this, the data should not be combined, and the 2015 and 2016 extents can differ significantly. The expansion of urban area is very relevant to development as urban expansion can increase a cities exposure to natural hazards, require the extension of services and infrastructure, as well as jurisdiction, and disrupt existing non-urban land uses. In addition, many characteristics may differ by era of development, such as building morpholoy, road network form, and household wealth.
     footnote: Map data from DLR, 2025, "World Settlement Footprint Tracker".
   impervious:
     title: Built-up Density
@@ -108,6 +110,13 @@ climate_conditions:
     method: |
       The concentration of particulate matter (PM) is a key indicator of air quality since it is the most common air pollutant affecting short and long-term health. This map displays the average annual concentration (µg per m<sup>3</sup>) of ground-level fine particulate matter of 2.5 micrometers or smaller (PM2.5). 
       PM2.5 particles are of greater concern than PM10 particles because their small size allows them to travel deeper into the cardiopulmonary system. According to the WHO and the United States EPA standards, PM2.5 concentrations should not exceed between 5 µg/m<sup>3</sup> or 12 µg/m<sup>3</sup>, respectively. Higher concentrations of particulate matter may also reduce the availability of solar energy.
+    footnote: |
+      PM2.5 Grids are derived using annual data from 1998-2019 represent near-surface concentrations.
+      Map data from Hammer, 2022, “Global Annual PM2.5 Grids”.
+  air_quality_trend:
+    title: Air Quality Trend
+    method: |
+      The trend for each cell was determined using a linear fit on yearly averages from 2013 to 2022.
     footnote: |
       PM2.5 Grids are derived using annual data from 1998-2019 represent near-surface concentrations.
       Map data from Hammer, 2022, “Global Annual PM2.5 Grids”.
