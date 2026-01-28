@@ -1,0 +1,75 @@
+type,filename,slide,section,section_order,conditions,warning_text,data_sources
+map,map_network_plus_building_footprints.png,Title,0,1,all,,
+map,map_admin.png,Basic City Information,2,1,all,Check if map name includes 'AOI',01-user-input/AOI.* | 01-user-input/wards.*
+plot,oxford-pop-density-scatter.png,Population Growth & Density,3,1,all,,Oxford Global Cities Data.csv
+plot,oxford-pop-growth.png,Population Growth & Density,3,1,all,,Oxford Global Cities Data.csv
+plot,oxford-age-structure-area.png,Population Distribution by Age,3,2,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+plot,oxford-pop-distro.png,Population Distribution by Age,3,2,oxford,May come from Oxford of WorldPop,Oxford Global Cities Data.csv
+plot,world-pop-age-sex.png,Population Distribution by Age & Sex,3,3,all,,{city}_demographics.csv
+map,map_POP.png,Population Density,3,4,all,,{city}_population.tif
+map,map_rwi.png,Relative Wealth Index,3,6,all,,{city}_rwi.gpkg
+plot,oxford-national-shares.png,"Cities' Shares of National Population, Employment & GDP",4,1,oxford,,Oxford Global Cities Data.csv
+plot,oxford-emp_line.png,"City Growth in GDP, Employment and Population",4,2,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+plot,oxford-gdp_line.png,"City Growth in GDP, Employment and Population",4,2,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+plot,oxford-pop_line.png,"City Growth in GDP, Employment and Population",4,2,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+plot,oxford-gdp-per-capita_line.png,"City Growth in GDP, Employment and Population",4,3,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+map,map_SOL.png,Economic Hotspots,4,4,all,,{city}_avg_rad_sum.tif
+map,map_VIIRS.png,Change in Economic Hot Spots,4,5,all,,{city}_linfit.tif
+plot,oxford-employment-sectors.png,Share of Employment by Sector,4,6,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+plot,oxford-gva-sectors.png,Share of GVA by Sector,4,7,oxford,Check if city is in Oxford Economics dataset,Oxford Global Cities Data.csv
+map,map_WSF_85_95_05_15.png,Urban Extent and Change,5,1,all,,{city}_wsf_evolution.tif
+plot,wsf-uba-plot.png,Urban Extent and Change,5,1,all,,{city}_wsf_stats.csv
+map,map_Impervious.png,Built-up Density,5,2,occasional,Imperviousness is often excluded,{city}_impervious.tif
+map,map_LC.png,Land Cover,5,3,all,,{city}_lc.tif
+plot,wsf-lc-pieplot.png,Land Cover,5,3,all,,{city}_lc.csv
+map,map_network_plot.png,Road Network Layout and Orientation,5,4,all,,{city}_nodes_and_edges.gpkg | {city}_road_bearings.csv | {city}_road_network_basic_stats.csv
+map,map_radar_plot.png,Road Network Layout and Orientation,5,4,all,,{city}_nodes_and_edges.gpkg | {city}_road_bearings.csv | {city}_road_network_basic_stats.csv
+map,map_intersection.png,Intersection Density,5,5,all,,{city}_nodes_and_edges.gpkg
+map,map_school.png,Access to Schools,5,6,all,,{city}_osm_schools.gpkg | {city}_accessibility_school_*.tif
+map,map_hospital.png,Access to Health,5,7,all,,{city}_osm_health.gpkg | {city}_accessibility_health_*.tif
+map,map_solar.png,Solar Photovoltaic Power Potential,6,1,all,,{city}_solar.tif
+plot,monthly-pv.png,Solar Photovoltaic Power Potential,6,1,all,,/vsigs/city-scan-global-data/globalsolar/PVOUT-monthly.tif
+map,map_air_fixedlabel.png,Air Quality,6,2,all,,{city}_air.tif
+map,map_summer.png,Summer Surface Temperature,6,3,all,,{city}_summer.tif
+map,map_winter.png,Winter Surface Temperature,6,4,occasional,Winter surface temperature is rarely included,{city}_winter.tif
+map,map_NDVI.png,Green Spaces,6,5,all,,{city}_ndvi_season.tif
+map,map_deforest.png,Forest & Deforestation,6,6,all,,{city}_deforestation.tif | {city}_forest_cover23.tif
+plot,darthmouth_flood_events.pdf,Significant Flood Events,7,1,all,,FloodArchive_region.shp
+map,map_prob_fu.png,Infrastructure Assets Exposed to River Flooding,7,2,all,,{city}_fluvial_2020.tif
+map,map_prob_pu.png,Infrastructure Assets Exposed to Rainwater Flooding,7,3,all,,{city}_pluvial_2020.tif
+map,map_prob_comb.png,Infrastructure Assets Exposed to Combined River and Rainwater Flooding,7,4,all,,{city}_fluvial_2020.tif | {city}_pluvial_2020.tif | {city}_coastal_2020.tif
+map,map_WSF_fu.png,Urban Built-up Area Exposed to River Flooding,7,5,all,,{city}_fluvial_2020.tif | {city}_wsf_evolution.tif
+plot,wsf-fu-plot.png,Urban Built-up Area Exposed to River Flooding,7,5,all,,{city}_flood_wsf.csv
+map,map_WSF_pu.png,Urban Built-up Area Exposed to Rainwater Flooding,7,6,all,,{city}_pluvial_2020.tif | {city}_wsf_evolution.tif
+plot,wsf-pu-plot.png,Urban Built-up Area Exposed to Rainwater Flooding,7,6,all,,{city}_flood_wsf.csv
+map,map_WSF_comb.png,Urban Built-up Area Exposed to Combined River and Rainwater Flooding,7,7,all,,{city}_fluvial_2020.tif | {city}_pluvial_2020.tif | {city}_coastal_2020.tif | {city}_wsf_evolution.tif
+plot,wsf-pufu-plot.png,Urban Built-up Area Exposed to Combined River and Rainwater Flooding,7,7,all,,{city}_flood_wsf.csv
+map,map_POP_fu.png,Population Exposed to River Flooding,7,8,all,,{city}_fluvial_2020.tif | {city}_population.tif
+map,map_POP_pu.png,Population Exposed to Rainwater Flooding,7,9,all,,{city}_pluvial_2020.tif | {city}_population.tif
+map,map_POP_comb.png,Population Exposed to Combined River and Rainwater Flooding,7,10,all,,{city}_fluvial_2020.tif | {city}_pluvial_2020.tif | {city}_coastal_2020.tif | {city}_population.tif
+map,map_erosion.png,Erosion,7,12,coastal,Take as a screen shot; file never exists.,
+map,map_contour.png,Elevation,7,13,all,,{city}_elevation.tif | {city}_elevation.csv
+plot,wsf-elevation-pieplot.png,Elevation,7,13,,,{city}_elevation.csv
+map,map_slope.png,Slope,7,14,all,,{city}_slope.tif
+plot,wsf-slope-pieplot.png,Slope,7,14,all,,{city}_slope.csv
+map,map_LS.png,Landslide Susceptibility,7,15,all,,{city}_landslide.tif
+plot,ngdc-earthquake-scatter.pdf,Earthquake Events,7,16,,,NGDC earthquake database (API)
+map,map_seismic_hazard.png,Seismic Hazard & Risk,7,18,all,Take as a screen shot; file never exists.,
+map,map_seismic_risk.png,Seismic Hazard & Risk,7,18,all,Take as a screen shot; file never exists.,
+map,map_criticality.png,Road Network Criticality,7,19,all,,{city}_nodes_and_edges.gpkg
+map,map_network_plot.png,Not shown,NA,NA,none,,{city}_nodes_and_edges.gpkg | {city}_road_bearings.csv | {city}_road_network_basic_stats.csv
+map,map_WSF_85_95_05.png,Not shown,NA,NA,none,,
+map,map_WSF_85_95.png,Not shown,NA,NA,none,,
+map,map_WSF_85.png,Not shown,NA,NA,none,,
+map,map_Liquefaction.png,Liquefaction Susceptibility,7,17,all,,{city}_liquefaction.tif
+map,map_LC_burnability.png,Burnability,7,20,all,,{city}_lc_burn.tif
+map,map_NDMI.png,Drought,7,21,all,,{city}_ndmi_season.tif
+map,map_burnt_area.png,Historical Burnt Area and FWI,7,22,all,,{city}_globfire_*.tif
+plot,nasa-fwi.png,Fire Weather Index,7,22,all,,{city}_fwi.csv
+plot,oxford-gdp-per-capita.png,Not shown,NA,NA,none,,Oxford Global Cities Data.csv
+plot,oxford-household-incomes-area.png,Not shown,NA,NA,none,,Oxford Global Cities Data.csv
+plot,oxford-household-incomes-bar.png,Not shown,NA,NA,none,,Oxford Global Cities Data.csv
+map,map_pop_slr_RL10_ssp245.png,Sea Level Rise,7,11,coastal,Is city coastal?,
+map,map_pop_slr_RL10_ssp585.png,Sea Level Rise,7,11,coastal,Is city coastal?,
+map,map_pop_slr_ssp245.png,Sea Level Rise,7,11,costal,Is city coastal?,
+map,map_pop_slr_ssp585.png,Sea Level Rise,7,11,coastal,Is city coastal?,

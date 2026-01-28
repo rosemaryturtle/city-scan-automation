@@ -6,6 +6,10 @@ The primary file is `index.qmd` which Quarto converts to HTML; `index.qmd` is a 
 
 This directory includes both the files for creating a scan (and a template for other scans), and the files for building the scan using Google Cloud. First we will look into creating a scan and its template, and then we will complicate things by doing so in Docker and on Google Cloud.
 
+
+**NEW FEATURE (2025-11):** There is now a `--stream` option for both NATIVE and DIRECT RUN methods, which allows for streaming data from GCS rather than downloading all data locally. See [Running with --stream](frontend_workflow.md) for details.
+
+
 ## Table of Contents <!-- omit in toc -->
 - [The lay of the land…](#the-lay-of-the-land)
 - [Making changes](#making-changes)

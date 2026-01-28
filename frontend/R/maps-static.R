@@ -1,4 +1,5 @@
 # Generating City Scan Maps
+
 if ("frontend" %in% list.files()) setwd("frontend")
 
 # WARNING: Some raster plotting breaks with terra 1.8+, when reprojected, such
@@ -21,7 +22,32 @@ source("R/setup.R", local = T)
 source("R/pre-mapping.R", local = T)
 
 # Define map extent and zoom level adjustment
-static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
+# static_map_bounds <- aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
+
+message("\n=== Generating City Scan Static Maps ===")
+
+static_map_bounds <- tryCatch({
+    lc <- fuzzy_read(spatial_dir, "_lc\\.tif$")
+    if (!inherits(lc, "SpatRaster")) stop("No LC raster")
+
+    urban_mask <- lc == 50
+    ratio <- sum(values(urban_mask) == 1, na.rm = TRUE) / sum(!is.na(values(lc)))
+    cat(sprintf("\nBuilt-up ratio: %.2f\n", ratio))
+
+    if (ratio < 0.10) {
+      message("Centering on built-up core\n")
+      urban_extent <- get_built_extent(urban_mask)
+      aspect_buffer(vect(urban_extent, crs = crs(lc)), aspect_ratio, buffer_percent = 0.15)
+    } else {
+      message("Using full AOI (built-up > 10%)\n")
+      aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
+    }
+
+  }, error = function(e) {
+    message("Using full AOI (fallback: ", e$message, ")\n")
+    aspect_buffer(aoi, aspect_ratio, buffer_percent = 0.05)
+  })
+
 zoom_adjustment <- 0
 
 # Static maps
@@ -89,12 +115,16 @@ unlist(lapply(layer_params, \(x) x$fuzzy_string)) %>%
   }) %>% unlist() -> plot_log
 
 # Non-standard static plots ----------------------------------------------------
-
-source("R/map-isochrones.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
+# source("R/map-isochrones.R", local = T) 
+source("R/map-schools-health-proximity.R", local = T) # Could be standard if layers.yml included baseplot # nolint: line_length_linter.
 source("R/map-elevation.R", local = T) # Could be standard if we wrote city-specific breakpoints to layers.yml
 source("R/map-deforestation.R", local = T) # Could be standard if layers.yml included baseplot and source data had 2000 added
 source("R/map-flooding.R", local = T)
 source("R/map-historical-burnt-area.R", local = T)
+
+source("R/map-ghs-expansion.R", local = T)
+source("R/map-economic-activity-freq.R", local = T)
+source("R/map-economic-activity-kde.R", local = T)
 
 # Save plots -------------------------------------------------------------------
 # Switched to for loop because walk required too much memory; uncertain if helps

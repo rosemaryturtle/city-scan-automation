@@ -126,8 +126,8 @@ if (!is.null(plots$roads)) plots$roads <- plots$roads +
 # Remove grey background, add titles, remove scale bar and north arrow
 for (name in names(plots)) {
   if (name != "scale_bar") {
-    plots[[name]]$layers <- plots[[name]]$layers %>%
-      discard(\(x) inherits(x$geom, c("GeomNorthArrow", "GeomScaleBar")))
+  plots[[name]]$layers <- plots[[name]]$layers %>%
+    discard(\(x) inherits(x$geom, c("GeomNorthArrow", "GeomScaleBar")))
   }
   if (name == "vector") next
   if (name == "aerial") next
@@ -150,12 +150,12 @@ for (name in names(plots)) {
 # Save plots -------------------------------------------------------------------
 transparencies_dir <- file.path(output_dir, "transparent-maps")
 if (!dir.exists(transparencies_dir)) dir.create(transparencies_dir)
-plots %>%
+plots %>% 
   walk2(names(.), \(plot, name) {
   # if (name != "aoi") return(NULL)
   save_plot(plot, filename = glue("{name}.png"), directory = transparencies_dir,
     map_height = map_height + .3, map_width = map_width, dpi = 200, rel_widths = map_portions)
-  })
+})
 
 # Save columns of legends by themselves ----------------------------------------
 

@@ -34,6 +34,19 @@ $page-margin-right: 0.5in;
 
 /*-- scss:rules --*/
 
+// Observable Plot title styling (match Caroline's notebook)
+figure[class*="plot"] text[aria-label="title"],
+svg text[aria-label="title"] {
+  font-weight: 400 !important;
+  font-size: 14px !important;
+}
+
+figure[class*="plot"] text[aria-label="subtitle"],
+svg text[aria-label="subtitle"] {
+  font-style: italic !important;
+  font-size: 12px !important;
+}
+
 // SCROLLYTELLING LAYOUT
 // Sets the page to full screen
 .page-columns main.content {
@@ -301,7 +314,7 @@ $page-margin-right: 0.5in;
       margin-top: 0;
     }  
 
-    p:has(+ .pseudo-h4), p:last-child {display: none}  // Don't show Go to sections
+    // p:has(+ .pseudo-h4), p:last-child {display: none}  // Don't show Go to sections
 
   }
 
@@ -377,6 +390,7 @@ $page-margin-right: 0.5in;
     margin: 1.5rem 0 0.5rem 0;
     line-height: 1.2;
     color: var(--bs-heading-color);
+    text-transform: uppercase;
   }
   p { font-size: 1rem; }
   .takeaways { 
